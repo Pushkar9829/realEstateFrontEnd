@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /lister
+Disallow: /agent
+Disallow: /admin
+Disallow: /account

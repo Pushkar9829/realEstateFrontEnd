@@ -1,0 +1,47 @@
+// RE-E-17 price trend line (plain SVG). series: [{ month: 'YYYY-MM', avgPerSqft (paise), dataPoints }]
+import { useId } from 'react';
+import { rupees } from '@/shared/lib/format';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monthLabel = (m) => { const [y, mm] = String(m).split('-'); return `${MONTHS[Number(mm) - 1] || mm} ${String(y).slice(2)}`; };
+
+export default function TrendChart({ series = [], unit = '/sq ft', height = 180 }) {
+  const gid = useId().replace(/:/g, '');
+  const pts = series.filter((s) => s.avgPerSqft > 0);
+  if (pts.length < 2) return null;
+  const W = 600; const H = height; const P = { l: 64, r: 12, t: 12, b: 26 };
+  const vals = pts.map((p) => p.avgPerSqft);
+  const min = Math.min(...vals) * 0.97; const max = Math.max(...vals) * 1.03;
+  const x = (i) => P.l + (i * (W - P.l - P.r)) / (pts.length - 1);
+  const y = (v) => P.t + (1 - (v - min) / (max - min || 1)) * (H - P.t - P.b);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.avgPerSqft).toFixed(1)}`).join(' ');
+  const area = `${line} L${x(pts.length - 1).toFixed(1)},${H - P.b} L${x(0).toFixed(1)},${H - P.b} Z`;
+  const ticks = [min, (min + max) / 2, max];
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`Average price ${unit} over ${pts.length} months, from ${rupees(vals[0])} to ${rupees(vals[vals.length - 1])}`}>
+      <defs>
+        <linearGradient id={gid} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#2E6599" stopOpacity="0.25" /><stop offset="100%" stopColor="#2E6599" stopOpacity="0" /></linearGradient>
+      </defs>
+      {ticks.map((t) => (
+        <g key={t}>
+          <line x1={P.l} x2={W - P.r} y1={y(t)} y2={y(t)} stroke="#E4E7EC" strokeDasharray="3 3" />
+          <text x={P.l - 6} y={y(t) + 4} textAnchor="end" fontSize="11" fill="#667085">{rupees(t)}</text>
+        </g>
+      ))}
+      <path d={area} fill={`url(#${gid})`} />
+      <path d={line} fill="none" stroke="#1F4E78" strokeWidth="2.5" strokeLinejoin="round" />
+      {pts.map((p, i) => (
+        <g key={p.month}>
+          <circle cx={x(i)} cy={y(p.avgPerSqft)} r="3.5" fill="#fff" stroke="#1F4E78" strokeWidth="2"><title>{`${monthLabel(p.month)}: ${rupees(p.avgPerSqft)}${unit} (${p.dataPoints} data points)`}</title></circle>
+          {(i === 0 || i === pts.length - 1 || pts.length <= 6 || i % 3 === 0) && <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fill="#667085">{monthLabel(p.month)}</text>}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+export function ChangePill({ pct }) {
+  if (pct == null) return <span className="text-ink-subtle">-</span>;
+  const up = pct >= 0;
+  return <span className={up ? 'font-medium text-success-700' : 'font-medium text-danger-700'}>{up ? '▲' : '▼'} {Math.abs(pct)}%</span>;
+}

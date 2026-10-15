@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; scroll-behavior: smooth; }
+  body { @apply font-sans antialiased; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-600; }
+  dialog::backdrop { background: rgba(16, 24, 40, 0.55); }
+}
