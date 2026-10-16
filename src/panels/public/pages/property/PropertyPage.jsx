@@ -4,7 +4,7 @@
 // name, phone, email, unit number and exact address never reach this page.
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarCheck, Flag, HandCoins, MapPin, MessageCircle, MessageSquare, Phone, PhoneCall, Share2, ShieldCheck, Home as HomeIcon } from 'lucide-react';
+import { CalendarCheck, Flag, HandCoins, MapPin, MessageCircle, MessageSquare, Phone, PhoneCall, Share2, ShieldCheck, Building2, Home as HomeIcon } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { date, rupees, shortRupees, titleCase } from '@/shared/lib/format';
 import { Button, Card, Tabs, useToast } from '@/shared/ui';
@@ -229,6 +229,12 @@ export default function PropertyPage() {
                 <div className="min-w-0">
                   <h1 className="text-2xl font-semibold text-ink sm:text-3xl">{p.title}</h1>
                   <p className="mt-1 flex items-center gap-1 text-sm text-ink-muted"><MapPin className="h-4 w-4" aria-hidden />{[p.societyName, p.locality, p.city].filter(Boolean).join(', ')}</p>
+                  {p.project && (
+                    <Link to={`/projects/${p.project.slug}`} className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:underline" data-testid="part-of-project">
+                      <Building2 className="h-4 w-4" aria-hidden />
+                      {p.project.configuration ? t('property.partOfConfig', { project: p.project.name, config: p.project.configuration }) : t('property.partOf', { project: p.project.name })}
+                    </Link>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <ShortlistButton id={p.id} label listingNo={viewNo} purpose={viewPurpose} city={viewCity} />

@@ -4,6 +4,8 @@
 export default {
   en: {
     home: 'Home',
+    partOf: 'Part of {project}',
+    partOfConfig: 'Part of {project} · {config}',
     breadcrumb: 'Breadcrumb',
     share: 'Share',
     call: 'Call',
@@ -326,6 +328,8 @@ export default {
   },
   hi: {
     home: 'होम',
+    partOf: '{project} का हिस्सा',
+    partOfConfig: '{project} का हिस्सा · {config}',
     breadcrumb: 'ब्रेडक्रम्ब',
     share: 'शेयर करें',
     call: 'कॉल करें',
