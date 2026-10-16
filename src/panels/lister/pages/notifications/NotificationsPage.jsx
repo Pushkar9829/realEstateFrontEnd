@@ -6,6 +6,7 @@ import { Bell, CheckCheck } from 'lucide-react';
 import { Alert, Badge, Button, EmptyState, PageHeader, Pagination, Select, Skeleton, Tabs, useToast } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
 import { dateTime, timeAgo } from '@/shared/lib/format';
+import { panelLink } from '../../../shared/NotificationsPage';
 import { NOTIFICATION_CATEGORIES, useMarkAllRead, useMarkRead, useNotifications, useUnreadCount } from '@/modules/notifications/api';
 
 const categoryLabel = (c) => (NOTIFICATION_CATEGORIES.find((x) => x.value === c) || { label: c }).label;
@@ -26,7 +27,7 @@ export default function NotificationsPage() {
 
   const open = async (n) => {
     if (!n.readAt) { try { await markRead.mutateAsync(n._id); } catch (e) { toast.error(e.message); } }
-    if (internal(n.link)) navigate(n.link);
+    if (internal(n.link)) navigate(panelLink(n.link, '/lister')); // /account?tab=... -> the lister's own account page
   };
   const readAll = async () => {
     try { const r = await markAll.mutateAsync(); toast.success(r.updated ? `${r.updated} marked as read` : 'Nothing unread'); } catch (e) { toast.error(e.message); }

@@ -22,7 +22,14 @@ export default function LocationStep({ listing, next, back }) {
   const [results, setResults] = useState(null);
   const [geoError, setGeoError] = useState(null);
   const localities = useLocalities(v.cityId);
-  const s = useStepSave(listing, 2, { onSaved: next });
+  const linked = Boolean(listing.projectId); // RE-G-07: location comes from the project; only the unit number is the lister's
+  const body = () => (linked ? { ...(v.unitNo ? { unitNo: v.unitNo } : {}) } : v.pin && {
+    cityId: v.cityId || undefined, ...(requesting ? { localityRequest: v.localityRequest } : { localityId: v.localityId || undefined }),
+    ...(v.societyName ? { societyName: v.societyName } : {}), addressLine: v.addressLine, ...(v.unitNo ? { unitNo: v.unitNo } : {}), pincode: v.pincode,
+    lat: v.pin.lat, lng: v.pin.lng,
+    landmarks: v.landmarks.filter((l) => l.name).map((l) => ({ type: l.type || 'other', name: l.name, ...(num(l.distanceKm) !== undefined ? { distanceKm: num(l.distanceKm) } : {}) })),
+  });
+  const s = useStepSave(listing, 2, { onSaved: next, value: v, build: body });
   const set = (k, val) => setV((x) => ({ ...x, [k]: val }));
 
   const city = (cities.data || []).find((c) => c._id === v.cityId);
@@ -37,15 +44,18 @@ export default function LocationStep({ listing, next, back }) {
     try { const r = await geocode(`${q}${city ? `, ${city.name}` : ''}`); setResults(r); if (!r.length) setGeoError('No match. Drop the pin on the map instead.'); } catch (e) { setGeoError(e.message); }
   };
 
-  const save = () => {
-    if (!v.pin) { s.run({}); return; } // lets the API report every missing field at once
-    s.run({
-      cityId: v.cityId || undefined, ...(requesting ? { localityRequest: v.localityRequest } : { localityId: v.localityId || undefined }),
-      ...(v.societyName ? { societyName: v.societyName } : {}), addressLine: v.addressLine, ...(v.unitNo ? { unitNo: v.unitNo } : {}), pincode: v.pincode,
-      lat: v.pin.lat, lng: v.pin.lng,
-      landmarks: v.landmarks.filter((l) => l.name).map((l) => ({ type: l.type || 'other', name: l.name, ...(num(l.distanceKm) !== undefined ? { distanceKm: num(l.distanceKm) } : {}) })),
-    });
-  };
+  const save = () => s.run(body() || {}); // without a pin the API reports every missing field at once
+
+  if (linked) {
+    return (
+      <div className="space-y-6">
+        <StepMessages formError={s.formError} />
+        <Alert tone="info">The location is the project's{listing.project ? ` (${listing.project.name})` : ''}: {[loc.societyName, loc.locality, loc.city, loc.pincode].filter(Boolean).join(', ')}. Change it on the project.</Alert>
+        <Input label="Flat / unit number" value={v.unitNo} onChange={(e) => set('unitNo', e.target.value)} leading={<Lock className="h-3.5 w-3.5" />} hint="Private. Used to detect duplicate listings." error={s.errors.unitNo} />
+        <StepFooter onBack={back} saving={s.saving} onSave={save} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

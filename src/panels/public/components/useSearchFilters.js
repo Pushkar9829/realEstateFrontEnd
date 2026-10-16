@@ -1,7 +1,16 @@
 // Search state lives in the URL (RE-S-PUB-02): filters, sort and page.
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { cleanFilters, filtersFromParams } from '@/modules/search/api';
+import { CATEGORIES, FURNISHING, POSSESSION, POSTED_BY, cleanFilters, filtersFromParams } from '@/modules/search/api';
+
+const ENUMS = { category: CATEGORIES, furnishing: FURNISHING, possession: POSSESSION, postedBy: POSTED_BY };
+
+// Translated label for a search enum code (t('search.<group>.<code>')); unknown
+// codes are shown as they are, or as `fallback` when given.
+export function enumLabel(t, group, code, fallback) {
+  if (code && ENUMS[group] && ENUMS[group][code]) return t(`search.${group}.${code}`);
+  return fallback !== undefined ? fallback : code;
+}
 
 export default function useSearchFilters({ extraKeys = [] } = {}) {
   const [sp, setSp] = useSearchParams();

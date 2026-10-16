@@ -11,7 +11,7 @@ import FileDrop from '@/shared/components/FileDrop';
 import { cn } from '@/shared/lib/cn';
 import { date, dateTime } from '@/shared/lib/format';
 import { useAuth } from '@/modules/auth';
-import { docLabel, kycStatus, useAddKycDocument, useOwnKyc, useRemoveKycDocument, useSaveKyc, useSubmitKyc } from '@/modules/kyc/api';
+import { docLabel, kycStatus, useAddKycDocument, useOwnBrand, useOwnKyc, useRemoveKycDocument, useRequestBrand, useSaveKyc, useSubmitKyc } from '@/modules/kyc/api';
 
 const EDITABLE = ['not_started', 'resubmission_required', 'verified'];
 const PAN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -210,6 +210,44 @@ function Declaration({ statements, kyc, ready, locked, defaultName }) {
   );
 }
 
+// RE-B-02 / RE-S-LIS-16 builder brand: shown publicly as "Verified Builder · <brand>" once our team approves it.
+function BrandCard() {
+  const toast = useToast();
+  const { data: brand, isLoading } = useOwnBrand();
+  const request = useRequestBrand();
+  const [name, setName] = useState(null);
+  const [logo, setLogo] = useState(null);
+  const [error, setError] = useState(null);
+  if (isLoading || !brand) return null;
+  const value = name ?? (brand.pending ? brand.pending.name : brand.name) ?? '';
+  const save = async () => {
+    setError(null);
+    try {
+      await request.mutateAsync({ name: value.trim(), ...(logo ? { logoFileId: logo.id } : {}) });
+      setName(null); setLogo(null);
+      toast.success('Brand sent for approval');
+    } catch (e) { setError((e.fieldErrors && Object.values(e.fieldErrors)[0]) || e.message); }
+  };
+  return (
+    <Card>
+      <CardHeader title="Builder brand" description={`Buyers see "${brand.publicLabel}" on your listings and projects. Brand changes are approved by our team; your name, phone and email are never shown.`}
+        action={brand.pending ? <Badge tone="warning" icon={Clock}>Awaiting approval</Badge> : brand.approved ? <Badge tone="success" icon={BadgeCheck}>Approved</Badge> : null} />
+      <div className="space-y-4">
+        {brand.pending && <Alert tone="info">"{brand.pending.name}" was sent on {date(brand.pending.requestedAt)}. {brand.name && brand.approved ? `"${brand.name}" stays on your listings until it is approved.` : ''}</Alert>}
+        {brand.rejectReason && !brand.pending && <Alert tone="warning">Your last brand change was not approved: {brand.rejectReason}</Alert>}
+        <div className="flex flex-wrap items-end gap-4">
+          {(logo || brand.logoUrl) && <img src={logo ? logo.url : brand.logoUrl} alt="Brand logo" className="h-16 w-16 rounded border bg-white object-contain" />}
+          <div className="min-w-[16rem] flex-1"><Input label="Brand name" maxLength={60} value={value} onChange={(e) => setName(e.target.value)} hint="2-60 characters. No phone numbers or email addresses." error={error} /></div>
+        </div>
+        <FileDrop compact purpose="avatar" kind="image" label={logo ? 'Logo uploaded, replace' : 'Upload a logo (optional)'} onUploaded={(f) => setLogo(f)} />
+        <div className="flex justify-end">
+          <Button loading={request.isPending} disabled={value.trim().length < 2 || (!logo && value.trim() === ((brand.pending && brand.pending.name) || brand.name || ''))} onClick={save}>Send for approval</Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function VerificationPage() {
   const { user, refreshUser } = useAuth();
   const { data, isLoading, error } = useOwnKyc();
@@ -253,6 +291,7 @@ export default function VerificationPage() {
             <Declaration statements={(data && data.declarationStatements) || []} kyc={kyc} ready={detailsDone && docsDone} locked={!canSubmit} defaultName={kyc.legalName || user.name} />
           </Card>
         )}
+        {builder && <BrandCard />}
       </div>
     </>
   );

@@ -20,6 +20,8 @@ const Listers = lazy(() => import('./pages/listers/ListersPage'));
 const Trust = lazy(() => import('./pages/trust/TrustPage'));
 const AllListings = lazy(() => import('./pages/listings/AllListingsPage'));
 const Masters = lazy(() => import('./pages/masters/MastersPage'));
+const Staff = lazy(() => import('./pages/staff/StaffPage'));
+const Notifications = lazy(() => import('../shared/NotificationsPage'));
 
 const perm = (key, el) => <RequirePermission permission={key}>{el}</RequirePermission>;
 
@@ -29,6 +31,8 @@ export const adminRoutes = {
   children: [
     { index: true, element: <Dashboard /> },
     { path: 'account', element: <Account /> },
+    { path: 'notifications', element: <Notifications base="/admin" description="Review queues, escalations, security and system notices. Kept for 180 days." /> },
+    { path: 'staff', element: perm('staff.manage', <Staff />) },
     { path: 'kyc', element: perm('listers.verify', <KycQueue />) },
     { path: 'kyc/:userId', element: perm('listers.verify', <KycReview />) },
     { path: 'approvals', element: perm('properties.approve', <ApprovalQueue />) },

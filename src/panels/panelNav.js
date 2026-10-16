@@ -48,7 +48,8 @@ export const AGENT_NAV = [
     { to: '/agent/verification-visits', label: 'Verification visits', icon: MapPin, perm: 'verification.field', module: 'D Site verification' },
   ] },
   { title: 'Account', items: [
-    { to: '/agent/account', label: 'Account and security', icon: UserCog },
+    { to: '/agent/notifications', label: 'Notifications', icon: Bell, module: 'K Notifications' },
+    { to: '/agent/account', label: 'Profile and availability', icon: UserCog, module: 'J Teams' },
   ] },
 ];
 
@@ -72,7 +73,8 @@ export const ADMIN_NAV = [
     { to: '/admin/leads', label: 'All leads', icon: Inbox, perm: 'leads.view_all', module: 'C Leads' },
     { to: '/admin/sla', label: 'Lead queue and SLA', icon: Clock, perm: 'leads.assign', module: 'C Leads' },
     { to: '/admin/routing', label: 'Routing rules', icon: Route, perm: 'routing.manage', module: 'C Leads' },
-    { to: '/admin/teams', label: 'Teams and staff', icon: Users, perm: 'teams.manage', module: 'J Teams' },
+    { to: '/admin/teams', label: 'Teams', icon: Users, perm: 'teams.manage', module: 'J Teams' },
+    { to: '/admin/staff', label: 'Staff users', icon: UserCog, perm: 'staff.manage', module: 'M Accounts' },
     { to: '/admin/visits', label: 'Site visits', icon: MapPin, perm: 'sitevisits.view', module: 'C Leads' },
   ] },
   { title: 'Finance', items: [
@@ -93,6 +95,7 @@ export const ADMIN_NAV = [
     { to: '/admin/feedback', label: 'Reported listings', icon: MessageSquareQuote, perm: 'properties.manage', module: 'E Search' },
   ] },
   { title: 'Account', items: [
+    { to: '/admin/notifications', label: 'Notifications', icon: Bell, module: 'K Notifications' },
     { to: '/admin/account', label: 'Account and security', icon: UserCog },
   ] },
 ];

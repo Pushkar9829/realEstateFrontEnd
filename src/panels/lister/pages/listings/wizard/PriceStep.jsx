@@ -11,15 +11,16 @@ export default function PriceStep({ listing, next, back }) {
   const p = listing.price || {};
   const sale = listing.purpose !== 'rent';
   const [v, setV] = useState({ amount: r(p.amount), monthlyRent: r(p.monthlyRent), deposit: r(p.deposit), maintenance: r(p.maintenance), negotiable: Boolean(p.negotiable), allInclusive: Boolean(p.allInclusive) });
-  const s = useStepSave(listing, 4, { onSaved: next });
+  const body = () => clean({
+    ...(sale ? { amount: num(v.amount) } : { monthlyRent: num(v.monthlyRent), deposit: num(v.deposit) }),
+    maintenance: num(v.maintenance), negotiable: v.negotiable, allInclusive: v.allInclusive,
+  });
+  const s = useStepSave(listing, 4, { onSaved: next, value: v, build: body });
   const f = (k) => ({ value: v[k], onChange: (e) => setV((x) => ({ ...x, [k]: e.target.value })) });
   const main = num(sale ? v.amount : v.monthlyRent);
   const sqft = listing.details && listing.details.areaSqft;
 
-  const save = () => s.run(clean({
-    ...(sale ? { amount: num(v.amount) } : { monthlyRent: num(v.monthlyRent), deposit: num(v.deposit) }),
-    maintenance: num(v.maintenance), negotiable: v.negotiable, allInclusive: v.allInclusive,
-  }));
+  const save = () => s.run(body());
 
   return (
     <div className="space-y-6">

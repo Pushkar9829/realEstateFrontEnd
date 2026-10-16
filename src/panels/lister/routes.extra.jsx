@@ -11,6 +11,7 @@ const Invoices = lazy(() => import('./pages/invoices/InvoicesPage'));
 const InvoiceDetail = lazy(() => import('./pages/invoices/InvoiceDetailPage'));
 const Notifications = lazy(() => import('./pages/notifications/NotificationsPage'));
 const ListingStats = lazy(() => import('./pages/stats/ListingStatsPage'));
+const ListingStatus = lazy(() => import('./pages/listings/ListingStatusPage'));
 
 export const listerExtraRoutes = [
   { path: 'leads', element: <Leads key="leads" /> },
@@ -23,4 +24,6 @@ export const listerExtraRoutes = [
   { path: 'invoices/:id', element: <InvoiceDetail /> },
   { path: 'notifications', element: <Notifications /> },
   { path: 'listings/:id/stats', element: <ListingStats /> },
+  // RE-S-LIS-08: status and history; notification links /lister/listings/:id land here.
+  { path: 'listings/:id', element: <ListingStatus /> },
 ];

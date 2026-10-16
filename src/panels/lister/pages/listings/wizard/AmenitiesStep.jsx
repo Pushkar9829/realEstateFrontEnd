@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { Skeleton } from '@/shared/ui';
+import { Alert, Skeleton } from '@/shared/ui';
 import { useMasters } from '@/modules/listings/api';
 import { StepFooter, StepMessages, useStepSave } from './common';
 
@@ -10,9 +10,21 @@ export default function AmenitiesStep({ listing, next, back }) {
   const masters = useMasters();
   const [sel, setSel] = useState(new Set(listing.amenities || []));
   const [q, setQ] = useState('');
-  const s = useStepSave(listing, 5, { onSaved: next });
+  const linked = Boolean(listing.projectId); // RE-G-07: amenities come from the project
+  const s = useStepSave(listing, 5, { onSaved: next, value: linked ? undefined : [...sel].sort(), build: linked ? undefined : () => ({ amenities: [...sel] }) });
   const all = useMemo(() => ((masters.data && masters.data.amenities) || []).filter((a) => a.name.toLowerCase().includes(q.toLowerCase())), [masters.data, q]);
   const toggle = (code) => setSel((x) => { const n = new Set(x); if (n.has(code)) n.delete(code); else n.add(code); return n; });
+
+  if (linked) {
+    const names = new Map(((masters.data && masters.data.amenities) || []).map((a) => [a.code, a.name]));
+    return (
+      <div className="space-y-5">
+        <Alert tone="info">Amenities come from the project{listing.project ? ` ${listing.project.name}` : ''} and are updated there.</Alert>
+        <div className="flex flex-wrap gap-2">{(listing.amenities || []).map((c) => <span key={c} className="rounded-full border bg-surface-muted px-3.5 py-1.5 text-sm text-ink-muted">{names.get(c) || c}</span>)}</div>
+        <StepFooter onBack={back} onSave={next} saveLabel="Continue" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

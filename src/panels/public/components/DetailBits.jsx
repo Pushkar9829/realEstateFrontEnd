@@ -6,6 +6,7 @@ import { Card } from '@/shared/ui';
 import env from '@/config/env';
 import { useAuth } from '@/modules/auth';
 import { useMyReferral, withRef } from '@/modules/search/prefs';
+import { t as tr, useT } from '@/shared/i18n';
 import { hotlineHref } from './States';
 
 export function Fact({ label, value }) {
@@ -29,28 +30,31 @@ export function Block({ title, children, className, id }) {
 
 // Agent registrations from settings: [{ state, number, validTill }] (shape is admin-entered).
 export function AgentRegistrations({ list, state }) {
+  const t = useT();
   const rows = (Array.isArray(list) ? list : []).filter((r) => r && (!state || !r.state || String(r.state).toLowerCase() === String(state).toLowerCase()));
   if (!rows.length) return null;
-  return <p className="mt-3 text-xs text-ink-subtle">Platform RERA agent registration: {rows.map((r) => [r.number, r.state].filter(Boolean).join(' (') + (r.state ? ')' : '')).join(', ')}</p>;
+  return <p className="mt-3 text-xs text-ink-subtle">{t('property.rera.agent', { list: rows.map((r) => [r.number, r.state].filter(Boolean).join(' (') + (r.state ? ')' : '')).join(', ') })}</p>;
 }
 
 // QR code for the official RERA URL, drawn by GET /api/rera/qr (https on an allowed RERA host only).
 export function ReraQr({ url, number }) {
+  const t = useT();
   const [failed, setFailed] = useState(false);
   if (failed || !/^https:\/\//i.test(String(url || ''))) return null;
   return (
-    <img src={`${env.apiUrl}/rera/qr?${new URLSearchParams({ url })}`} alt={`QR code for RERA ${number || 'registration'} on the official website`}
+    <img src={`${env.apiUrl}/rera/qr?${new URLSearchParams({ url })}`} alt={number ? t('property.rera.qrAlt', { number }) : t('property.rera.qrAltGeneric')}
       width={96} height={96} loading="lazy" onError={() => setFailed(true)} className="h-24 w-24 shrink-0 rounded border bg-white p-1" />
   );
 }
 
 // RERA block (RE-G-08): numbers, authority, official link and QR code (when `rera.showQr`), or the Section 3(2) exemption text.
 export function ReraBlock({ numbers = [], state, url, exempt, registrations, agentRegistrations, showQr = false }) {
+  const t = useT();
   const regs = registrations || numbers.map((n) => ({ number: n, state, url }));
   return (
-    <Block title="RERA details">
+    <Block title={t('property.rera.title')}>
       {exempt ? (
-        <p className="flex items-start gap-2 text-sm text-ink-muted"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success-600" aria-hidden />RERA registration not required under Section 3(2) of the RERA Act.</p>
+        <p className="flex items-start gap-2 text-sm text-ink-muted"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success-600" aria-hidden />{t('property.rera.exempt')}</p>
       ) : (
         <ul className="space-y-2">
           {regs.map((r) => (
@@ -59,7 +63,7 @@ export function ReraBlock({ numbers = [], state, url, exempt, registrations, age
                 <span className="inline-flex items-center gap-2 font-medium text-ink"><FileCheck2 className="h-4 w-4 text-accent-700" aria-hidden />{r.number}{r.phaseLabel && <span className="font-normal text-ink-subtle">· {r.phaseLabel}</span>}</span>
                 <span className="text-xs text-ink-subtle">
                   {r.state && `${r.state} RERA`}
-                  {r.url && <> · <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 break-all text-brand-700 hover:underline">Verify on the {r.state || 'state'} RERA website <ExternalLink className="h-3 w-3" aria-hidden /></a></>}
+                  {r.url && <> · <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 break-all text-brand-700 hover:underline">{r.state ? t('property.rera.verifyOn', { state: r.state }) : t('property.rera.verifyGeneric')} <ExternalLink className="h-3 w-3" aria-hidden /></a></>}
                 </span>
               </div>
               {showQr && r.url && <ReraQr url={r.url} number={r.number} />}
@@ -73,35 +77,37 @@ export function ReraBlock({ numbers = [], state, url, exempt, registrations, age
 }
 
 export function HotlineQuote({ hotline, listingNo, className }) {
+  const t = useT();
   const n = hotline || env.hotline;
   return (
     <a href={hotlineHref(n)} className={cn('flex items-center gap-3 rounded-md border bg-white p-3 hover:border-brand-300', className)}>
       <span className="rounded-full bg-brand-50 p-2 text-brand-600"><Phone className="h-4 w-4" aria-hidden /></span>
       <span className="text-sm">
         <span className="block font-semibold text-ink">{n}</span>
-        {listingNo && <span className="block text-xs text-ink-subtle">Quote listing ID <span className="font-semibold text-ink">{listingNo}</span></span>}
+        {listingNo && <span className="block text-xs text-ink-subtle">{t('property.quoteListing')} <span className="font-semibold text-ink">{listingNo}</span></span>}
       </span>
     </a>
   );
 }
 
 const TO_SQFT = { sqft: 1, sqm: 10.7639, sqyd: 9, acre: 43560, hectare: 107639, bigha: 27000 };
-const UNIT_LABEL = { sqft: 'sq ft', sqm: 'sq m', sqyd: 'sq yd', acre: 'acre' };
+const UNITS = ['sqft', 'sqm', 'sqyd', 'acre'];
 
 // Areas with a unit switcher (stored in the lister's unit).
 export function AreaFacts({ areas }) {
+  const t = useT();
   const [unit, setUnit] = useState('sqft');
   if (!areas) return null;
   const from = TO_SQFT[areas.unit || 'sqft'] || 1;
-  const show = (v) => (v ? `${(+((v * from) / TO_SQFT[unit]).toFixed(unit === 'acre' ? 3 : 0)).toLocaleString('en-IN')} ${UNIT_LABEL[unit]}` : null);
-  const rows = [['Carpet area', areas.carpet], ['Built-up area', areas.builtUp], ['Super built-up area', areas.superBuiltUp], ['Plot area', areas.plot]].filter(([, v]) => v);
+  const show = (v) => (v ? `${(+((v * from) / TO_SQFT[unit]).toFixed(unit === 'acre' ? 3 : 0)).toLocaleString('en-IN')} ${t(`property.area.${unit}`)}` : null);
+  const rows = [[t('property.area.carpet'), areas.carpet], [t('property.area.builtUp'), areas.builtUp], [t('property.area.superBuiltUp'), areas.superBuiltUp], [t('property.area.plot'), areas.plot]].filter(([, v]) => v);
   if (!rows.length) return null;
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-sm font-medium text-ink">Area</p>
-        <select aria-label="Area unit" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-7 rounded border border-line-strong bg-white px-1.5 text-xs">
-          {Object.entries(UNIT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+        <p className="text-sm font-medium text-ink">{t('property.area.title')}</p>
+        <select aria-label={t('property.area.unit')} value={unit} onChange={(e) => setUnit(e.target.value)} className="h-7 rounded border border-line-strong bg-white px-1.5 text-xs">
+          {UNITS.map((k) => <option key={k} value={k}>{t(`property.area.${k}`)}</option>)}
         </select>
       </div>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">{rows.map(([l, v]) => <Fact key={l} label={l} value={show(v)} />)}</dl>
@@ -128,6 +134,6 @@ export async function shareLink(toast, title, refCode) {
   try {
     if (navigator.share) { await navigator.share({ title, url }); return; }
     await navigator.clipboard.writeText(url);
-    toast.success('Link copied');
+    toast.success(tr('property.linkCopied'));
   } catch { /* share sheet closed */ }
 }

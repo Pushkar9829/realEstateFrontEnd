@@ -46,6 +46,7 @@ export const WARNING_LABELS = {
   contact_patterns: 'Text looks like it contains contact details',
   rera_missing: 'RERA details are missing',
   commission_below_current_min: 'Commission is below the current minimum',
+  rera_expired: 'The project RERA registration validity has passed',
 };
 
 export const listingKeys = {

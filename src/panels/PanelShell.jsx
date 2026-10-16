@@ -1,10 +1,12 @@
-// Connects the module-agnostic PanelLayout to the signed-in user, and shows
+// Connects the module-agnostic PanelLayout to the signed-in user, shows the
+// notification bell with the unread count in every panel (RE-S-AGT-15) and
 // account banners (lister KYC, suspended account).
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 import PanelLayout from '@/shared/layouts/PanelLayout';
 import { useToast } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
+import { useUnreadCount } from '@/modules/notifications/api';
 import { visibleNav } from './panelNav';
 
 function ListerBanner({ user }) {
@@ -27,6 +29,7 @@ export default function PanelShell({ nav, label, base, panel }) {
   const auth = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const unread = useUnreadCount({ poll: true });
   const onLogout = async () => {
     await auth.logout();
     toast.info('You have been logged out');
@@ -34,7 +37,7 @@ export default function PanelShell({ nav, label, base, panel }) {
   };
   return (
     <PanelLayout panel={panel} panelLabel={label} base={base} sections={visibleNav(nav, auth)} user={auth.user} onLogout={onLogout}
-      accountTo={`${base}/account`} notificationsTo={panel === 'lister' ? '/lister/notifications' : undefined}
+      accountTo={`${base}/account`} notificationsTo={`${base}/notifications`} notificationsCount={unread.data || 0}
       banner={panel === 'lister' ? <ListerBanner user={auth.user} /> : null} />
   );
 }

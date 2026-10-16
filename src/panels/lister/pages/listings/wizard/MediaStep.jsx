@@ -127,17 +127,22 @@ function VideoAndRera({ listing, builder, next, back }) {
   const r = listing.rera || {};
   const [video, setVideo] = useState((listing.media && listing.media.video && listing.media.video.kind === 'youtube' && listing.media.video.url) || '');
   const [rera, setRera] = useState({ numbers: (r.numbers || []).join(', '), state: r.state || 'Maharashtra', url: r.url || '', certificateFileId: r.certificateFileId || '' });
-  const s = useStepSave(listing, 6, { onSaved: next });
-  const save = () => s.run({
+  const linked = Boolean(listing.projectId); // RE-G-07: RERA is inherited from the project
+  const body = () => ({
     video: video.trim() ? { kind: 'youtube', url: video.trim() } : null,
-    ...(builder && rera.numbers.trim() ? { rera: { numbers: rera.numbers.split(',').map((x) => x.trim()).filter(Boolean), state: rera.state, ...(rera.url ? { url: rera.url } : {}), ...(rera.certificateFileId ? { certificateFileId: rera.certificateFileId } : {}) } } : {}),
+    ...(builder && !linked && rera.numbers.trim() ? { rera: { numbers: rera.numbers.split(',').map((x) => x.trim()).filter(Boolean), state: rera.state, ...(rera.url ? { url: rera.url } : {}), ...(rera.certificateFileId ? { certificateFileId: rera.certificateFileId } : {}) } } : {}),
   });
+  const s = useStepSave(listing, 6, { onSaved: next, value: { video, rera }, build: body });
+  const save = () => s.run(body());
   return (
     <Card>
       <CardHeader title={builder ? 'Video and RERA' : 'Video'} description="A YouTube walkthrough helps buyers shortlist faster." />
       <StepMessages formError={s.formError} warnings={s.warnings} />
       <Input label="YouTube link (optional)" placeholder="https://youtu.be/…" value={video} onChange={(e) => setVideo(e.target.value)} error={s.errors.video} />
-      {builder && (
+      {builder && linked && (
+        <Alert tone="info" className="mt-5">RERA {(r.numbers || []).join(', ') || (r.exempt && r.exempt.reason ? 'exempt' : '-')}{r.state ? ` (${r.state})` : ''} comes from the project{listing.project ? ` ${listing.project.name}` : ''}.</Alert>
+      )}
+      {builder && !linked && (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Input label="RERA registration number(s)" required hint="Separate several numbers with commas" value={rera.numbers} onChange={(e) => setRera((x) => ({ ...x, numbers: e.target.value }))} error={s.errors.rera} />
           <Input label="State" value={rera.state} onChange={(e) => setRera((x) => ({ ...x, state: e.target.value }))} />

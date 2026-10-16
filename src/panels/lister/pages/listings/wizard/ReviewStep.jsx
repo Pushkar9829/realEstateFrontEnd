@@ -28,7 +28,7 @@ export default function ReviewStep({ listing, goto, back }) {
     try {
       const r = await submit.mutateAsync();
       toast.success(r.revision ? 'Changes sent for review' : 'Submitted for approval. Our team reviews listings within 24 hours.');
-      navigate('/lister/listings');
+      navigate(`/lister/listings/${listing._id}`); // RE-S-LIS-08
     } catch (e) {
       toast.error(e.message);
     }

@@ -54,11 +54,19 @@ export const REPORTS = [
   { key: 'leads', label: 'Leads by source', description: 'Lead volume by source, stage, team and city, with conversion to won.' },
   { key: 'funnel', label: 'Pipeline funnel', description: 'Leads that reached each stage in the period and the step-to-step conversion.' },
   { key: 'sla', label: 'First-contact SLA', description: 'Leads per agent that met the first-contact SLA, breaches and average minutes to contact.' },
-  { key: 'commission', label: 'Commission', description: 'Commission earned (verified), invoiced and received by month, outstanding and ageing.' },
+  { key: 'commission', label: 'Commission', description: 'Commission earned (verified), invoiced and received by month, lister, agent or city, outstanding and ageing.' },
   { key: 'listings', label: 'Listings', description: 'Listings by status, city and type, with approval turnaround against the review SLA.' },
   { key: 'ageing', label: 'Receivables ageing', description: 'Outstanding commission in 0-30, 31-60, 61-90 and 90+ day buckets.' },
 ];
 export const reportMeta = (key) => REPORTS.find((r) => r.key === key);
+
+// Commission report breakdown (RE-D-08): GET /admin/reports/commission?groupBy=month|lister|agent|city.
+export const COMMISSION_GROUPS = [
+  { value: 'month', label: 'Month' },
+  { value: 'lister', label: 'Lister' },
+  { value: 'agent', label: 'Agent' },
+  { value: 'city', label: 'City' },
+];
 
 export const useReport = (key, params, enabled = true) => useQuery({ queryKey: ['admin', 'report', key, params], queryFn: () => api.get(`/admin/reports/${key}`, params), enabled: Boolean(key) && enabled });
 

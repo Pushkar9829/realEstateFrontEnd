@@ -101,7 +101,7 @@ function useCrumb(sections, base) {
   }, [sections, pathname, base]);
 }
 
-export default function PanelLayout({ panel = 'admin', panelLabel, base, sections, user, onLogout, accountTo, notificationsTo, banner }) {
+export default function PanelLayout({ panel = 'admin', panelLabel, base, sections, user, onLogout, accountTo, notificationsTo, notificationsCount, banner }) {
   const [drawer, setDrawer] = useState(false);
   const crumb = useCrumb(sections, base);
   return (
@@ -146,7 +146,10 @@ export default function PanelLayout({ panel = 'admin', panelLabel, base, section
               <LifeBuoy className="h-4 w-4" aria-hidden /> Help
             </a>
             {notificationsTo && (
-              <Link to={notificationsTo} className="rounded-md p-2 text-ink-muted hover:bg-surface-sunken hover:text-ink" aria-label="Notifications"><Bell className="h-5 w-5" /></Link>
+              <Link to={notificationsTo} className="relative rounded-md p-2 text-ink-muted hover:bg-surface-sunken hover:text-ink" aria-label={notificationsCount ? `Notifications, ${notificationsCount} unread` : 'Notifications'}>
+                <Bell className="h-5 w-5" />
+                {notificationsCount > 0 && <span className="absolute right-0.5 top-0.5 min-w-[1.1rem] rounded-full bg-danger-600 px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white" aria-hidden>{notificationsCount > 99 ? '99+' : notificationsCount}</span>}
+              </Link>
             )}
             <UserMenu user={user} panelLabel={panelLabel} accountTo={accountTo} onLogout={onLogout} />
           </div>

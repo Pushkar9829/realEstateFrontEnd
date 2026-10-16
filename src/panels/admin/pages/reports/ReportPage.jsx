@@ -1,12 +1,13 @@
 // RE-S-ADM-28 one report: date range, summary stats, charts (plain CSS / SVG)
-// and the table, plus CSV export. A 202 export runs as a job: poll
+// and the table, plus CSV export. The commission report can be grouped by
+// month, lister, agent or city (RE-D-08). A 202 export runs as a job: poll
 // GET /api/admin/exports/:id and offer the download link when ready.
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, RefreshCw } from 'lucide-react';
-import { Alert, Button, Card, CardHeader, Input, PageHeader, Skeleton, Spinner, Table, useToast } from '@/shared/ui';
+import { Alert, Button, Card, CardHeader, Input, PageHeader, Select, Skeleton, Spinner, Table, useToast } from '@/shared/ui';
 import { dateTime, rupees, titleCase } from '@/shared/lib/format';
-import { reportMeta, useExportJob, useReport, useReportExport } from '@/modules/reports/adminApi';
+import { COMMISSION_GROUPS, reportMeta, useExportJob, useReport, useReportExport } from '@/modules/reports/adminApi';
 import { Columns, Funnel, HBars } from './charts';
 
 // Human labels for report fields; anything unlisted falls back to a title-cased key.
@@ -16,6 +17,7 @@ const FIELD_LABELS = {
   avgFirstContactMinutes: 'Avg first contact (min)', slaMet: 'Within SLA', leads: 'Leads', breached: 'Breached', ofPrevious: 'Of previous stage',
   avgApprovalHours: 'Avg approval (h)', maxApprovalHours: 'Slowest approval (h)', slaHours: 'Approval SLA (h)', approved: 'Approved', live: 'Live',
   receivables: 'Receivables', uninvoiced: 'Not yet invoiced', disputed: 'Disputed', tds: 'TDS', gst: 'GST',
+  lister: 'Lister', agent: 'Agent', city: 'City', outstanding: 'Outstanding',
 };
 const fieldLabel = (k) => FIELD_LABELS[k] || titleCase(k.replace(/([a-z])([A-Z])/g, '$1 $2'));
 
@@ -31,6 +33,7 @@ function fmt(key, v, report) {
   if (MONEY.has(key) || (FINANCE.includes(report) && FINANCE_MONEY.has(key))) return rupees(v);
   if (PERCENT.test(key)) return `${v}%`;
   if (typeof v === 'number') return v.toLocaleString('en-IN');
+  if (['lister', 'agent', 'city'].includes(key)) return String(v);
   return titleCase(String(v));
 }
 
@@ -50,7 +53,7 @@ function Summary({ summary, report }) {
 }
 
 function DataTable({ rows, title, report }) {
-  const cols = rows.length ? Object.keys(rows[0]).filter((k) => k !== 'agentId') : [];
+  const cols = rows.length ? Object.keys(rows[0]).filter((k) => !/Id$/.test(k)) : []; // internal ids (agentId, listerId) are not shown
   return (
     <Card padded={false}>
       <div className="px-5 pt-5"><CardHeader title={title || 'Table'} description={`${rows.length} row${rows.length === 1 ? '' : 's'}`} /></div>
@@ -60,7 +63,7 @@ function DataTable({ rows, title, report }) {
   );
 }
 
-function Charts({ k, data }) {
+function Charts({ k, data, groupBy }) {
   const top = (xs, n = 12) => xs.slice(0, n);
   if (k === 'agents') {
     return (
@@ -85,6 +88,15 @@ function Charts({ k, data }) {
   }
   if (k === 'sla') {
     return <Card><CardHeader title="First contact within SLA" /><HBars format={(v) => `${v}%`} rows={top(data.rows).map((r) => ({ label: r.agent, value: r.slaMetPercent, hint: `(${r.slaMet}/${r.leads})`, tone: r.slaMetPercent >= 90 ? 'success' : r.slaMetPercent >= 70 ? 'warning' : 'danger' }))} /></Card>;
+  }
+  if (k === 'commission' && groupBy && groupBy !== 'month') {
+    const label = COMMISSION_GROUPS.find((g) => g.value === groupBy).label;
+    return (
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card><CardHeader title={`Commission verified by ${label.toLowerCase()}`} /><HBars format={rupees} rows={data.rows.slice(0, 12).map((r) => ({ label: r[groupBy] || 'Unknown', value: r.commission, hint: `(${r.deals})` }))} /></Card>
+        <Card><CardHeader title={`Outstanding by ${label.toLowerCase()}`} /><HBars format={rupees} rows={[...data.rows].sort((a, b) => b.outstanding - a.outstanding).slice(0, 12).map((r) => ({ label: r[groupBy] || 'Unknown', value: r.outstanding }))} tone="warning" /></Card>
+      </div>
+    );
   }
   if (k === 'commission') {
     return (
@@ -128,7 +140,10 @@ export default function ReportPage() {
   const [from, setFrom] = useState(isoDay(new Date(now.getTime() - 30 * 86400000)));
   const [to, setTo] = useState(isoDay(now));
   const [exportId, setExportId] = useState(null);
-  const params = { from: `${from}T00:00:00+05:30`, to: `${to}T23:59:59+05:30` };
+  const [groupBy, setGroupBy] = useState('month');
+  const grouped = key === 'commission' && groupBy !== 'month';
+  const params = { from: `${from}T00:00:00+05:30`, to: `${to}T23:59:59+05:30`, ...(grouped ? { groupBy } : {}) };
+  const groupLabel = key === 'commission' ? COMMISSION_GROUPS.find((g) => g.value === groupBy).label : null;
   const { data, isLoading, isFetching, error, refetch } = useReport(key, params, Boolean(meta));
   const exp = useReportExport(key);
 
@@ -154,6 +169,7 @@ export default function ReportPage() {
         <div className="mb-6 flex flex-wrap items-end gap-3">
           <Input label="From" type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
           <Input label="To" type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} />
+          {key === 'commission' && <Select label="Group by" value={groupBy} onChange={(e) => setGroupBy(e.target.value)} options={COMMISSION_GROUPS} />}
           <Button variant="ghost" icon={RefreshCw} loading={isFetching} onClick={() => refetch()}>Refresh</Button>
         </div>
       )}
@@ -166,8 +182,8 @@ export default function ReportPage() {
       ) : data ? (
         <>
           <Summary summary={data.summary} report={key} />
-          <div className="mb-6"><Charts k={key} data={data} /></div>
-          <DataTable report={key} rows={data.rows || []} title={key === 'commission' ? 'By month' : key === 'listings' ? 'By city' : 'Rows'} />
+          <div className="mb-6"><Charts k={key} data={data} groupBy={data.groupBy || groupBy} /></div>
+          <DataTable report={key} rows={data.rows || []} title={key === 'commission' ? `By ${groupLabel.toLowerCase()}` : key === 'listings' ? 'By city' : 'Rows'} />
         </>
       ) : null}
     </>

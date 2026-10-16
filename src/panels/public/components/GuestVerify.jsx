@@ -7,6 +7,7 @@ import { Alert, Button, Checkbox, Input, OtpInput } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
 import { NAME_RX, isIndian, normalisePhone, phoneError, sendGuestOtp, verifyGuestOtp } from '@/modules/leads/publicApi';
 import env from '@/config/env';
+import { t as tr, useT } from '@/shared/i18n';
 import { hotlineHref } from './States';
 
 export function useBuyerIdentity() {
@@ -19,13 +20,13 @@ export const emptyContact = (user) => ({ name: (user && user.name) || '', phone:
 
 export function validateContact(c, { isGuest, requireEmail } = {}) {
   const e = {};
-  if (!NAME_RX.test(String(c.name || '').trim())) e.name = 'Enter your name (2-60 letters)';
+  if (!NAME_RX.test(String(c.name || '').trim())) e.name = tr('property.guest.errName');
   if (isGuest) {
     const pe = phoneError(c.phone);
     if (pe) e.phone = pe;
-    if ((requireEmail || (c.phone && !isIndian(c.phone) && !pe)) && !c.email) e.email = 'Email is required for an international number';
+    if ((requireEmail || (c.phone && !isIndian(c.phone) && !pe)) && !c.email) e.email = tr('property.guest.errEmailIntl');
   }
-  if (c.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) e.email = 'Enter a valid email';
+  if (c.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) e.email = tr('property.guest.errEmail');
   return e;
 }
 
@@ -37,37 +38,40 @@ export const contactBody = (c, isGuest) => ({
 });
 
 export function ContactFields({ value, onChange, errors = {}, isGuest }) {
+  const t = useT();
   const set = (k) => (e) => onChange({ ...value, [k]: e.target.value });
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      <Input label="Your name" required value={value.name} onChange={set('name')} error={errors.name} maxLength={60} autoComplete="name" className="sm:col-span-2" />
-      <Input label="Mobile number" required value={value.phone} onChange={set('phone')} error={errors.phone} disabled={!isGuest} placeholder="98765 43210"
-        inputMode="tel" autoComplete="tel" hint={isGuest ? 'We send a 6-digit code to verify it' : 'From your account'} />
-      <Input label="Email" type="email" value={value.email} onChange={set('email')} error={errors.email} maxLength={120} autoComplete="email" hint="Optional for Indian numbers" />
+      <Input label={t('property.guest.name')} required value={value.name} onChange={set('name')} error={errors.name} maxLength={60} autoComplete="name" className="sm:col-span-2" />
+      <Input label={t('property.guest.mobile')} required value={value.phone} onChange={set('phone')} error={errors.phone} disabled={!isGuest} placeholder="98765 43210"
+        inputMode="tel" autoComplete="tel" hint={isGuest ? t('property.guest.hintOtp') : t('property.guest.hintAccount')} />
+      <Input label={t('property.guest.email')} type="email" value={value.email} onChange={set('email')} error={errors.email} maxLength={120} autoComplete="email" hint={t('property.guest.hintEmail')} />
     </div>
   );
 }
 
 export function ConsentFields({ consent, onConsent, error }) {
+  const t = useT();
   return (
     <Checkbox checked={consent} onChange={(e) => onConsent(e.target.checked)} error={error}
-      label="I agree to be contacted by the platform's sales team"
-      description="Your number is never shared with the owner or builder." />
+      label={t('property.guest.consent')}
+      description={t('property.guest.consentDesc')} />
   );
 }
 
 // Codes where the right answer is "call the hotline" (no reason disclosed).
 export function leadErrorText(err) {
   if (!err) return null;
-  if (err.code === 'RATE_LIMITED' || err.code === 'SEEKER_BLOCKED') return `Too many requests from this number today. Please call our hotline ${env.hotline}.`;
-  if (err.code === 'SELF_ENQUIRY') return 'You cannot enquire on your own listing.';
-  if (err.code === 'NOT_A_BUYER') return 'Staff accounts cannot send enquiries. Log in with a buyer account.';
-  if (err.code === 'OTP_TOKEN_INVALID' || err.code === 'OTP_REQUIRED') return 'Your phone verification expired. Please verify again.';
+  if (err.code === 'RATE_LIMITED' || err.code === 'SEEKER_BLOCKED') return tr('property.guest.errRate', { hotline: env.hotline });
+  if (err.code === 'SELF_ENQUIRY') return tr('property.guest.errSelf');
+  if (err.code === 'NOT_A_BUYER') return tr('property.guest.errNotBuyer');
+  if (err.code === 'OTP_TOKEN_INVALID' || err.code === 'OTP_REQUIRED') return tr('property.guest.errOtp');
   return err.message;
 }
 
 // Sends the code on mount, then verifies it and returns the otpToken.
 export function OtpStep({ phone, email, onVerified, onBack, busy }) {
+  const t = useT();
   const [code, setCode] = useState('');
   const [sentTo, setSentTo] = useState(null);
   const [error, setError] = useState(null);
@@ -84,11 +88,11 @@ export function OtpStep({ phone, email, onVerified, onBack, busy }) {
     } catch (e) { setError(leadErrorText(e)); } finally { setSending(false); }
   };
   useEffect(() => { if (!sentOnce.current) { sentOnce.current = true; send(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (cooldown <= 0) return undefined; const t = setTimeout(() => setCooldown((c) => c - 1), 1000); return () => clearTimeout(t); }, [cooldown]);
+  useEffect(() => { if (cooldown <= 0) return undefined; const id = setTimeout(() => setCooldown((c) => c - 1), 1000); return () => clearTimeout(id); }, [cooldown]);
 
   const verify = async (e) => {
     e.preventDefault();
-    if (code.length !== 6) { setError('Enter the 6-digit code'); return; }
+    if (code.length !== 6) { setError(t('property.guest.enterCode')); return; }
     setVerifying(true); setError(null);
     try {
       const r = await verifyGuestOtp({ phone, code });
@@ -101,16 +105,16 @@ export function OtpStep({ phone, email, onVerified, onBack, busy }) {
     <form onSubmit={verify} className="space-y-4">
       <div className="flex items-start gap-3 rounded-md bg-brand-50 p-3 text-sm text-brand-800">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
-        <p>{sending && !sentTo ? 'Sending a code…' : sentTo === 'email' ? `We emailed a 6-digit code for ${shown}.` : `We sent a 6-digit code by SMS to ${shown}.`} It is valid for 5 minutes.</p>
+        <p>{sending && !sentTo ? t('property.guest.sending') : sentTo === 'email' ? t('property.guest.emailed', { phone: shown }) : t('property.guest.sms', { phone: shown })}{t('property.guest.validFor')}</p>
       </div>
       <OtpInput value={code} onChange={setCode} autoFocus disabled={verifying || busy} />
-      {error && <Alert tone="danger">{error}{/hotline/.test(error) && <> <a className="font-semibold underline" href={hotlineHref()}><Phone className="inline h-3.5 w-3.5" /> Call</a></>}</Alert>}
+      {error && <Alert tone="danger">{error}{(/hotline/.test(error) || (env.hotline && error.includes(env.hotline))) && <> <a className="font-semibold underline" href={hotlineHref()}><Phone className="inline h-3.5 w-3.5" /> {t('property.call')}</a></>}</Alert>}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
-          {onBack && <Button variant="ghost" onClick={onBack}>Change number</Button>}
-          <Button variant="link" disabled={cooldown > 0 || sending} onClick={send}>{cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}</Button>
+          {onBack && <Button variant="ghost" onClick={onBack}>{t('property.guest.changeNumber')}</Button>}
+          <Button variant="link" disabled={cooldown > 0 || sending} onClick={send}>{cooldown > 0 ? t('property.guest.resendIn', { n: cooldown }) : t('property.guest.resend')}</Button>
         </div>
-        <Button type="submit" loading={verifying || busy}>Verify and submit</Button>
+        <Button type="submit" loading={verifying || busy}>{t('property.guest.verifySubmit')}</Button>
       </div>
     </form>
   );

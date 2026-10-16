@@ -19,7 +19,7 @@ const ACTIONS = {
   draft: [['edit', 'Continue editing', Pencil], ['delete', 'Delete draft', Trash2]],
   pending_approval: [['edit', 'View / correct', Pencil], ['withdraw', 'Withdraw from review', Undo2]],
   changes_requested: [['edit', 'Fix and resubmit', Pencil], ['delete', 'Delete', Trash2]],
-  live: [['edit', 'Edit (sent for review)', Pencil], ['pause', 'Pause', Pause], ['deactivate', 'Take off market', XCircle], ['duplicate', 'Duplicate', Copy]],
+  live: [['edit', 'Edit (sent for review)', Pencil], ['view', 'Status and history', Eye], ['pause', 'Pause', Pause], ['deactivate', 'Take off market', XCircle], ['duplicate', 'Duplicate', Copy]],
   paused: [['resume', 'Resume', Play], ['edit', 'Edit', Pencil], ['deactivate', 'Take off market', XCircle]],
   expired: [['renew', 'Renew', RotateCcw], ['duplicate', 'Duplicate', Copy]],
   inactive: [['reactivate', 'Send back to review', RotateCcw], ['duplicate', 'Duplicate', Copy]],
@@ -84,7 +84,7 @@ function ListingCard({ l, onAction }) {
           {l.pendingRevision && l.pendingRevision.submittedAt && <Badge tone="info">Changes in review</Badge>}
           {l.pause && l.status === 'paused' && l.pause.reason === 'no_reply' && <Badge tone="warning">Paused: no reply to check</Badge>}
         </div>
-        <Link to={`/lister/listings/${l._id}/edit`} className="mt-1 block truncate text-base font-semibold text-ink hover:text-brand-700">{l.title || 'Untitled draft'}</Link>
+        <Link to={l.status === 'draft' ? `/lister/listings/${l._id}/edit` : `/lister/listings/${l._id}`} className="mt-1 block truncate text-base font-semibold text-ink hover:text-brand-700">{l.title || 'Untitled draft'}</Link>
         <p className="truncate text-sm text-ink-subtle">{[l.location?.locality, l.location?.city].filter(Boolean).join(', ') || 'Location not added'} · {l.purpose === 'rent' ? 'For rent' : 'For sale'}</p>
         <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-ink-muted">
           <span className="font-semibold text-ink">{price ? `${shortRupees(price)}${l.purpose === 'rent' ? '/mo' : ''}` : 'Price not set'}</span>
@@ -118,6 +118,7 @@ export default function MyListingsPage() {
   };
   const onAction = async (key, l) => {
     if (key === 'stats') { navigate(`/lister/listings/${l._id}/stats`); return; }
+    if (key === 'view') { navigate(`/lister/listings/${l._id}`); return; }
     if (key === 'photo' || key === 'site') { setDialog({ key, l }); return; }
     if (key === 'edit') { navigate(`/lister/listings/${l._id}/edit?step=${l.status === 'changes_requested' ? 8 : 1}`); return; }
     if (['pause', 'deactivate', 'delete'].includes(key)) { setForm(key === 'deactivate' ? { reason: l.purpose === 'rent' ? 'rented_outside' : 'sold_outside' } : {}); setDialog({ key, l }); return; }

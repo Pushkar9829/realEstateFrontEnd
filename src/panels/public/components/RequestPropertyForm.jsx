@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Alert, Button, Checkbox, Input, Select, Textarea } from '@/shared/ui';
+import { useT } from '@/shared/i18n';
 import env from '@/config/env';
 import { useCities, useLocalities, useMasters } from '@/modules/listings/api';
 import { CATEGORIES, csvList } from '@/modules/search/api';
@@ -12,6 +13,12 @@ import { ConsentFields, ContactFields, OtpStep, contactBody, emptyContact, leadE
 import { hotlineHref } from './States';
 
 const BHKS = [1, 2, 3, 4, 5];
+
+// Translated label for a fixed option (falls back to the module's English label).
+function optionLabel(t, key, fallback) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
 
 function fromFilters(f = {}) {
   return {
@@ -32,6 +39,7 @@ function fromFilters(f = {}) {
 }
 
 export default function RequestPropertyForm({ prefill, onDone, compact }) {
+  const t = useT();
   const { isGuest, user, canEnquire } = useBuyerIdentity();
   const cities = useCities();
   const masters = useMasters();
@@ -53,9 +61,12 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
 
   const set = (k) => (e) => setV((s) => ({ ...s, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
   const toggle = (k, x, max) => setV((s) => ({ ...s, [k]: s[k].includes(x) ? s[k].filter((y) => y !== x) : (s[k].length >= max ? s[k] : [...s[k], x]) }));
-  const types = ((masters.data && masters.data.propertyTypes) || []).filter((t) => !v.category || !t.meta || !t.meta.category || t.meta.category === v.category);
+  const types = ((masters.data && masters.data.propertyTypes) || []).filter((pt) => !v.category || !pt.meta || !pt.meta.category || pt.meta.category === v.category);
+  const timelines = TIMELINES.map((o) => ({ value: o.value, label: optionLabel(t, `account.request.timeline.${o.value}`, o.label) }));
+  const categories = Object.entries(CATEGORIES).map(([value, label]) => ({ value, label: optionLabel(t, `account.request.categories.${value}`, label) }));
 
   const submit = async (otpToken) => {
+    // Notes are read by our sales team, so the area line stays in English.
     const notes = [v.areaMin ? `Minimum area ${v.areaMin} sq ft` : '', v.notes.trim()].filter(Boolean).join('. ');
     const body = {
       purpose: v.purpose, city: city ? city.name : v.city, localities: v.localities, ...(v.category ? { category: v.category } : {}), types: v.types, bhk: v.bhk,
@@ -71,12 +82,12 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
   const onContinue = (e) => {
     e.preventDefault();
     const er = validateContact(contact, { isGuest });
-    if (!v.city) er.city = 'Choose a city';
-    if (!(Number(v.budgetMax) > 0)) er.budgetMax = 'Enter your maximum budget';
-    if (v.budgetMin && Number(v.budgetMin) > Number(v.budgetMax)) er.budgetMax = 'Maximum must be at least the minimum';
-    if (!v.timeline) er.timeline = 'Choose a timeline';
-    if (v.notes.length > 500) er.notes = 'Up to 500 characters';
-    if (!consent) er.consent = 'Please agree to be contacted';
+    if (!v.city) er.city = t('account.request.errCity');
+    if (!(Number(v.budgetMax) > 0)) er.budgetMax = t('account.request.errBudget');
+    if (v.budgetMin && Number(v.budgetMin) > Number(v.budgetMax)) er.budgetMax = t('account.request.errBudgetMin');
+    if (!v.timeline) er.timeline = t('account.request.errTimeline');
+    if (v.notes.length > 500) er.notes = t('account.request.errNotes');
+    if (!consent) er.consent = t('account.request.errConsent');
     setErrors(er);
     if (Object.keys(er).length) return;
     if (isGuest) setStage('otp'); else submit();
@@ -86,14 +97,14 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
     return (
       <div className="py-6 text-center">
         <CheckCircle2 className="mx-auto h-12 w-12 text-success-600" aria-hidden />
-        <p className="mt-3 text-lg font-semibold text-ink">Reference {result.leadNo}</p>
-        <p className="mt-1 text-sm text-ink-muted">{result.merged ? 'We updated your open request.' : 'Our team will call you with matching options.'}</p>
-        {result.savedSearchId && <p className="mt-1 text-sm text-ink-muted">We will also alert you daily when matching properties go live.</p>}
-        <p className="mt-4 text-sm text-ink-muted">Call us any time on <a className="font-semibold text-brand-700" href={hotlineHref()}>{env.hotline}</a></p>
+        <p className="mt-3 text-lg font-semibold text-ink">{t('account.request.reference', { no: result.leadNo })}</p>
+        <p className="mt-1 text-sm text-ink-muted">{result.merged ? t('account.request.merged') : t('account.request.willCall')}</p>
+        {result.savedSearchId && <p className="mt-1 text-sm text-ink-muted">{t('account.request.alertDaily')}</p>}
+        <p className="mt-4 text-sm text-ink-muted">{t('account.request.callAny')} <a className="font-semibold text-brand-700" href={hotlineHref()}>{env.hotline}</a></p>
       </div>
     );
   }
-  if (!canEnquire) return <Alert tone="info">Staff accounts cannot raise requests. Use a buyer account or call {env.hotline}.</Alert>;
+  if (!canEnquire) return <Alert tone="info">{t('account.request.staff', { hotline: env.hotline })}</Alert>;
   if (stage === 'otp') {
     return (
       <div>
@@ -103,16 +114,17 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
     );
   }
 
+  const rent = v.purpose === 'rent';
   return (
     <form onSubmit={onContinue} className="space-y-4" noValidate>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Select label="Looking to" required value={v.purpose} onChange={set('purpose')} options={[{ value: 'sale', label: 'Buy' }, { value: 'rent', label: 'Rent' }]} />
-        <Select label="City" required placeholder="Choose a city" value={city ? city.code : ''} error={errors.city}
+        <Select label={t('account.request.lookingTo')} required value={v.purpose} onChange={set('purpose')} options={[{ value: 'sale', label: t('account.request.buy') }, { value: 'rent', label: t('account.request.rent') }]} />
+        <Select label={t('common.city')} required placeholder={t('account.request.chooseCity')} value={city ? city.code : ''} error={errors.city}
           onChange={(e) => setV((s) => ({ ...s, city: e.target.value, localities: [] }))} options={(cities.data || []).map((c) => ({ value: c.code, label: c.name }))} />
       </div>
       {city && (localities.data || []).length > 0 && (
         <fieldset>
-          <legend className="mb-1.5 text-sm font-medium text-ink">Localities <span className="font-normal text-ink-subtle">(up to 5)</span></legend>
+          <legend className="mb-1.5 text-sm font-medium text-ink">{t('account.request.localities')} <span className="font-normal text-ink-subtle">{t('account.request.upTo5')}</span></legend>
           <div className={cn('flex flex-wrap gap-1.5 overflow-y-auto', compact ? 'max-h-28' : 'max-h-40')}>
             {localities.data.map((l) => {
               const on = v.localities.includes(l.name);
@@ -122,32 +134,32 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
         </fieldset>
       )}
       <div className="grid gap-3 sm:grid-cols-2">
-        <Select label="Category" placeholder="Any" value={v.category} onChange={(e) => setV((s) => ({ ...s, category: e.target.value, types: [] }))} options={Object.entries(CATEGORIES).map(([value, label]) => ({ value, label }))} />
-        <Select label="Type" placeholder="Any type" value={v.types[0] || ''} onChange={(e) => setV((s) => ({ ...s, types: e.target.value ? [e.target.value] : [] }))} options={types.map((t) => ({ value: t.code, label: t.name }))} />
+        <Select label={t('account.request.category')} placeholder={t('account.request.any')} value={v.category} onChange={(e) => setV((s) => ({ ...s, category: e.target.value, types: [] }))} options={categories} />
+        <Select label={t('account.request.type')} placeholder={t('account.request.anyType')} value={v.types[0] || ''} onChange={(e) => setV((s) => ({ ...s, types: e.target.value ? [e.target.value] : [] }))} options={types.map((pt) => ({ value: pt.code, label: pt.name }))} />
       </div>
       {v.category !== 'commercial' && v.category !== 'land' && (
         <fieldset>
           <legend className="mb-1.5 text-sm font-medium text-ink">BHK</legend>
           <div className="flex flex-wrap gap-1.5">
-            {BHKS.map((b) => { const on = v.bhk.includes(b); return <button key={b} type="button" aria-pressed={on} onClick={() => toggle('bhk', b, 6)} className={cn('rounded-full border px-3 py-1 text-sm', on ? 'border-brand-600 bg-brand-50 font-medium text-brand-700' : 'border-line-strong bg-white text-ink-muted')}>{b === 5 ? '5+' : b} BHK</button>; })}
+            {BHKS.map((b) => { const on = v.bhk.includes(b); return <button key={b} type="button" aria-pressed={on} onClick={() => toggle('bhk', b, 6)} className={cn('rounded-full border px-3 py-1 text-sm', on ? 'border-brand-600 bg-brand-50 font-medium text-brand-700' : 'border-line-strong bg-white text-ink-muted')}>{t('account.request.bhk', { n: b === 5 ? '5+' : b })}</button>; })}
           </div>
         </fieldset>
       )}
       <div className="grid gap-3 sm:grid-cols-3">
-        <Input label={`Budget min (₹${v.purpose === 'rent' ? '/month' : ''})`} type="number" min="0" inputMode="numeric" value={v.budgetMin} onChange={set('budgetMin')} />
-        <Input label={`Budget max (₹${v.purpose === 'rent' ? '/month' : ''})`} required type="number" min="0" inputMode="numeric" value={v.budgetMax} onChange={set('budgetMax')} error={errors.budgetMax} />
-        <Input label="Min area (sq ft)" type="number" min="0" inputMode="numeric" value={v.areaMin} onChange={set('areaMin')} />
+        <Input label={t(rent ? 'account.request.budgetMinRent' : 'account.request.budgetMin')} type="number" min="0" inputMode="numeric" value={v.budgetMin} onChange={set('budgetMin')} />
+        <Input label={t(rent ? 'account.request.budgetMaxRent' : 'account.request.budgetMax')} required type="number" min="0" inputMode="numeric" value={v.budgetMax} onChange={set('budgetMax')} error={errors.budgetMax} />
+        <Input label={t('account.request.minArea')} type="number" min="0" inputMode="numeric" value={v.areaMin} onChange={set('areaMin')} />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Select label={v.purpose === 'rent' ? 'Move-in timeline' : 'Purchase timeline'} required placeholder="Choose" value={v.timeline} onChange={set('timeline')} options={TIMELINES} error={errors.timeline} />
-        <div className="flex items-end pb-2"><Checkbox label="Home loan needed" checked={v.loanNeeded} onChange={set('loanNeeded')} /></div>
+        <Select label={t(rent ? 'account.request.moveIn' : 'account.request.purchase')} required placeholder={t('account.request.choose')} value={v.timeline} onChange={set('timeline')} options={timelines} error={errors.timeline} />
+        <div className="flex items-end pb-2"><Checkbox label={t('account.request.loan')} checked={v.loanNeeded} onChange={set('loanNeeded')} /></div>
       </div>
-      <Textarea label="Anything else? (optional)" rows={3} maxLength={500} value={v.notes} onChange={set('notes')} error={errors.notes} hint={`${v.notes.length}/500`} />
+      <Textarea label={t('account.request.notes')} rows={3} maxLength={500} value={v.notes} onChange={set('notes')} error={errors.notes} hint={`${v.notes.length}/500`} />
       <ContactFields value={contact} onChange={setContact} errors={errors} isGuest={isGuest} />
       <ConsentFields consent={consent} onConsent={setConsent} error={errors.consent} />
-      {!isGuest && <Checkbox label="Also alert me when matching properties are listed" checked={v.alertMe} onChange={set('alertMe')} />}
+      {!isGuest && <Checkbox label={t('account.request.alertMe')} checked={v.alertMe} onChange={set('alertMe')} />}
       {req.error && <Alert tone="danger">{leadErrorText(req.error)}</Alert>}
-      <div className="flex justify-end"><Button type="submit" loading={req.isPending}>{isGuest ? 'Continue' : 'Send request'}</Button></div>
+      <div className="flex justify-end"><Button type="submit" loading={req.isPending}>{isGuest ? t('account.request.continue') : t('account.request.send')}</Button></div>
     </form>
   );
 }

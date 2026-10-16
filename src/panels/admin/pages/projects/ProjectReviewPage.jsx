@@ -52,6 +52,7 @@ export default function ProjectReviewPage() {
           {['live', 'sold_out'].includes(p.status) && hasPermission('properties.manage') && <Button variant="secondary" icon={Star} onClick={() => act({ action: p.featured?.on ? 'unfeature' : 'feature' }, p.featured?.on ? 'Removed from featured' : 'Featured on the home page')}>{p.featured?.on ? 'Unfeature' : 'Feature'}</Button>}
         </>} />
       {claimActive && !mine && <Alert tone="warning" className="mb-4">Another reviewer holds this project until {dateTime(p.review.claimUntil)}.</Alert>}
+      {p.reraExpiry && ['expiring', 'expired'].includes(p.reraExpiry.status) && <Alert tone={p.reraExpiry.status === 'expired' ? 'danger' : 'warning'} className="mb-4" title={p.reraExpiry.status === 'expired' ? 'RERA validity has passed' : 'RERA validity ends soon'}>Registration {p.reraExpiry.number} valid till {dateTime(p.reraExpiry.validTill)}. Pause the project's listings (reason admin review) if no extension is uploaded.</Alert>}
       {(p.reraWarnings || []).length > 0 && <Alert tone="warning" className="mb-4" title="RERA auto-checks"><ul className="list-disc pl-4">{p.reraWarnings.map((w) => <li key={w}>{reraWarning(w)}</li>)}</ul></Alert>}
 
       <div className="grid gap-6 xl:grid-cols-3">

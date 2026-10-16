@@ -3,18 +3,20 @@
 import { useId, useState } from 'react';
 import { BadgeCheck, Camera, FileCheck2, MapPinned } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { useT } from '@/shared/i18n';
 
 const META = {
-  verified_lister: { icon: BadgeCheck, cls: 'bg-success-50 text-success-700', text: 'Our team checked the lister\'s ID and ownership documents before this listing went live.' },
-  photo_verified: { icon: Camera, cls: 'bg-info-50 text-info-700', text: 'Photos were taken at the property with a location check and reviewed by our team.' },
-  site_verified: { icon: MapPinned, cls: 'bg-brand-50 text-brand-700', text: 'Our field team visited this property.' },
-  rera: { icon: FileCheck2, cls: 'bg-accent-50 text-accent-700', text: 'This project is registered with RERA. Check the number on the official RERA website.' },
+  verified_lister: { icon: BadgeCheck, cls: 'bg-success-50 text-success-700', text: 'property.badge.verified_lister' },
+  photo_verified: { icon: Camera, cls: 'bg-info-50 text-info-700', text: 'property.badge.photo_verified' },
+  site_verified: { icon: MapPinned, cls: 'bg-brand-50 text-brand-700', text: 'property.badge.site_verified' },
+  rera: { icon: FileCheck2, cls: 'bg-accent-50 text-accent-700', text: 'property.badge.rera' },
 };
 
 export function VerificationBadge({ badge, size = 'sm' }) {
+  const t = useT();
   const id = useId();
   const [open, setOpen] = useState(false);
-  const m = META[badge.code] || { icon: BadgeCheck, cls: 'bg-surface-sunken text-ink-muted', text: badge.label };
+  const m = META[badge.code] || { icon: BadgeCheck, cls: 'bg-surface-sunken text-ink-muted' };
   const Icon = m.icon;
   return (
     <span className="relative inline-flex">
@@ -25,7 +27,7 @@ export function VerificationBadge({ badge, size = 'sm' }) {
         <Icon className={size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'} aria-hidden />{badge.label}
       </button>
       <span id={id} role="tooltip" className={cn('absolute bottom-full left-0 z-30 mb-1.5 w-60 rounded-md bg-ink px-3 py-2 text-xs font-normal leading-snug text-white shadow-lg', open ? 'block' : 'hidden')}>
-        {badge.tooltip || m.text}
+        {badge.tooltip || (m.text ? t(m.text) : badge.label)}
       </span>
     </span>
   );

@@ -1,5 +1,8 @@
-// Shared pieces for the listing wizard steps.
-import { useState } from 'react';
+// Shared pieces for the listing wizard steps, including RE-A-16 autosave:
+// a step that passes `value` (its form state) and `build` (value -> request
+// body) to useStepSave is saved every 30 s while it differs from what was
+// last saved, and reports "dirty" to the wizard shell for the unsaved guard.
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Alert, Button, useToast } from '@/shared/ui';
 import { useSaveStep, WARNING_LABELS } from '@/modules/listings/api';
@@ -7,18 +10,57 @@ import { useSaveStep, WARNING_LABELS } from '@/modules/listings/api';
 export const num = (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Number(v));
 export const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== '' && !(typeof v === 'number' && Number.isNaN(v))));
 
+export const AUTOSAVE_MS = 30_000;
+
+// Provided by WizardPage: { setDirty(bool), savedAt(date), autosaveError(msg|null), autosave: bool }.
+export const WizardContext = createContext({ setDirty: () => {}, saved: () => {}, autosaveFailed: () => {}, autosave: false });
+
 // Saves one wizard step; maps 422 field errors and reports draft vs revision.
-export function useStepSave(listing, step, { onSaved } = {}) {
+export function useStepSave(listing, step, { onSaved, value, build } = {}) {
   const save = useSaveStep(listing._id);
   const toast = useToast();
+  const wizard = useContext(WizardContext);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState(null);
   const [warnings, setWarnings] = useState([]);
+  const current = value === undefined ? null : JSON.stringify(value);
+  const baseline = useRef(current);
+  const [, setTick] = useState(0);
+  const dirty = current !== null && current !== baseline.current;
+
+  useEffect(() => { wizard.setDirty(dirty); }, [dirty]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => wizard.setDirty(false), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // setDirty(false) runs before onSaved navigates, so the unsaved guard does not fire; the next render re-reports.
+  const markSaved = (snapshot) => { baseline.current = snapshot; wizard.setDirty(false); wizard.saved(new Date()); setTick((n) => n + 1); };
+
+  // Quiet background save: no toast, no navigation, field errors stay hidden until a manual save.
+  const autoRun = async () => {
+    const body = build && build();
+    if (!body) return;
+    const snapshot = current;
+    try {
+      await save.mutateAsync({ step, body });
+      markSaved(snapshot);
+    } catch (e) {
+      wizard.autosaveFailed(Object.keys(e.fieldErrors || {}).length ? 'Some fields need attention; save the step to see them' : e.message);
+    }
+  };
+  const latest = useRef(null);
+  latest.current = { dirty, autoRun, pending: save.isPending };
+  useEffect(() => {
+    if (!build || !wizard.autosave) return undefined;
+    const t = setInterval(() => { const l = latest.current; if (l.dirty && !l.pending) l.autoRun(); }, AUTOSAVE_MS);
+    return () => clearInterval(t);
+  }, [Boolean(build), wizard.autosave]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const run = async (body) => {
     setErrors({}); setFormError(null);
+    const snapshot = current;
     try {
       const res = await save.mutateAsync({ step, body });
+      if (snapshot !== null) markSaved(snapshot);
+      else wizard.saved(new Date());
       setWarnings(res.warnings || []);
       if (res.applied === 'revision') toast.info('Saved as a change for review. The live listing stays as it is until approved.');
       else if (res.applied === 'live') toast.success('Price updated on the live listing');
@@ -34,7 +76,7 @@ export function useStepSave(listing, step, { onSaved } = {}) {
       return null;
     }
   };
-  return { run, saving: save.isPending, errors, formError, warnings };
+  return { run, saving: save.isPending, errors, formError, warnings, dirty };
 }
 
 export function StepFooter({ onBack, onSave, saving, saveLabel = 'Save and continue', disabled }) {

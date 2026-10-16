@@ -16,17 +16,17 @@ export default function DetailsStep({ listing, next, back }) {
     possession: d.possession?.status || 'ready', possessionDate: d.possession?.date ? String(d.possession.date).slice(0, 10) : '',
     covered: d.parking?.covered ?? 0, open: d.parking?.open ?? 0,
   });
-  const s = useStepSave(listing, 3, { onSaved: next });
-  const f = (k) => ({ value: v[k], onChange: (e) => setV((x) => ({ ...x, [k]: e.target.value })) });
-  const areaErr = s.errors.areas;
-
-  const save = () => s.run(clean({
+  const body = () => clean({
     ...(residential ? { bhk: num(v.bhk), baths: num(v.baths), balconies: num(v.balconies) } : {}),
     areas: clean({ carpet: num(v.carpet), builtUp: num(v.builtUp), superBuiltUp: num(v.superBuiltUp), plot: num(v.plot), unit: v.unit }),
     ...(land ? {} : { floor: num(v.floor), totalFloors: num(v.totalFloors), furnishing: v.furnishing || undefined, facing: v.facing || undefined, ageYears: num(v.ageYears) }),
     possession: { status: v.possession, ...(v.possession === 'under_construction' && v.possessionDate ? { date: v.possessionDate } : {}) },
     ...(land ? {} : { parking: { covered: num(v.covered) || 0, open: num(v.open) || 0 } }),
-  }));
+  });
+  const s = useStepSave(listing, 3, { onSaved: next, value: v, build: body });
+  const f = (k) => ({ value: v[k], onChange: (e) => setV((x) => ({ ...x, [k]: e.target.value })) });
+  const areaErr = s.errors.areas;
+  const save = () => s.run(body());
 
   return (
     <div className="space-y-6">

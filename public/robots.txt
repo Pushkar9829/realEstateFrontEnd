@@ -4,3 +4,7 @@ Disallow: /lister
 Disallow: /agent
 Disallow: /admin
 Disallow: /account
+Disallow: /shortlist
+Disallow: /my-enquiries
+Disallow: /notifications
+Disallow: /compare

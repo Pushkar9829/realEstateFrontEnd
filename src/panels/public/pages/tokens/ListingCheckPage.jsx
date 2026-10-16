@@ -6,18 +6,21 @@ import { CheckCircle2, Link2Off, PauseCircle, BadgeIndianRupee, Home } from 'luc
 import { cn } from '@/shared/lib/cn';
 import { date } from '@/shared/lib/format';
 import { Alert, Button, Card, Input, Skeleton, Textarea } from '@/shared/ui';
+import { useT } from '@/shared/i18n';
+import useDocumentMeta from '@/shared/hooks/useDocumentMeta';
 import { useAnswerListingCheck, useListingCheck } from '@/modules/search/api';
 import { HotlineButton, NarrowPage, NotAvailable } from '../../components/States';
 
 const CHOICES = [
-  { value: 'available', label: 'Yes, still available', icon: CheckCircle2, text: 'Keeps the listing live and marks it as confirmed today.' },
-  { value: 'sold_elsewhere', label: 'Sold or rented elsewhere', icon: BadgeIndianRupee, text: 'Takes the listing off the market. Our team may check the deal against the agreement.' },
-  { value: 'pause', label: 'Pause for now', icon: PauseCircle, text: 'Hides the listing until you resume it from your panel.' },
+  { value: 'available', label: 'account.listingCheck.availableLabel', icon: CheckCircle2, text: 'account.listingCheck.availableText' },
+  { value: 'sold_elsewhere', label: 'account.listingCheck.soldLabel', icon: BadgeIndianRupee, text: 'account.listingCheck.soldText' },
+  { value: 'pause', label: 'account.listingCheck.pauseLabel', icon: PauseCircle, text: 'account.listingCheck.pauseText' },
 ];
-const ANSWER_TEXT = { available: 'Thanks. Your listing stays live and is marked as confirmed.', sold_elsewhere: 'Thanks. The listing is now off the market.', pause: 'Thanks. The listing is paused; resume it any time from your panel.' };
+const ANSWER_TEXT = { available: 'account.listingCheck.doneAvailable', sold_elsewhere: 'account.listingCheck.doneSold', pause: 'account.listingCheck.donePause' };
 
 export default function ListingCheckPage() {
   const { token } = useParams();
+  const t = useT();
   const q = useListingCheck(token);
   const answer = useAnswerListingCheck(token);
   const [choice, setChoice] = useState('');
@@ -25,16 +28,17 @@ export default function ListingCheckPage() {
   const [price, setPrice] = useState('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState(null);
+  useDocumentMeta({ title: t('account.meta.listingCheck'), noindex: true });
 
   if (q.isLoading) return <NarrowPage><Skeleton className="h-80 w-full" /></NarrowPage>;
-  if (q.isError) return <NotAvailable icon={Link2Off} title="This link is not valid" description="Open the latest message from us, or update the listing from your panel." action={<HotlineButton />} />;
+  if (q.isError) return <NotAvailable icon={Link2Off} title={t('account.listingCheck.invalidTitle')} description={t('account.listingCheck.invalidText')} action={<HotlineButton />} />;
   const c = q.data;
   const done = answer.data || (c.answered ? { answer: c.answer, listingStatus: c.status } : null);
 
   const submit = (e) => {
     e.preventDefault();
-    if (!choice) { setError('Choose an answer'); return; }
-    if (choice === 'sold_elsewhere' && !saleDate) { setError('Give the sale or move-in date'); return; }
+    if (!choice) { setError(t('account.listingCheck.errChoose')); return; }
+    if (choice === 'sold_elsewhere' && !saleDate) { setError(t('account.listingCheck.errDate')); return; }
     setError(null);
     answer.mutate({ answer: choice, ...(choice === 'sold_elsewhere' ? { saleDate, ...(Number(price) > 0 ? { price: Number(price) } : {}) } : {}), ...(choice === 'pause' && reason.trim() ? { reason: reason.trim() } : {}) },
       { onError: (err) => setError(err.message) });
@@ -43,41 +47,41 @@ export default function ListingCheckPage() {
   return (
     <NarrowPage>
       <Card>
-        <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">Availability check</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">{t('account.listingCheck.eyebrow')}</p>
         <div className="mt-3 flex items-center gap-3">
           {c.cover ? <img src={c.cover} alt="" className="h-16 w-20 shrink-0 rounded object-cover" /> : <span className="flex h-16 w-20 shrink-0 items-center justify-center rounded bg-surface-sunken text-ink-subtle"><Home className="h-5 w-5" aria-hidden /></span>}
           <div className="min-w-0">
             <h1 className="truncate font-semibold text-ink">{c.title}</h1>
             <p className="text-xs text-ink-subtle">{c.listingNo}{c.locality ? ` · ${c.locality}` : ''}</p>
-            {c.dueBy && !done && <p className="text-xs text-warning-700">Please answer by {date(c.dueBy)}, or the listing is paused automatically.</p>}
+            {c.dueBy && !done && <p className="text-xs text-warning-700">{t('account.listingCheck.dueBy', { date: date(c.dueBy) })}</p>}
           </div>
         </div>
         {done ? (
-          <Alert tone="success" className="mt-5" title="Answer saved">{ANSWER_TEXT[done.answer] || 'Thanks, we have your answer.'}</Alert>
+          <Alert tone="success" className="mt-5" title={t('account.listingCheck.saved')}>{t(ANSWER_TEXT[done.answer] || 'account.listingCheck.doneDefault')}</Alert>
         ) : (
           <form onSubmit={submit} className="mt-5 space-y-4">
-            <p className="text-sm font-medium text-ink">Is this property still available?</p>
+            <p className="text-sm font-medium text-ink">{t('account.listingCheck.question')}</p>
             <div className="space-y-2" role="radiogroup">
               {CHOICES.map((o) => (
                 <button key={o.value} type="button" role="radio" aria-checked={choice === o.value} onClick={() => setChoice(o.value)}
                   className={cn('flex w-full items-start gap-3 rounded-lg border p-3 text-left', choice === o.value ? 'border-brand-600 bg-brand-50' : 'border-line-strong bg-white hover:border-brand-300')}>
                   <o.icon className={cn('mt-0.5 h-5 w-5 shrink-0', choice === o.value ? 'text-brand-600' : 'text-ink-subtle')} aria-hidden />
-                  <span><span className="block text-sm font-medium text-ink">{o.label}</span><span className="block text-xs text-ink-subtle">{o.text}</span></span>
+                  <span><span className="block text-sm font-medium text-ink">{t(o.label)}</span><span className="block text-xs text-ink-subtle">{t(o.text)}</span></span>
                 </button>
               ))}
             </div>
             {choice === 'sold_elsewhere' && (
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Sale or move-in date" type="date" required max={new Date().toISOString().slice(0, 10)} value={saleDate} onChange={(e) => setSaleDate(e.target.value)} />
-                <Input label="Price (₹, optional)" type="number" min="0" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} />
+                <Input label={t('account.listingCheck.saleDate')} type="date" required max={new Date().toISOString().slice(0, 10)} value={saleDate} onChange={(e) => setSaleDate(e.target.value)} />
+                <Input label={t('account.listingCheck.price')} type="number" min="0" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} />
               </div>
             )}
-            {choice === 'pause' && <Textarea label="Reason (optional)" rows={2} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} />}
+            {choice === 'pause' && <Textarea label={t('account.listingCheck.reason')} rows={2} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} />}
             {error && <Alert tone="danger">{error}</Alert>}
-            <Button type="submit" block loading={answer.isPending}>Send answer</Button>
+            <Button type="submit" block loading={answer.isPending}>{t('account.listingCheck.send')}</Button>
           </form>
         )}
-        <p className="mt-4 text-center text-xs text-ink-subtle">You can also manage the listing from your lister panel.</p>
+        <p className="mt-4 text-center text-xs text-ink-subtle">{t('account.listingCheck.panelNote')}</p>
       </Card>
     </NarrowPage>
   );

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Cookie } from 'lucide-react';
 import { Button } from '@/shared/ui';
+import { useT } from '@/shared/i18n';
 
 const KEY = 'pd.consent';
 const COOKIE = 'pd_consent';
@@ -51,7 +52,7 @@ function loadGa(id) {
   window.dataLayer = window.dataLayer || [];
   window.gtag = function gtag() { window.dataLayer.push(arguments); };
   window.gtag('js', new Date());
-  window.gtag('config', id, { anonymize_ip: true });
+  window.gtag('config', id, { anonymize_ip: true, allow_google_signals: false, allow_ad_personalization_signals: false });
   const s = document.createElement('script');
   s.id = 'pd-ga4';
   s.async = true;
@@ -73,9 +74,12 @@ function stopGa(id) {
 
 /**
  * ready: settings have loaded (or failed); enabled: consent.bannerEnabled;
- * cookieDays: consent.cookieDays; ga4Id: analytics.ga4MeasurementId.
+ * cookieDays: consent.cookieDays; ga4Id: analytics.ga4MeasurementId;
+ * onChoice(choice): called after the visitor picks 'essential' or 'analytics'
+ * (the public shell records it in the consent ledger for a signed-in user).
  */
-export default function CookieBanner({ ready, enabled = true, cookieDays = 180, ga4Id }) {
+export default function CookieBanner({ ready, enabled = true, cookieDays = 180, ga4Id, onChoice }) {
+  const t = useT();
   const [choice, setChoice] = useState(readConsent);
   const [open, setOpen] = useState(false);
 
@@ -96,6 +100,7 @@ export default function CookieBanner({ ready, enabled = true, cookieDays = 180, 
     if (c === 'essential') stopGa(ga4Id);
     setChoice(c);
     setOpen(false);
+    if (onChoice) { try { onChoice(c); } catch { /* recording the choice never blocks the banner */ } }
   };
 
   return (
@@ -104,17 +109,17 @@ export default function CookieBanner({ ready, enabled = true, cookieDays = 180, 
       <div className="flex items-start gap-3">
         <span className="rounded-full bg-brand-50 p-2 text-brand-600"><Cookie className="h-5 w-5" aria-hidden /></span>
         <div className="min-w-0">
-          <p id="cookie-h" className="text-sm font-semibold text-ink">Cookies on this site</p>
+          <p id="cookie-h" className="text-sm font-semibold text-ink">{t('common.cookie.title')}</p>
           <p id="cookie-d" className="mt-1 text-xs leading-relaxed text-ink-muted">
-            We use essential storage to keep you signed in and remember your city and choices. With your permission we also use analytics cookies to understand how the site is used. You can change this at any time from "Cookie settings" in the footer.
-            {' '}<Link to="/p/privacy" className="font-medium text-brand-700 hover:underline">Privacy notice</Link>
+            {t('common.cookie.body')}
+            {' '}<Link to="/p/privacy" className="font-medium text-brand-700 hover:underline">{t('common.cookie.privacyNotice')}</Link>
           </p>
-          {choice && <p className="mt-1 text-xs text-ink-subtle">Current choice: {choice === 'analytics' ? 'analytics accepted' : 'essential only'}.</p>}
+          {choice && <p className="mt-1 text-xs text-ink-subtle">{t('common.cookie.current', { choice: t(choice === 'analytics' ? 'common.cookie.currentAnalytics' : 'common.cookie.currentEssential') })}</p>}
         </div>
       </div>
       <div className="mt-3 flex flex-wrap justify-end gap-2">
-        <Button variant="secondary" size="sm" onClick={() => choose('essential')}>Essential only</Button>
-        <Button size="sm" onClick={() => choose('analytics')}>Accept analytics</Button>
+        <Button variant="secondary" size="sm" onClick={() => choose('essential')}>{t('common.cookie.essential')}</Button>
+        <Button size="sm" onClick={() => choose('analytics')}>{t('common.cookie.accept')}</Button>
       </div>
     </div>
   );

@@ -17,6 +17,8 @@ const DealDetail = lazy(() => import('./pages/deals/DealDetailPage'));
 const Performance = lazy(() => import('./pages/performance/PerformancePage'));
 const VerificationVisits = lazy(() => import('./pages/verification-visits/VerificationVisitsPage'));
 const VerificationOutcome = lazy(() => import('./pages/verification-visits/VerificationOutcomePage'));
+const Notifications = lazy(() => import('../shared/NotificationsPage'));
+const Profile = lazy(() => import('../shared/AccountPage'));
 
 export const agentExtraRoutes = [
   { path: 'leads', element: <Leads /> },
@@ -33,4 +35,7 @@ export const agentExtraRoutes = [
   { path: 'performance', element: <Performance /> },
   { path: 'verification-visits', element: <VerificationVisits /> },
   { path: 'verification-visits/:id', element: <VerificationOutcome /> },
+  // RE-S-AGT-15 / 16 (the account page holds availability and leave in this panel)
+  { path: 'notifications', element: <Notifications base="/agent" description="New leads, follow-ups, visits, deals and system notices. Kept for 180 days." /> },
+  { path: 'profile', element: <Profile /> },
 ];

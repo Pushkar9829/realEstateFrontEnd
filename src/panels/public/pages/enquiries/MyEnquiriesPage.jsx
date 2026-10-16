@@ -7,17 +7,28 @@ import { ArrowLeft, CalendarCheck, CalendarClock, Check, ClipboardList, HandCoin
 import { cn } from '@/shared/lib/cn';
 import { date, dateTime, rupees } from '@/shared/lib/format';
 import { Alert, Badge, Button, Card, EmptyState, Input, Modal, PageHeader, Skeleton, Textarea, useToast } from '@/shared/ui';
+import { useT } from '@/shared/i18n';
+import useDocumentMeta from '@/shared/hooks/useDocumentMeta';
 import env from '@/config/env';
 import { useAuth } from '@/modules/auth';
 import { JOURNEY, useMyEnquiries, useMyEnquiry, useVisitAction, visitStatus } from '@/modules/leads/publicApi';
 import { ErrorState, hotlineHref } from '../../components/States';
 
 const STATUS_TONE = { Received: 'info', 'In touch': 'brand', 'Visit scheduled': 'warning', Visited: 'brand', Negotiating: 'accent', Booked: 'success', Closed: 'neutral' };
+// Journey stages arrive from the API in English; known ones are shown translated.
+const STAGE_KEY = { Received: 'received', 'In touch': 'inTouch', 'Visit scheduled': 'visitScheduled', Visited: 'visited', Negotiating: 'negotiating', Booked: 'booked', Closed: 'closed' };
+const stageLabel = (t, s) => (STAGE_KEY[s] ? t(`account.stage.${STAGE_KEY[s]}`) : s);
+function visitLabel(t, status) {
+  const key = `account.visitStatus.${status}`;
+  const v = t(key);
+  return v === key ? visitStatus(status).label : v;
+}
 
 export function Journey({ steps = JOURNEY, step = 0, closed, status }) {
+  const t = useT();
   const lost = closed && status === 'Closed';
   return (
-    <ol className="flex items-start overflow-x-auto pb-1" aria-label="Enquiry progress">
+    <ol className="flex items-start overflow-x-auto pb-1" aria-label={t('account.enquiries.progress')}>
       {steps.map((s, i) => {
         const done = i < step || (i === step && closed && !lost);
         const current = i === step && !done;
@@ -30,7 +41,7 @@ export function Journey({ steps = JOURNEY, step = 0, closed, status }) {
               </span>
               <span className={cn('h-0.5 flex-1', i === steps.length - 1 ? 'bg-transparent' : i < step ? 'bg-brand-600' : 'bg-line-strong')} />
             </div>
-            <span className={cn('mt-1.5 text-[11px] leading-tight', current || done ? 'font-medium text-ink' : 'text-ink-subtle')}>{s}</span>
+            <span className={cn('mt-1.5 text-[11px] leading-tight', current || done ? 'font-medium text-ink' : 'text-ink-subtle')}>{stageLabel(t, s)}</span>
           </li>
         );
       })}
@@ -39,11 +50,13 @@ export function Journey({ steps = JOURNEY, step = 0, closed, status }) {
 }
 
 function PropertyMini({ property, requirement }) {
+  const t = useT();
   if (!property) {
+    const city = (requirement && requirement.city) || t('account.enquiries.anyCity');
     return (
       <div className="flex items-center gap-3">
         <span className="flex h-14 w-16 items-center justify-center rounded bg-brand-50 text-brand-600"><ClipboardList className="h-5 w-5" aria-hidden /></span>
-        <div className="text-sm"><p className="font-medium text-ink">Property request</p><p className="text-xs text-ink-subtle">{requirement ? `${requirement.purpose === 'rent' ? 'Rent' : 'Buy'} in ${requirement.city || 'any city'}` : 'General enquiry'}</p></div>
+        <div className="text-sm"><p className="font-medium text-ink">{t('account.enquiries.propertyRequest')}</p><p className="text-xs text-ink-subtle">{requirement ? t(requirement.purpose === 'rent' ? 'account.enquiries.requestRent' : 'account.enquiries.requestBuy', { city }) : t('account.enquiries.general')}</p></div>
       </div>
     );
   }
@@ -53,7 +66,7 @@ function PropertyMini({ property, requirement }) {
       <div className="min-w-0 text-sm">
         <p className="truncate font-medium text-ink">{property.title}</p>
         <p className="flex items-center gap-1 truncate text-xs text-ink-subtle"><MapPin className="h-3 w-3" aria-hidden />{[property.locality, property.city].filter(Boolean).join(', ')} · {property.listingNo}</p>
-        {!property.available && <Badge className="mt-1">No longer listed</Badge>}
+        {!property.available && <Badge className="mt-1">{t('account.enquiries.noLongerListed')}</Badge>}
       </div>
     </div>
   );
@@ -61,6 +74,7 @@ function PropertyMini({ property, requirement }) {
 }
 
 function RescheduleModal({ visit, onClose, onSubmit, busy }) {
+  const t = useT();
   const [day, setDay] = useState('');
   const [time, setTime] = useState('');
   const [reason, setReason] = useState('');
@@ -69,28 +83,30 @@ function RescheduleModal({ visit, onClose, onSubmit, busy }) {
   const max = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
   const submit = (e) => {
     e.preventDefault();
-    if (!day || !time) { setError('Choose a preferred date and time'); return; }
+    if (!day || !time) { setError(t('account.enquiries.errChooseSlot')); return; }
     const [h, m] = time.split(':').map(Number);
-    if (h < 8 || h * 60 + m > 19 * 60 + 30) { setError('Visits run between 8 am and 8 pm'); return; }
+    if (h < 8 || h * 60 + m > 19 * 60 + 30) { setError(t('account.enquiries.errHours')); return; }
+    // The note is read by our sales team, so it stays in English.
     onSubmit(`Preferred: ${day} ${time}${reason.trim() ? `. ${reason.trim()}` : ''}`.slice(0, 300));
   };
   return (
-    <Modal open={Boolean(visit)} onClose={onClose} title="Ask for a new time" description={visit ? `Visit ${visit.visitNo}` : undefined}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" form="reschedule" loading={busy}>Send request</Button></>}>
+    <Modal open={Boolean(visit)} onClose={onClose} title={t('account.enquiries.newTimeTitle')} description={visit ? t('account.enquiries.visitNo', { no: visit.visitNo }) : undefined}
+      footer={<><Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button><Button type="submit" form="reschedule" loading={busy}>{t('account.enquiries.sendRequest')}</Button></>}>
       <form id="reschedule" onSubmit={submit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Preferred date" type="date" required min={today} max={max} value={day} onChange={(e) => setDay(e.target.value)} />
-          <Input label="Preferred time" type="time" required step="1800" min="08:00" max="19:30" value={time} onChange={(e) => setTime(e.target.value)} hint="Between 8 am and 8 pm" />
+          <Input label={t('account.enquiries.preferredDate')} type="date" required min={today} max={max} value={day} onChange={(e) => setDay(e.target.value)} />
+          <Input label={t('account.enquiries.preferredTime')} type="time" required step="1800" min="08:00" max="19:30" value={time} onChange={(e) => setTime(e.target.value)} hint={t('account.enquiries.timeHint')} />
         </div>
-        <Textarea label="Reason (optional)" rows={3} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} hint={`${reason.length}/200`} />
+        <Textarea label={t('account.enquiries.reasonOptional')} rows={3} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} hint={`${reason.length}/200`} />
         {error && <Alert tone="danger">{error}</Alert>}
-        <p className="text-xs text-ink-subtle">Your agent will call you to confirm the new slot.</p>
+        <p className="text-xs text-ink-subtle">{t('account.enquiries.agentWillCall')}</p>
       </form>
     </Modal>
   );
 }
 
 function VisitCard({ v, leadId }) {
+  const t = useT();
   const act = useVisitAction(leadId);
   const toast = useToast();
   const [cancel, setCancel] = useState(false);
@@ -99,7 +115,7 @@ function VisitCard({ v, leadId }) {
   const s = visitStatus(v.status);
   const run = (action, body, msg) => act.mutate({ id: v.id, action, body }, {
     onSuccess: () => { toast.success(msg); setCancel(false); setResched(false); },
-    onError: (e) => toast.error(e.code === 'CANCEL_CUTOFF' ? `Too close to the visit. Please call ${env.hotline}.` : e.message),
+    onError: (e) => toast.error(e.code === 'CANCEL_CUTOFF' ? t('account.enquiries.tooClose', { hotline: env.hotline }) : e.message),
   });
   const canChange = ['requested', 'scheduled', 'confirmed'].includes(v.status);
   return (
@@ -107,70 +123,71 @@ function VisitCard({ v, leadId }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold text-ink"><CalendarClock className="h-4 w-4 text-brand-600" aria-hidden />{dateTime(v.scheduledAt)}</p>
-          <p className="mt-0.5 text-xs text-ink-subtle">Visit {v.visitNo}{v.meetingPoint ? ` · ${v.meetingPoint}` : ''}{v.buyerNote ? ` · ${v.buyerNote}` : ''}</p>
+          <p className="mt-0.5 text-xs text-ink-subtle">{t('account.enquiries.visitNo', { no: v.visitNo })}{v.meetingPoint ? ` · ${v.meetingPoint}` : ''}{v.buyerNote ? ` · ${v.buyerNote}` : ''}</p>
         </div>
-        <Badge tone={s.tone}>{s.label}</Badge>
+        <Badge tone={s.tone}>{visitLabel(t, v.status)}</Badge>
       </div>
-      {v.status === 'requested' && <p className="mt-2 text-xs text-ink-muted">Our agent will call you to fix the exact time with the owner.</p>}
+      {v.status === 'requested' && <p className="mt-2 text-xs text-ink-muted">{t('account.enquiries.requestedNote')}</p>}
       {(v.canConfirm || v.canCancel || canChange) && (
         <div className="mt-3 flex flex-wrap gap-2">
-          {v.canConfirm && <Button size="sm" icon={Check} loading={act.isPending && act.variables && act.variables.action === 'confirm'} onClick={() => run('confirm', null, 'Visit confirmed. See you there!')}>Confirm</Button>}
-          {canChange && <Button size="sm" variant="secondary" icon={CalendarCheck} onClick={() => setResched(true)}>Ask for a new time</Button>}
-          {v.canCancel && <Button size="sm" variant="ghost" icon={X} onClick={() => setCancel(true)}>Cancel visit</Button>}
+          {v.canConfirm && <Button size="sm" icon={Check} loading={act.isPending && act.variables && act.variables.action === 'confirm'} onClick={() => run('confirm', null, t('account.enquiries.confirmedToast'))}>{t('account.enquiries.confirm')}</Button>}
+          {canChange && <Button size="sm" variant="secondary" icon={CalendarCheck} onClick={() => setResched(true)}>{t('account.enquiries.newTimeTitle')}</Button>}
+          {v.canCancel && <Button size="sm" variant="ghost" icon={X} onClick={() => setCancel(true)}>{t('account.enquiries.cancelVisit')}</Button>}
         </div>
       )}
-      {v.status === 'completed' && !v.feedbackGiven && <Alert tone="info" className="mt-3">How was the visit? Open the feedback link we sent you by SMS or email, it takes a minute.</Alert>}
-      {v.status === 'completed' && v.feedbackGiven && <p className="mt-2 text-xs text-success-700">Thanks for your feedback.</p>}
-      <RescheduleModal visit={resched ? v : null} onClose={() => setResched(false)} busy={act.isPending} onSubmit={(note) => run('reschedule', { note }, 'Request sent. Your agent will call you.')} />
-      <Modal open={cancel} onClose={() => setCancel(false)} size="sm" title="Cancel this visit?"
-        footer={<><Button variant="ghost" onClick={() => setCancel(false)}>Keep it</Button><Button variant="danger" loading={act.isPending} onClick={() => run('cancel', reason.trim() ? { reason: reason.trim() } : {}, 'Visit cancelled')}>Cancel visit</Button></>}>
-        <Textarea label="Reason (optional)" rows={3} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} />
+      {v.status === 'completed' && !v.feedbackGiven && <Alert tone="info" className="mt-3">{t('account.enquiries.feedbackPrompt')}</Alert>}
+      {v.status === 'completed' && v.feedbackGiven && <p className="mt-2 text-xs text-success-700">{t('account.enquiries.feedbackThanks')}</p>}
+      <RescheduleModal visit={resched ? v : null} onClose={() => setResched(false)} busy={act.isPending} onSubmit={(note) => run('reschedule', { note }, t('account.enquiries.requestSentToast'))} />
+      <Modal open={cancel} onClose={() => setCancel(false)} size="sm" title={t('account.enquiries.cancelTitle')}
+        footer={<><Button variant="ghost" onClick={() => setCancel(false)}>{t('account.enquiries.keepIt')}</Button><Button variant="danger" loading={act.isPending} onClick={() => run('cancel', reason.trim() ? { reason: reason.trim() } : {}, t('account.enquiries.cancelledToast'))}>{t('account.enquiries.cancelVisit')}</Button></>}>
+        <Textarea label={t('account.enquiries.reasonOptional')} rows={3} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} />
       </Modal>
     </div>
   );
 }
 
 function EnquiryDetail({ id }) {
+  const t = useT();
   const q = useMyEnquiry(id);
   if (q.isLoading) return <div className="space-y-3"><Skeleton className="h-24 w-full" /><Skeleton className="h-16 w-full" /><Skeleton className="h-32 w-full" /></div>;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} title={q.error.status === 404 ? 'Enquiry not found' : undefined} />;
+  if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} title={q.error.status === 404 ? t('account.enquiries.notFound') : undefined} />;
   const l = q.data;
   return (
     <div className="space-y-5">
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <PropertyMini property={l.property} />
-          <div className="text-right text-xs text-ink-subtle"><p className="font-semibold text-ink">Reference {l.leadNo}</p><p>Sent {date(l.createdAt)}</p></div>
+          <div className="text-right text-xs text-ink-subtle"><p className="font-semibold text-ink">{t('account.enquiries.reference', { no: l.leadNo })}</p><p>{t('account.enquiries.sent', { date: date(l.createdAt) })}</p></div>
         </div>
         <div className="mt-5"><Journey steps={l.journey} step={l.step} closed={l.closed} status={l.status} /></div>
-        {l.status === 'Closed' && <Alert tone="info" className="mt-4">This enquiry is closed. Call us if you want to restart it.</Alert>}
+        {l.status === 'Closed' && <Alert tone="info" className="mt-4">{t('account.enquiries.closedNote')}</Alert>}
         <div className="mt-4 flex flex-wrap items-center gap-4 border-t pt-3 text-sm text-ink-muted">
-          {l.agent && <span className="inline-flex items-center gap-1.5"><UserRound className="h-4 w-4" aria-hidden />Your agent: <span className="font-medium text-ink">{l.agent}</span></span>}
-          <a href={hotlineHref()} className="inline-flex items-center gap-1.5 hover:text-brand-700"><Phone className="h-4 w-4" aria-hidden />{env.hotline} (quote {l.leadNo})</a>
+          {l.agent && <span className="inline-flex items-center gap-1.5"><UserRound className="h-4 w-4" aria-hidden />{t('account.enquiries.yourAgent')} <span className="font-medium text-ink">{l.agent}</span></span>}
+          <a href={hotlineHref()} className="inline-flex items-center gap-1.5 hover:text-brand-700"><Phone className="h-4 w-4" aria-hidden />{t('account.enquiries.quote', { hotline: env.hotline, no: l.leadNo })}</a>
         </div>
       </Card>
 
       <section>
-        <h2 className="mb-2 text-base font-semibold text-ink">Site visits</h2>
+        <h2 className="mb-2 text-base font-semibold text-ink">{t('account.enquiries.siteVisits')}</h2>
         {l.visits.length ? <div className="space-y-3">{l.visits.map((v) => <VisitCard key={v.id} v={v} leadId={l.id} />)}</div>
-          : <p className="rounded-lg border border-dashed bg-white p-4 text-sm text-ink-muted">No visits yet. {l.property && l.property.slug && <Link to={`/property/${l.property.slug}?action=visit`} className="font-medium text-brand-700 hover:underline">Request a site visit</Link>}</p>}
+          : <p className="rounded-lg border border-dashed bg-white p-4 text-sm text-ink-muted">{t('account.enquiries.noVisits')} {l.property && l.property.slug && <Link to={`/property/${l.property.slug}?action=visit`} className="font-medium text-brand-700 hover:underline">{t('account.enquiries.requestVisit')}</Link>}</p>}
       </section>
 
       {l.offers.length > 0 && (
         <section>
-          <h2 className="mb-2 text-base font-semibold text-ink">Offers</h2>
+          <h2 className="mb-2 text-base font-semibold text-ink">{t('account.enquiries.offers')}</h2>
           <div className="space-y-2">
             {l.offers.map((o) => (
               <div key={o.offerNo} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white p-4">
                 <div className="flex items-center gap-3">
                   <span className="rounded-full bg-accent-50 p-2 text-accent-700"><HandCoins className="h-4 w-4" aria-hidden /></span>
-                  <div className="text-sm"><p className="font-medium text-ink">{o.status}</p><p className="text-xs text-ink-subtle">Offer {o.offerNo}{o.rounds > 1 ? ` · ${o.rounds} rounds` : ''}</p></div>
+                  <div className="text-sm"><p className="font-medium text-ink">{o.status}</p><p className="text-xs text-ink-subtle">{t('account.enquiries.offerNo', { no: o.offerNo })}{o.rounds > 1 ? ` · ${t('account.enquiries.rounds', { count: o.rounds })}` : ''}</p></div>
                 </div>
                 {o.lastAmount != null && <p className="text-sm font-semibold text-ink">{rupees(o.lastAmount)}</p>}
               </div>
             ))}
           </div>
-          <p className="mt-2 text-xs text-ink-subtle">Owner replies are shared here once your agent has discussed them with you.</p>
+          <p className="mt-2 text-xs text-ink-subtle">{t('account.enquiries.offersNote')}</p>
         </section>
       )}
     </div>
@@ -179,29 +196,31 @@ function EnquiryDetail({ id }) {
 
 export default function MyEnquiriesPage() {
   const { id } = useParams();
+  const t = useT();
   const navigate = useNavigate();
   const { user } = useAuth();
   const isBuyer = user && user.role === 'buyer';
   const list = useMyEnquiries(isBuyer);
   const rows = (isBuyer && list.data) || [];
+  useDocumentMeta({ title: t('account.meta.myEnquiries'), noindex: true });
 
   if (!isBuyer) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <EmptyState icon={Inbox} title="Enquiries are for buyer accounts" description="Leads on your own listings are in your panel. To enquire on other properties, use a buyer account." action={<Button to="/">Go home</Button>} />
+        <EmptyState icon={Inbox} title={t('account.enquiries.buyerOnlyTitle')} description={t('account.enquiries.buyerOnlyText')} action={<Button to="/">{t('account.enquiries.goHome')}</Button>} />
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <PageHeader title="My enquiries and visits" description="Track every enquiry, confirm site visits and see offers from owners."
-        actions={<Button variant="secondary" icon={ClipboardList} to="/request-property">Request a property</Button>} />
+      <PageHeader title={t('account.enquiries.title')} description={t('account.enquiries.description')}
+        actions={<Button variant="secondary" icon={ClipboardList} to="/request-property">{t('account.enquiries.requestProperty')}</Button>} />
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <div className={cn(id && 'hidden lg:block')}>
           {list.isLoading ? <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
             : list.isError ? <ErrorState error={list.error} onRetry={() => list.refetch()} />
-            : !rows.length ? <EmptyState icon={MessageSquareText} title="You have not enquired yet" description="Find a home you like and tap Contact. Our team takes it from there." action={<Button to="/search">Browse properties</Button>} />
+            : !rows.length ? <EmptyState icon={MessageSquareText} title={t('account.enquiries.emptyTitle')} description={t('account.enquiries.emptyText')} action={<Button to="/search">{t('account.enquiries.browse')}</Button>} />
             : (
               <ul className="space-y-2">
                 {rows.map((l) => (
@@ -211,7 +230,7 @@ export default function MyEnquiriesPage() {
                       <PropertyMini property={l.property} requirement={l.requirement} />
                       <div className="mt-2 flex items-center justify-between text-xs">
                         <span className="text-ink-subtle">{l.leadNo} · {date(l.createdAt)}</span>
-                        <Badge tone={STATUS_TONE[l.status] || 'neutral'}>{l.status}</Badge>
+                        <Badge tone={STATUS_TONE[l.status] || 'neutral'}>{stageLabel(t, l.status)}</Badge>
                       </div>
                     </button>
                   </li>
@@ -222,11 +241,11 @@ export default function MyEnquiriesPage() {
         <div className={cn(!id && 'hidden lg:block')}>
           {id ? (
             <>
-              <Button variant="link" icon={ArrowLeft} className="mb-3 lg:hidden" onClick={() => navigate('/my-enquiries')}>All enquiries</Button>
+              <Button variant="link" icon={ArrowLeft} className="mb-3 lg:hidden" onClick={() => navigate('/my-enquiries')}>{t('account.enquiries.allEnquiries')}</Button>
               <EnquiryDetail id={id} />
             </>
           ) : rows.length > 0 ? (
-            <div className="flex h-full min-h-[200px] items-center justify-center rounded-lg border border-dashed bg-white p-6 text-sm text-ink-subtle">Choose an enquiry to see its progress and visits.</div>
+            <div className="flex h-full min-h-[200px] items-center justify-center rounded-lg border border-dashed bg-white p-6 text-sm text-ink-subtle">{t('account.enquiries.choose')}</div>
           ) : null}
         </div>
       </div>

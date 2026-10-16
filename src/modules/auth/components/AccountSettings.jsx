@@ -1,6 +1,7 @@
 // RE-M-03/04/06 account and security, reused by every panel: profile,
 // password, two-step method (email / SMS / authenticator), sessions and
-// login history.
+// login history, notification preferences and RE-M-10 privacy. Tabs deep
+// link with ?tab= (billing, security, sessions, notifications, privacy).
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -12,6 +13,8 @@ import { authApi, authKeys, useLoginHistory, useSessions, useUpdateMe } from '..
 import { useAuth } from '../AuthProvider';
 import { changePasswordSchema } from '../schemas';
 import { useApiForm } from '../useApiForm';
+import NotificationPrefs from './NotificationPrefs';
+import PrivacySettings from './PrivacySettings';
 
 function Profile() {
   const { user, refreshUser } = useAuth();
@@ -225,7 +228,8 @@ export default function AccountSettings() {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const isLister = user.role === 'lister';
-  const tabs = [{ value: 'profile', label: 'Profile' }, ...(isLister ? [{ value: 'billing', label: 'Billing' }] : []), { value: 'security', label: 'Security' }, { value: 'sessions', label: 'Sessions and history' }];
+  const tabs = [{ value: 'profile', label: 'Profile' }, ...(isLister ? [{ value: 'billing', label: 'Billing' }] : []), { value: 'security', label: 'Security' }, { value: 'sessions', label: 'Sessions and history' },
+    { value: 'notifications', label: 'Notifications' }, { value: 'privacy', label: 'Privacy' }];
   const initial = tabs.some((t) => t.value === params.get('tab')) ? params.get('tab') : 'profile';
   const [tab, setTab] = useState(initial);
   useEffect(() => { if (params.get('tab') && params.get('tab') !== tab && tabs.some((t) => t.value === params.get('tab'))) setTab(params.get('tab')); }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -237,6 +241,8 @@ export default function AccountSettings() {
       {tab === 'billing' && isLister && <Billing />}
       {tab === 'security' && <div className="space-y-6"><TwoStep /><ChangePassword /></div>}
       {tab === 'sessions' && <Sessions />}
+      {tab === 'notifications' && <NotificationPrefs />}
+      {tab === 'privacy' && <PrivacySettings />}
     </div>
   );
 }

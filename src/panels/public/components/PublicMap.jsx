@@ -6,6 +6,7 @@ import { Circle, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { shortRupees } from '@/shared/lib/format';
+import { useT } from '@/shared/i18n';
 
 const TILES = { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' };
 const INDIA = [20.5937, 78.9629];
@@ -63,6 +64,7 @@ function ZoomTo({ target }) {
  * pins: public cards with .point; clusters: [{ lat, lng, count, minPrice }].
  */
 export function SearchMap({ pins = [], clusters = [], center, zoom = 12, onBoundsChange, activeId, onPinClick, radius, height = '100%', zoomTarget, onClusterClick }) {
+  const t = useT();
   return (
     <MapContainer center={center || INDIA} zoom={center ? zoom : 5} scrollWheelZoom style={{ height, width: '100%' }}>
       <TileLayer attribution={TILES.attribution} url={TILES.url} />
@@ -75,7 +77,7 @@ export function SearchMap({ pins = [], clusters = [], center, zoom = 12, onBound
           <Popup>
             <Link to={`/property/${c.slug}`} className="block w-48 text-ink no-underline">
               {c.cover && <img src={c.cover.url} alt="" className="mb-2 h-24 w-full rounded object-cover" />}
-              <span className="block text-sm font-semibold">{pinPrice(c)}{c.purpose === 'rent' ? ' / month' : ''}</span>
+              <span className="block text-sm font-semibold">{pinPrice(c)}{c.purpose === 'rent' ? t('search.card.perMonth') : ''}</span>
               <span className="block text-xs leading-snug">{c.title}</span>
               <span className="block text-xs text-ink-subtle">{[c.locality, c.city].filter(Boolean).join(', ')}</span>
             </Link>

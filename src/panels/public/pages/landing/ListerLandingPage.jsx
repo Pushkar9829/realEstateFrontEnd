@@ -10,21 +10,22 @@ import { api } from '@/shared/lib/api';
 import { useAuth } from '@/modules/auth';
 import { usePage } from '@/modules/cms/api';
 import { usePublicSettings } from '@/modules/search/api';
+import { useT } from '@/shared/i18n';
+import useDocumentMeta from '@/shared/hooks/useDocumentMeta';
 import { SectionTitle } from '../../components/States';
 
 const STEPS = [
-  { icon: UserPlus, title: 'Register', text: 'Create a free lister account as an owner, builder or landlord.' },
-  { icon: ShieldCheck, title: 'Complete KYC', text: 'Verify your ID and sign the no-broker declaration.' },
-  { icon: ClipboardCheck, title: 'Add your listing', text: 'Photos, price and ownership proof. Your address and number stay private.' },
-  { icon: BadgeCheck, title: 'Approval', text: 'Our team reviews every listing before it goes live.' },
-  { icon: Handshake, title: 'We sell for you', text: 'Our sales team handles enquiries, visits and offers.' },
+  { icon: UserPlus, key: 'register' },
+  { icon: ShieldCheck, key: 'kyc' },
+  { icon: ClipboardCheck, key: 'add' },
+  { icon: BadgeCheck, key: 'approval' },
+  { icon: Handshake, key: 'sell' },
 ];
 
-const DEFAULT_FAQ = [
-  { q: 'Is listing really free?', a: 'Yes. You pay a pre-agreed commission only when a deal with a buyer we introduced is closed and verified.' },
-  { q: 'Will buyers call me directly?', a: 'No. Your phone and email are never shown. Our sales team speaks to buyers, arranges visits and relays offers to you.' },
-  { q: 'Can brokers list here?', a: 'No. Every lister passes KYC and signs a no-broker declaration. Accounts found brokering are suspended.' },
-];
+const DEFAULT_FAQ = ['q1', 'q2', 'q3'];
+
+// Owner / builder / landlord tiles: [key under home.listerKinds, icon].
+const LISTER_KINDS = [['owners', Home], ['builders', Building2], ['landlords', Store]];
 
 function faqFrom(page) {
   const text = page && page.content;
@@ -34,6 +35,7 @@ function faqFrom(page) {
 }
 
 function BecomeLister({ open, onClose }) {
+  const t = useT();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [type, setType] = useState('owner');
@@ -41,21 +43,21 @@ function BecomeLister({ open, onClose }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const submit = async () => {
-    if (type === 'builder' && company.trim().length < 2) { setError('Enter your company name'); return; }
+    if (type === 'builder' && company.trim().length < 2) { setError(t('home.listerPage.become.companyError')); return; }
     setBusy(true); setError(null);
     try {
       await api.post('/me/become-lister', { listerType: type, ...(type === 'builder' ? { companyName: company.trim() } : {}) });
       await logout();
-      navigate('/login', { replace: true, state: { from: '/lister', notice: 'Your account is now a lister account. Log in again to continue.' } });
+      navigate('/login', { replace: true, state: { from: '/lister', notice: t('home.listerPage.become.notice') } });
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   return (
-    <Modal open={open} onClose={onClose} title="Switch to a lister account" description="Your enquiries and shortlist stay with your account."
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button loading={busy} onClick={submit}>Switch and log in again</Button></>}>
+    <Modal open={open} onClose={onClose} title={t('home.listerPage.become.title')} description={t('home.listerPage.become.description')}
+      footer={<><Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button><Button loading={busy} onClick={submit}>{t('home.listerPage.become.submit')}</Button></>}>
       <div className="space-y-4">
-        <Select label="I am" value={type} onChange={(e) => setType(e.target.value)} options={[{ value: 'owner', label: 'An owner' }, { value: 'builder', label: 'A builder' }, { value: 'landlord', label: 'A landlord' }]} />
-        {type === 'builder' && <Input label="Company name" required value={company} onChange={(e) => setCompany(e.target.value)} maxLength={120} />}
-        <Alert tone="warning">You will be logged out of all devices and need to log in again.</Alert>
+        <Select label={t('home.listerPage.become.iam')} value={type} onChange={(e) => setType(e.target.value)} options={['owner', 'builder', 'landlord'].map((v) => ({ value: v, label: t(`home.listerPage.become.${v}`) }))} />
+        {type === 'builder' && <Input label={t('home.listerPage.become.company')} required value={company} onChange={(e) => setCompany(e.target.value)} maxLength={120} />}
+        <Alert tone="warning">{t('home.listerPage.become.warning')}</Alert>
         {error && <Alert tone="danger">{error}</Alert>}
       </div>
     </Modal>
@@ -63,33 +65,35 @@ function BecomeLister({ open, onClose }) {
 }
 
 export default function ListerLandingPage() {
+  const t = useT();
+  useDocumentMeta({ title: t('home.listerPage.meta.title'), description: t('home.listerPage.meta.description'), path: '/list-your-property' });
   const { isAuthed, user } = useAuth();
   const settings = usePublicSettings();
   const faqPage = usePage('lister-faq');
   const [convert, setConvert] = useState(false);
   const c = (settings.data && settings.data.commission) || {};
   const role = isAuthed ? user.role : null;
-  const cta = role === 'lister' ? <Button size="lg" to="/lister">Go to my lister panel</Button>
-    : role === 'buyer' ? <Button size="lg" onClick={() => setConvert(true)}>Start listing</Button>
-    : role ? null : <Button size="lg" to="/register?as=lister">Start listing</Button>;
-  const faq = faqFrom(faqPage.data) || DEFAULT_FAQ;
+  const cta = role === 'lister' ? <Button size="lg" to="/lister">{t('home.listerPage.goPanel')}</Button>
+    : role === 'buyer' ? <Button size="lg" onClick={() => setConvert(true)}>{t('home.listerPage.start')}</Button>
+    : role ? null : <Button size="lg" to="/register?as=lister">{t('home.listerPage.start')}</Button>;
+  const faq = faqFrom(faqPage.data) || DEFAULT_FAQ.map((k) => ({ q: t(`home.listerPage.faq.${k}.q`), a: t(`home.listerPage.faq.${k}.a`) }));
 
   return (
     <>
       <section className="bg-brand-700">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:py-20">
-          <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">For owners, builders and landlords</p>
-          <h1 className="mt-2 max-w-3xl text-3xl font-bold text-white sm:text-5xl">List free. Our team sells for you. Pay only when a deal closes.</h1>
-          <p className="mt-4 max-w-2xl text-lg text-brand-100">Serious, phone-verified buyers only. No broker calls, and your number is never shown.</p>
-          <div className="mt-8 flex flex-wrap gap-3">{cta}<Button size="lg" variant="secondary" to="/p/no-broker-policy">No-broker policy</Button></div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">{t('home.lister.eyebrow')}</p>
+          <h1 className="mt-2 max-w-3xl text-3xl font-bold text-white sm:text-5xl">{t('home.listerPage.title')}</h1>
+          <p className="mt-4 max-w-2xl text-lg text-brand-100">{t('home.listerPage.subtitle')}</p>
+          <div className="mt-8 flex flex-wrap gap-3">{cta}<Button size="lg" variant="secondary" to="/p/no-broker-policy">{t('home.listerPage.policy')}</Button></div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <SectionTitle eyebrow="How it works" title="From sign-up to a closed deal" />
+        <SectionTitle eyebrow={t('home.sections.howEyebrow')} title={t('home.listerPage.howTitle')} />
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {STEPS.map((s, i) => (
-            <li key={s.title}><Card className="h-full"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white"><s.icon className="h-5 w-5" aria-hidden /></span><p className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-subtle">Step {i + 1}</p><p className="font-semibold text-ink">{s.title}</p><p className="mt-1 text-sm text-ink-muted">{s.text}</p></Card></li>
+            <li key={s.key}><Card className="h-full"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white"><s.icon className="h-5 w-5" aria-hidden /></span><p className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-subtle">{t('home.sections.step', { n: i + 1 })}</p><p className="font-semibold text-ink">{t(`home.listerPage.steps.${s.key}.title`)}</p><p className="mt-1 text-sm text-ink-muted">{t(`home.listerPage.steps.${s.key}.text`)}</p></Card></li>
           ))}
         </ol>
       </section>
@@ -97,23 +101,23 @@ export default function ListerLandingPage() {
       <section className="border-y bg-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-2">
           <div>
-            <SectionTitle eyebrow="Commission" title="You pay only on success" />
-            <p className="text-ink-muted">You agree a commission percentage when you list. It is charged only after a buyer or tenant introduced by our team closes the deal and our team verifies it.</p>
+            <SectionTitle eyebrow={t('home.listerPage.commissionEyebrow')} title={t('home.listerPage.commissionTitle')} />
+            <p className="text-ink-muted">{t('home.listerPage.commissionText')}</p>
             <ul className="mt-4 space-y-2 text-sm text-ink">
-              {c.sale && c.sale.min != null && <li className="flex items-center gap-2"><FileSignature className="h-4 w-4 text-brand-600" aria-hidden />Sale: from {c.sale.min}% of the sale price</li>}
-              {c.rent && c.rent.min != null && <li className="flex items-center gap-2"><FileSignature className="h-4 w-4 text-brand-600" aria-hidden />Rent: from {c.rent.min}%{c.rent.basisMonths ? ` of ${c.rent.basisMonths} month${c.rent.basisMonths > 1 ? 's' : ''} rent` : ''}</li>}
+              {c.sale && c.sale.min != null && <li className="flex items-center gap-2"><FileSignature className="h-4 w-4 text-brand-600" aria-hidden />{t('home.listerPage.saleFrom', { pct: c.sale.min })}</li>}
+              {c.rent && c.rent.min != null && <li className="flex items-center gap-2"><FileSignature className="h-4 w-4 text-brand-600" aria-hidden />{c.rent.basisMonths ? t('home.listerPage.rentFromBasis', { pct: c.rent.min, count: c.rent.basisMonths }) : t('home.listerPage.rentFrom', { pct: c.rent.min })}</li>}
             </ul>
           </div>
           <div className="grid gap-3">
-            {[['Owners', 'Sell or rent your home', Home], ['Builders', 'Projects with RERA details and unit inventory', Building2], ['Landlords', 'Rent out flats, shops and offices', Store]].map(([t, d, Icon]) => (
-              <div key={t} className="flex items-center gap-4 rounded-lg border bg-surface-muted p-4"><span className="rounded-md bg-brand-600 p-2.5 text-white"><Icon className="h-5 w-5" aria-hidden /></span><span><span className="block font-semibold text-ink">{t}</span><span className="block text-sm text-ink-subtle">{d}</span></span></div>
+            {LISTER_KINDS.map(([k, Icon]) => (
+              <div key={k} className="flex items-center gap-4 rounded-lg border bg-surface-muted p-4"><span className="rounded-md bg-brand-600 p-2.5 text-white"><Icon className="h-5 w-5" aria-hidden /></span><span><span className="block font-semibold text-ink">{t(`home.listerKinds.${k}.title`)}</span><span className="block text-sm text-ink-subtle">{t(`home.listerKinds.${k}.text`)}</span></span></div>
             ))}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <SectionTitle eyebrow="Questions" title="Lister FAQ" />
+        <SectionTitle eyebrow={t('home.listerPage.faqEyebrow')} title={t('home.listerPage.faqTitle')} />
         <Accordion items={faq} />
         <div className="mt-8 flex justify-center">{cta}</div>
       </section>

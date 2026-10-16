@@ -3,12 +3,14 @@ import { Phone, RefreshCw, SearchX } from 'lucide-react';
 import { Alert, Button, Card, EmptyState, Skeleton } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
 import env from '@/config/env';
+import { useT } from '@/shared/i18n';
 
-export function ErrorState({ error, onRetry, className, title = 'Something went wrong' }) {
+export function ErrorState({ error, onRetry, className, title }) {
+  const t = useT();
   return (
-    <Alert tone="danger" title={title} className={className}
-      action={onRetry && <Button size="sm" variant="secondary" icon={RefreshCw} onClick={onRetry}>Retry</Button>}>
-      {(error && error.message) || 'Please try again.'}
+    <Alert tone="danger" title={title || t('common.somethingWrong')} className={className}
+      action={onRetry && <Button size="sm" variant="secondary" icon={RefreshCw} onClick={onRetry}>{t('common.retry')}</Button>}>
+      {(error && error.message) || t('common.tryAgain')}
     </Alert>
   );
 }
@@ -62,10 +64,11 @@ export function SectionTitle({ eyebrow, title, text, action, as: H = 'h2' }) {
 
 export const hotlineHref = (n) => `tel:${String(n || env.hotline).replace(/\s/g, '')}`;
 
-export function HotlineButton({ label = 'Call the hotline', className }) {
+export function HotlineButton({ label, className }) {
+  const t = useT();
   return (
     <a href={hotlineHref()} className={cn('inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700', className)}>
-      <Phone className="h-4 w-4" aria-hidden />{label} {env.hotline}
+      <Phone className="h-4 w-4" aria-hidden />{label || t('common.callHotline')} {env.hotline}
     </a>
   );
 }

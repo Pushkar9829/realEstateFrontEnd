@@ -118,3 +118,14 @@ export const useSetListerStatus = () => useListerAdminMutation(({ id, body }) =>
 export const useSetListingLimit = () => useListerAdminMutation(({ id, body }) => api.patch(`/admin/listers/${id}/limits`, body));
 export const useResolveFlag = () => useListerAdminMutation(({ id, body }) => api.patch(`/admin/broker-flags/${id}`, body));
 export const useManualFlag = () => useListerAdminMutation((body) => api.post('/admin/broker-flags', body));
+
+// ---------------------------------------------------------------- builder brand (RE-B-02)
+// Lister: GET/PATCH /lister/profile/brand { name, logoFileId }. Admin: POST /admin/listers/:id/approve-brand { decision, reason }.
+
+export const brandKeys = { own: ['lister', 'brand'] };
+export const useOwnBrand = (enabled = true) => useQuery({ queryKey: brandKeys.own, queryFn: () => api.get('/lister/profile/brand'), enabled });
+export function useRequestBrand() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (body) => api.patch('/lister/profile/brand', body), onSuccess: (brand) => qc.setQueryData(brandKeys.own, brand) });
+}
+export const useDecideBrand = () => useListerAdminMutation(({ id, body }) => api.post(`/admin/listers/${id}/approve-brand`, body));

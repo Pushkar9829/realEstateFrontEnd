@@ -1,12 +1,13 @@
 // RE-F-07/08 listers: search, KYC status filter, and per-lister detail with
-// suspend / ban / reinstate (listers.manage) and listing-limit override.
+// suspend / ban / reinstate (listers.manage), listing-limit override and the
+// builder brand approval (RE-B-02, listers.verify or listers.manage).
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Ban, Flag, PauseCircle, PlayCircle, Search } from 'lucide-react';
+import { ArrowLeft, Ban, BadgeCheck, Flag, PauseCircle, PlayCircle, Search, X } from 'lucide-react';
 import { Alert, Badge, Button, Card, CardHeader, Modal, PageHeader, PageSpinner, Pagination, Table, Tabs, Textarea, useToast } from '@/shared/ui';
 import { date, dateTime, titleCase } from '@/shared/lib/format';
 import { useAuth } from '@/modules/auth';
-import { FLAG_RULES, kycStatus, useListerDetail, useListers, useManualFlag, useSetListerStatus, useSetListingLimit } from '@/modules/kyc/api';
+import { FLAG_RULES, kycStatus, useDecideBrand, useListerDetail, useListers, useManualFlag, useSetListerStatus, useSetListingLimit } from '@/modules/kyc/api';
 
 const TABS = [{ value: '', label: 'All' }, { value: 'verified', label: 'Verified' }, { value: 'submitted', label: 'Submitted' }, { value: 'not_started', label: 'Not started' }, { value: 'suspended', label: 'Suspended' }, { value: 'banned', label: 'Banned' }];
 
@@ -30,13 +31,54 @@ function ListerList() {
       <Table loading={isLoading} rows={(data && data.items) || []} onRowClick={(r) => navigate(`/admin/listers/${r._id}`)} empty="No listers found."
         columns={[
           { key: 'name', header: 'Lister', render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.email} · {r.phone}</span></span> },
-          { key: 'type', header: 'Type', render: (r) => titleCase(r.listerType) },
+          { key: 'type', header: 'Type', render: (r) => <span>{titleCase(r.listerType)}{r.brand?.name && <span className="block text-xs text-ink-subtle">{r.brand.name}</span>}{r.brand?.pending?.name && <Badge tone="warning" className="mt-0.5">Brand pending</Badge>}</span> },
           { key: 'kyc', header: 'KYC', render: (r) => { const s = kycStatus(r.kyc?.status); return <Badge tone={s.tone}>{s.label}</Badge>; } },
           { key: 'limit', header: 'Limit override', render: (r) => (r.listingLimit != null ? r.listingLimit : '-') },
           { key: 'joined', header: 'Joined', render: (r) => date(r.createdAt) },
         ]} />
       {data && <Pagination page={data.meta.page} pages={data.meta.pages} onChange={setPage} />}
     </>
+  );
+}
+
+// RE-B-02: the brand shows publicly as "Verified Builder · <brand>" only once approved.
+function BrandCard({ id, brand, canDecide }) {
+  const toast = useToast();
+  const decide = useDecideBrand();
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState('');
+  const target = brand.pending || (brand.name && !brand.approved ? brand : null);
+  const run = async (body, msg) => {
+    try { await decide.mutateAsync({ id, body }); toast.success(msg); setRejecting(false); setReason(''); } catch (e) { toast.error(e.message); }
+  };
+  return (
+    <Card className="lg:col-span-3">
+      <CardHeader title="Builder brand" description={`Public badge: ${brand.publicLabel}`}
+        action={target ? <Badge tone="warning">Awaiting approval</Badge> : brand.approved ? <Badge tone="success" icon={BadgeCheck}>Approved</Badge> : null} />
+      <div className="flex flex-wrap items-start gap-6 text-sm">
+        <div className="flex items-center gap-3">
+          {brand.logoUrl ? <img src={brand.logoUrl} alt="" className="h-12 w-12 rounded border object-contain" /> : null}
+          <div><p className="text-ink-subtle">Current</p><p className="font-medium text-ink">{brand.name || 'None'}{brand.name && !brand.approved ? ' (not approved)' : ''}</p></div>
+        </div>
+        {brand.pending && (
+          <div className="flex items-center gap-3">
+            {brand.pending.logoUrl ? <img src={brand.pending.logoUrl} alt="" className="h-12 w-12 rounded border object-contain" /> : null}
+            <div><p className="text-ink-subtle">Requested {date(brand.pending.requestedAt)}</p><p className="font-medium text-ink">{brand.pending.name}</p></div>
+          </div>
+        )}
+        {brand.rejectReason && !target && <p className="text-ink-subtle">Last change rejected: {brand.rejectReason}</p>}
+      </div>
+      {target && canDecide && (
+        <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">
+          <Button size="sm" icon={BadgeCheck} loading={decide.isPending && !rejecting} onClick={() => run({ decision: 'approve' }, 'Brand approved')}>Approve "{target.name}"</Button>
+          <Button size="sm" variant="secondary" icon={X} onClick={() => setRejecting(true)}>Reject</Button>
+        </div>
+      )}
+      <Modal open={rejecting} onClose={() => setRejecting(false)} size="sm" title="Reject brand change" description="The builder keeps the current brand and sees your reason."
+        footer={<><Button variant="ghost" onClick={() => setRejecting(false)}>Cancel</Button><Button variant="danger" disabled={reason.trim().length < 3} loading={decide.isPending} onClick={() => run({ decision: 'reject', reason: reason.trim() }, 'Brand change rejected')}>Reject</Button></>}>
+        <Textarea label="Reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+      </Modal>
+    </Card>
   );
 }
 
@@ -52,7 +94,7 @@ function ListerDetail({ id }) {
   const [limit, setLimitVal] = useState('');
   if (isLoading) return <PageSpinner />;
   if (error) return <Alert tone="danger">{error.message}</Alert>;
-  const { user, kyc, listings, flags, listingLimit } = data;
+  const { user, kyc, listings, flags, listingLimit, brand } = data;
   const s = kycStatus(kyc.status);
   const manage = hasPermission('listers.manage');
   const act = async (fn, msg) => { try { await fn(); toast.success(msg); setDialog(null); setText(''); } catch (e) { toast.error(e.message); } };
@@ -94,6 +136,7 @@ function ListerDetail({ id }) {
           ) : <p className="text-sm text-ink-subtle">No flags.</p>}
           {kyc.autoChecks?.length > 0 && <Alert tone="warning" className="mt-4">KYC auto-checks: {kyc.autoChecks.map((c) => c.code).join(', ')}</Alert>}
         </Card>
+        {brand && <BrandCard id={id} brand={brand} canDecide={manage || hasPermission('listers.verify')} />}
       </div>
 
       <Modal open={['suspend', 'ban', 'reinstate'].includes(dialog)} onClose={() => setDialog(null)} size="sm"

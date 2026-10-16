@@ -67,10 +67,11 @@ export default function ReceivablesPage() {
   const [tab, setTab] = useState('receivables');
   const [status, setStatus] = useState('');
   const [q, setQ] = useState('');
+  const [city, setCity] = useState('');
   const [page, setPage] = useState(1);
   const [remindOpen, setRemindOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const filters = { ...(status ? { status } : {}), ...(q.trim() ? { q: q.trim() } : {}) };
+  const filters = { ...(status ? { status } : {}), ...(q.trim() ? { q: q.trim() } : {}), ...(city.trim() ? { city: city.trim() } : {}) };
   const { data, isLoading, error } = useReceivables({ page, limit: 20, sort: '-createdAt', ...filters });
   const dash = useAdminDashboard();
   const ageing = useReport('ageing', {}, hasPermission('reports.view'));
@@ -119,6 +120,7 @@ export default function ReceivablesPage() {
         <>
           <div className="mb-4 grid gap-3 sm:grid-cols-[16rem_14rem]">
             <Input aria-label="Search" placeholder="Receivable, deal or invoice no." leading={<Search className="h-4 w-4" />} value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
+            <Input aria-label="City" placeholder="City" value={city} onChange={(e) => { setCity(e.target.value); setPage(1); }} />
             <Select aria-label="Status" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} placeholder="All statuses"
               options={Object.entries(RECEIVABLE_STATUS).map(([value, s]) => ({ value, label: s.label }))} />
           </div>

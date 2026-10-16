@@ -43,6 +43,7 @@ export default function ProjectEditorPage() {
         <Alert tone="warning" className="mb-4" title="Changes requested"><ul className="list-disc pl-4">{p.reviewComments.map((c, i) => <li key={i}><strong>{titleCase(c.field)}:</strong> {c.comment}</li>)}</ul></Alert>
       )}
       {p.status === 'rejected' && <Alert tone="danger" className="mb-4">Rejected: {p.rejectionReason}</Alert>}
+      {p.reraExpiry && ['expiring', 'expired'].includes(p.reraExpiry.status) && <Alert tone={p.reraExpiry.status === 'expired' ? 'danger' : 'warning'} className="mb-4">RERA registration {p.reraExpiry.number} {p.reraExpiry.status === 'expired' ? 'has expired' : 'expires soon'} ({new Date(p.reraExpiry.validTill).toLocaleDateString('en-IN')}). Upload the extension certificate in the RERA tab.</Alert>}
       {p.status === 'pending_approval' && <Alert tone="info" className="mb-4">Submitted for approval. Our team checks the RERA details within 24 hours.</Alert>}
       {canSubmit && missing.length > 0 && (
         <Alert tone="warning" className="mb-4" title="Before you submit">
