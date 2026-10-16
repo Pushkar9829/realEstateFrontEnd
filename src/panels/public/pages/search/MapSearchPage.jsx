@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Crosshair, List, LocateFixed, Map as MapIcon, SlidersHorizontal, X } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { Button, Checkbox, Drawer, Spinner, useToast } from '@/shared/ui';
+import { Button, Drawer, Spinner, useToast } from '@/shared/ui';
 import { useCities } from '@/modules/listings/api';
 import { useMapSearch, useNear } from '@/modules/search/api';
 import PropertyCard from '../../components/PropertyCard';
@@ -19,6 +19,7 @@ import useDocumentMeta from '@/shared/hooks/useDocumentMeta';
 import { filtersSummary, track } from '@/shared/lib/analytics';
 
 const RADII = [1, 2, 5, 10, 25, 50];
+const PILL = 'inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-medium text-navy-900 ring-1 ring-inset ring-navy-900/15 transition hover:ring-navy-900/40';
 const EXTRA = ['lat', 'lng', 'radius'];
 
 export function locate(toast, onPoint) {
@@ -89,72 +90,78 @@ export default function MapSearchPage() {
   const nearMe = () => locate(toast, (p) => update({ lat: p.lat, lng: p.lng, radius: 5 }));
 
   const list = (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {pins.map((c) => (
         <div key={c.id} onMouseEnter={() => setActiveId(c.id)} onMouseLeave={() => setActiveId(null)}>
-          <PropertyCard card={c} compact distanceKm={c.distanceKm} className={cn(activeId === c.id && 'border-brand-500 ring-2 ring-brand-500/20')} />
+          <PropertyCard card={c} compact distanceKm={c.distanceKm} className={cn(activeId === c.id && '!ring-2 !ring-gold-500')} />
         </div>
       ))}
-      {!q.isLoading && !pins.length && clusters.length > 0 && <p className="rounded-md bg-surface-muted p-3 text-sm text-ink-muted">{t('search.map.inArea', { n: total.toLocaleString('en-IN') })}</p>}
-      {!q.isLoading && !pins.length && !clusters.length && <p className="rounded-md bg-surface-muted p-3 text-sm text-ink-muted">{nearMode ? t('search.map.noneRadius') : t('search.map.noneHere')}</p>}
+      {!q.isLoading && !pins.length && clusters.length > 0 && <p className="rounded-2xl bg-white p-4 text-sm text-navy-600 shadow-card ring-1 ring-navy-900/5">{t('search.map.inArea', { n: total.toLocaleString('en-IN') })}</p>}
+      {!q.isLoading && !pins.length && !clusters.length && <p className="rounded-2xl bg-white p-4 text-sm text-navy-600 shadow-card ring-1 ring-navy-900/5">{nearMode ? t('search.map.noneRadius') : t('search.map.noneHere')}</p>}
     </div>
   );
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
-      <div className="border-b bg-white px-4 py-2 sm:px-6">
+    <div className="flex h-[calc(100vh-75px)] flex-col">
+      <div className="border-b border-navy-900/5 bg-white px-4 py-3 sm:px-6">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2">
-          <Button size="sm" variant="secondary" icon={SlidersHorizontal} onClick={() => setDrawer(true)}>{t('search.list.filters')}</Button>
+          <h1 className="mr-2 hidden font-display text-xl font-medium text-navy-900 xl:block">{listTitle}</h1>
+          <button type="button" onClick={() => setDrawer(true)} className={PILL}><SlidersHorizontal className="h-4 w-4 text-gold-600" aria-hidden />{t('search.list.filters')}</button>
           {nearMode ? (
             <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('search.map.radius')}>
-              <span className="mr-1 inline-flex items-center gap-1 text-sm text-ink-muted"><LocateFixed className="h-4 w-4 text-brand-600" aria-hidden />{t('search.map.nearMe')}</span>
+              <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-navy-700"><LocateFixed className="h-4 w-4 text-gold-600" aria-hidden />{t('search.map.nearMe')}</span>
               {RADII.map((r) => (
                 <button key={r} type="button" aria-pressed={point.radiusKm === r} onClick={() => update({ radius: r })}
-                  className={cn('rounded-full border px-2.5 py-0.5 text-xs', point.radiusKm === r ? 'border-brand-600 bg-brand-600 text-white' : 'border-line-strong bg-white text-ink-muted')}>{t('search.map.km', { n: r })}</button>
+                  className={cn('h-8 rounded-full px-3 text-xs font-medium transition', point.radiusKm === r ? 'bg-navy-900 text-white shadow-sm' : 'bg-white text-navy-600 ring-1 ring-inset ring-navy-900/10 hover:text-navy-900')}>{t('search.map.km', { n: r })}</button>
               ))}
-              <button type="button" onClick={() => update({ lat: undefined, lng: undefined, radius: undefined })} className="ml-1 rounded p-1 text-ink-subtle hover:text-ink" aria-label={t('search.map.stopNearMe')}><X className="h-4 w-4" /></button>
+              <button type="button" onClick={() => update({ lat: undefined, lng: undefined, radius: undefined })} className="ml-1 rounded-full p-2 text-navy-400 hover:bg-sand-100 hover:text-navy-900" aria-label={t('search.map.stopNearMe')}><X className="h-4 w-4" /></button>
             </div>
           ) : (
-            <Button size="sm" variant="secondary" icon={Crosshair} onClick={nearMe}>{t('search.map.nearMe')}</Button>
+            <button type="button" onClick={nearMe} className={PILL}><Crosshair className="h-4 w-4 text-gold-600" aria-hidden />{t('search.map.nearMe')}</button>
           )}
-          {!nearMode && <Checkbox className="ml-1" label={t('search.map.follow')} checked={follow} onChange={(e) => { setFollow(e.target.checked); if (e.target.checked && pending) { setBbox(pending); setPending(null); } }} />}
+          {!nearMode && (
+            <label className="ml-1 inline-flex cursor-pointer items-center gap-2 text-sm text-navy-700">
+              <input type="checkbox" className="h-4 w-4 rounded border-navy-900/25 text-navy-900 accent-navy-900 focus:ring-gold-500" checked={follow} onChange={(e) => { setFollow(e.target.checked); if (e.target.checked && pending) { setBbox(pending); setPending(null); } }} />
+              {t('search.map.follow')}
+            </label>
+          )}
           <div className="ml-auto flex items-center gap-2">
-            <span className="hidden text-sm text-ink-subtle sm:inline" aria-live="polite">{q.isFetching ? t('common.loading') : t('search.map.count', { n: total.toLocaleString('en-IN') })}</span>
+            <span className="hidden text-sm font-medium text-navy-500 sm:inline" aria-live="polite">{q.isFetching ? t('common.loading') : t('search.map.count', { n: total.toLocaleString('en-IN') })}</span>
             <SaveSearchButton filters={query} label={t('search.map.saveSearch')} />
-            <Link to={`/search?${new URLSearchParams([...new URLSearchParams(qs)].filter(([k]) => !EXTRA.includes(k)))}`} className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 text-sm font-medium text-ink hover:bg-surface-muted"><List className="h-4 w-4" aria-hidden />{t('search.list.list')}</Link>
+            <Link to={`/search?${new URLSearchParams([...new URLSearchParams(qs)].filter(([k]) => !EXTRA.includes(k)))}`} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-navy-900 px-4 text-sm font-medium text-white transition-colors hover:bg-navy-800"><List className="h-4 w-4" aria-hidden />{t('search.list.list')}</Link>
           </div>
         </div>
-        <div className="mx-auto mt-2 max-w-7xl empty:hidden"><ActiveChips filters={filters} update={update} clear={clear} /></div>
+        <div className="mx-auto mt-3 max-w-7xl empty:hidden"><ActiveChips filters={filters} update={update} clear={clear} /></div>
       </div>
 
       <div className="relative flex min-h-0 flex-1">
-        <aside className="hidden w-[380px] shrink-0 overflow-y-auto border-r bg-surface-muted p-3 lg:block" aria-label={t('search.map.onMap')}>
+        <aside className="hidden w-[400px] shrink-0 overflow-y-auto border-r border-navy-900/5 bg-sand-50 p-4 lg:block" aria-label={t('search.map.onMap')}>
           {q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : list}
         </aside>
         <div className="relative min-w-0 flex-1">
           <SearchMap pins={pins} clusters={clusters} center={center} zoom={nearMode ? 13 : 12} onBoundsChange={onBounds} activeId={activeId}
             onPinClick={(c) => setActiveId(c.id)} radius={nearMode ? point.radiusKm : null} zoomTarget={zoomTarget} onClusterClick={(c) => setZoomTarget({ ...c })} />
-          {q.isFetching && <div className="pointer-events-none absolute inset-x-0 top-3 z-[500] flex justify-center"><span className="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm shadow"><Spinner size="sm" />{t('search.map.loading')}</span></div>}
+          {q.isFetching && <div className="pointer-events-none absolute inset-x-0 top-3 z-[500] flex justify-center"><span className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-navy-900 shadow-lift ring-1 ring-navy-900/5"><Spinner size="sm" />{t('search.map.loading')}</span></div>}
           {!follow && pending && (
             <div className="absolute inset-x-0 top-3 z-[500] flex justify-center">
-              <Button size="sm" onClick={() => { setBbox(pending); setPending(null); }}>{t('search.map.searchArea')}</Button>
+              <Button size="md" variant="navy" onClick={() => { setBbox(pending); setPending(null); }} className="rounded-full shadow-lift">{t('search.map.searchArea')}</Button>
             </div>
           )}
-          {!nearMode && clusters.length > 0 && zoom < 11 && <div className="pointer-events-none absolute inset-x-0 bottom-16 z-[500] flex justify-center lg:bottom-4"><span className="rounded-full bg-ink/80 px-3 py-1.5 text-sm text-white">{t('search.map.zoomIn')}</span></div>}
+          {!nearMode && clusters.length > 0 && zoom < 11 && <div className="pointer-events-none absolute inset-x-0 bottom-16 z-[500] flex justify-center lg:bottom-4"><span className="rounded-full bg-navy-950/85 px-4 py-2 text-sm text-white backdrop-blur">{t('search.map.zoomIn')}</span></div>}
           {q.isError && <div className="absolute inset-x-3 top-3 z-[500] lg:hidden"><ErrorState error={q.error} onRetry={() => q.refetch()} /></div>}
-          <button type="button" onClick={() => setShowList(true)} className="absolute bottom-4 left-1/2 z-[500] inline-flex -translate-x-1/2 items-center gap-2 rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-lg lg:hidden">
+          <button type="button" onClick={() => setShowList(true)} className="absolute bottom-5 left-1/2 z-[500] inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-navy-900 px-5 text-sm font-medium text-white shadow-lift lg:hidden">
             <List className="h-4 w-4" aria-hidden />{t('search.map.showN', { n: total })}
           </button>
         </div>
       </div>
 
       <Drawer open={showList} onClose={() => setShowList(false)} title={t('search.map.count', { n: total })} side="right">
-        <div className="p-3">{list}</div>
-        <div className="sticky bottom-0 border-t bg-white p-3"><Button block icon={MapIcon} onClick={() => setShowList(false)}>{t('search.map.backToMap')}</Button></div>
+        <div className="bg-sand-50 p-4">{list}</div>
+        <div className="sticky bottom-0 border-t border-navy-900/5 bg-white p-3"><Button variant="navy" size="lg" block icon={MapIcon} onClick={() => setShowList(false)} className="rounded-full">{t('search.map.backToMap')}</Button></div>
       </Drawer>
       <Drawer open={drawer} onClose={() => setDrawer(false)} title={t('search.list.filters')} side="right">
         <div className="p-4"><FilterPanel filters={filters} onChange={update} /></div>
-        <div className="sticky bottom-0 border-t bg-white p-3"><Button block onClick={() => setDrawer(false)}>{t('search.map.showResults')}</Button></div>
+        <div className="sticky bottom-0 border-t border-navy-900/5 bg-white p-3"><Button variant="navy" size="lg" block onClick={() => setDrawer(false)} className="rounded-full">{t('search.map.showResults')}</Button></div>
       </Drawer>
     </div>
   );

@@ -6,9 +6,8 @@ import { Phone, ShieldCheck } from 'lucide-react';
 import { Alert, Button, Checkbox, Input, OtpInput } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
 import { NAME_RX, isIndian, normalisePhone, phoneError, sendGuestOtp, verifyGuestOtp } from '@/modules/leads/publicApi';
-import env from '@/config/env';
 import { t as tr, useT } from '@/shared/i18n';
-import { hotlineHref } from './States';
+import { currentHotline, hotlineHref } from './States';
 
 export function useBuyerIdentity() {
   const { isAuthed, user } = useAuth();
@@ -62,7 +61,7 @@ export function ConsentFields({ consent, onConsent, error }) {
 // Codes where the right answer is "call the hotline" (no reason disclosed).
 export function leadErrorText(err) {
   if (!err) return null;
-  if (err.code === 'RATE_LIMITED' || err.code === 'SEEKER_BLOCKED') return tr('property.guest.errRate', { hotline: env.hotline });
+  if (err.code === 'RATE_LIMITED' || err.code === 'SEEKER_BLOCKED') return tr('property.guest.errRate', { hotline: currentHotline() });
   if (err.code === 'SELF_ENQUIRY') return tr('property.guest.errSelf');
   if (err.code === 'NOT_A_BUYER') return tr('property.guest.errNotBuyer');
   if (err.code === 'OTP_TOKEN_INVALID' || err.code === 'OTP_REQUIRED') return tr('property.guest.errOtp');
@@ -102,19 +101,19 @@ export function OtpStep({ phone, email, onVerified, onBack, busy }) {
 
   const shown = isIndian(phone) ? `+91 ${normalisePhone(phone)}` : normalisePhone(phone);
   return (
-    <form onSubmit={verify} className="space-y-4">
-      <div className="flex items-start gap-3 rounded-md bg-brand-50 p-3 text-sm text-brand-800">
-        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
+    <form onSubmit={verify} className="space-y-5">
+      <div className="flex items-start gap-3 rounded-2xl bg-gold-50 p-4 text-sm leading-relaxed text-navy-800 ring-1 ring-inset ring-gold-200">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-gold-700 ring-1 ring-gold-300"><ShieldCheck className="h-[18px] w-[18px]" aria-hidden /></span>
         <p>{sending && !sentTo ? t('property.guest.sending') : sentTo === 'email' ? t('property.guest.emailed', { phone: shown }) : t('property.guest.sms', { phone: shown })}{t('property.guest.validFor')}</p>
       </div>
       <OtpInput value={code} onChange={setCode} autoFocus disabled={verifying || busy} />
-      {error && <Alert tone="danger">{error}{(/hotline/.test(error) || (env.hotline && error.includes(env.hotline))) && <> <a className="font-semibold underline" href={hotlineHref()}><Phone className="inline h-3.5 w-3.5" /> {t('property.call')}</a></>}</Alert>}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-2">
-          {onBack && <Button variant="ghost" onClick={onBack}>{t('property.guest.changeNumber')}</Button>}
-          <Button variant="link" disabled={cooldown > 0 || sending} onClick={send}>{cooldown > 0 ? t('property.guest.resendIn', { n: cooldown }) : t('property.guest.resend')}</Button>
+      {error && <Alert tone="danger">{error}{(/hotline/.test(error) || (currentHotline() && error.includes(currentHotline()))) && <> <a className="font-semibold underline" href={hotlineHref()}><Phone className="inline h-3.5 w-3.5" /> {t('property.call')}</a></>}</Alert>}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-sand-200 pt-5">
+        <div className="flex flex-wrap items-center gap-1">
+          {onBack && <Button variant="ghost" onClick={onBack} className="rounded-full text-navy-600 hover:bg-sand-100 hover:text-navy-900">{t('property.guest.changeNumber')}</Button>}
+          <Button variant="ghost" disabled={cooldown > 0 || sending} onClick={send} className="rounded-full font-semibold text-gold-700 hover:bg-gold-50 hover:text-gold-800">{cooldown > 0 ? t('property.guest.resendIn', { n: cooldown }) : t('property.guest.resend')}</Button>
         </div>
-        <Button type="submit" loading={verifying || busy}>{t('property.guest.verifySubmit')}</Button>
+        <Button variant="gold" size="lg" type="submit" loading={verifying || busy} className="rounded-full px-8 font-semibold">{t('property.guest.verifySubmit')}</Button>
       </div>
     </form>
   );

@@ -6,6 +6,7 @@ import { Avatar, Button } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
 import { useCities } from '@/modules/listings/api';
 import { usePublicSettings } from '@/modules/search/api';
+import { setLiveHotline } from './components/States';
 import { captureReferral, useCityPref } from '@/modules/search/prefs';
 import { I18nProvider, useT } from '@/shared/i18n';
 import { CitySelect, NotificationsBell, ShortlistIcon } from './components/HeaderBits';
@@ -24,6 +25,7 @@ export default function PublicShell() {
   const citiesQ = useCities();
   const [cityPref, setCityPref] = useCityPref();
   const s = settings.data;
+  setLiveHotline(s && s.hotline);
   const refDays = (s && s.referral && s.referral.captureDays) || 30;
 
   useEffect(() => { captureReferral(location.search, refDays); }, [location.search, refDays]);

@@ -49,18 +49,18 @@ export function ActiveChips({ filters: f, update, clear, localityNames = {} }) {
   if (f.q) add('q', `"${f.q}"`, { q: undefined });
   if (!chips.length) return null;
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-2">
       {chips.map((c) => (
-        <button key={c.key} type="button" onClick={() => update(c.patch)} className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-medium capitalize text-brand-700 hover:bg-brand-100">
-          {c.label}<X className="h-3 w-3" aria-label={t('search.chips.remove')} />
+        <button key={c.key} type="button" onClick={() => update(c.patch)} className="group inline-flex h-8 items-center gap-1.5 rounded-full bg-navy-900 pl-3.5 pr-2.5 text-xs font-medium capitalize text-white shadow-sm transition-colors hover:bg-navy-800">
+          {c.label}<X className="h-3.5 w-3.5 text-gold-300 transition-colors group-hover:text-white" aria-label={t('search.chips.remove')} />
         </button>
       ))}
-      <button type="button" onClick={clear} className="px-1 text-xs font-medium text-ink-muted hover:text-ink hover:underline">{t('search.chips.clearAll')}</button>
+      <button type="button" onClick={clear} className="px-1.5 text-xs font-semibold text-navy-600 underline decoration-gold-400 underline-offset-4 hover:text-navy-900">{t('search.chips.clearAll')}</button>
     </div>
   );
 }
 
-export function SaveSearchButton({ filters, size = 'sm', variant = 'secondary', label }) {
+export function SaveSearchButton({ filters, size = 'sm', variant = 'outline', label, className = 'rounded-full' }) {
   const t = useT();
   const { isAuthed, user } = useAuth();
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ export function SaveSearchButton({ filters, size = 'sm', variant = 'secondary', 
   if (isAuthed && !['buyer', 'lister'].includes(user.role)) return null;
   return (
     <>
-      <Button size={size} variant={variant} icon={BellPlus}
+      <Button size={size} variant={variant} icon={BellPlus} className={className}
         onClick={() => (isAuthed ? setOpen(true) : navigate('/login', { state: { from: location.pathname + location.search } }))}>{label || t('search.saveThis')}</Button>
       <SaveSearchModal open={open} onClose={() => setOpen(false)} filters={filters} />
     </>
@@ -81,12 +81,12 @@ export function CompareTray() {
   const { ids, clear } = useCompareIds();
   if (!ids.length) return null;
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:bottom-4 sm:left-auto sm:right-6 sm:rounded-lg sm:border">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-ink">{t('search.tray.before')}<span className="font-semibold">{ids.length}</span>{t('search.tray.after')}</span>
+    <div className="fixed inset-x-0 bottom-0 z-30 bg-navy-950/95 px-4 py-3 text-white shadow-lift ring-1 ring-white/10 backdrop-blur-md sm:bottom-5 sm:left-auto sm:right-6 sm:rounded-full sm:py-2 sm:pl-5 sm:pr-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <span className="flex items-center gap-2 text-sm text-navy-100"><GitCompareArrows className="h-4 w-4 text-gold-300" aria-hidden />{t('search.tray.before')}<span className="font-display text-base font-semibold text-white">{ids.length}</span>{t('search.tray.after')}</span>
         <div className="flex gap-2">
-          <Button size="sm" variant="ghost" onClick={clear}>{t('search.tray.clear')}</Button>
-          <Button size="sm" icon={GitCompareArrows} to="/compare" disabled={ids.length < 2}>{t('search.tray.compare')}</Button>
+          <button type="button" onClick={clear} className="h-8 rounded-full px-3 text-sm font-medium text-navy-200 transition-colors hover:bg-white/10 hover:text-white">{t('search.tray.clear')}</button>
+          <Button size="sm" variant="gold" icon={GitCompareArrows} to="/compare" disabled={ids.length < 2} className="rounded-full px-4">{t('search.tray.compare')}</Button>
         </div>
       </div>
     </div>

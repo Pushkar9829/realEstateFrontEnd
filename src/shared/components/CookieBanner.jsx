@@ -105,21 +105,22 @@ export default function CookieBanner({ ready, enabled = true, cookieDays = 180, 
 
   return (
     <div role="dialog" aria-modal="false" aria-labelledby="cookie-h" aria-describedby="cookie-d"
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-white p-4 shadow-lg sm:inset-x-auto sm:bottom-4 sm:left-4 sm:max-w-md sm:rounded-lg sm:border">
-      <div className="flex items-start gap-3">
-        <span className="rounded-full bg-brand-50 p-2 text-brand-600"><Cookie className="h-5 w-5" aria-hidden /></span>
+      className="fixed inset-x-0 bottom-0 z-40 overflow-hidden border-t border-white/10 bg-navy-950 p-5 text-white shadow-lift sm:inset-x-auto sm:bottom-5 sm:left-5 sm:max-w-md sm:rounded-3xl sm:border">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-gold-600 via-gold-300 to-gold-600" aria-hidden />
+      <div className="flex items-start gap-4">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold-300/30 bg-white/5 text-gold-300"><Cookie className="h-5 w-5" aria-hidden /></span>
         <div className="min-w-0">
-          <p id="cookie-h" className="text-sm font-semibold text-ink">{t('common.cookie.title')}</p>
-          <p id="cookie-d" className="mt-1 text-xs leading-relaxed text-ink-muted">
+          <p id="cookie-h" className="font-display text-lg font-medium text-white">{t('common.cookie.title')}</p>
+          <p id="cookie-d" className="mt-1 text-xs leading-relaxed text-navy-200">
             {t('common.cookie.body')}
-            {' '}<Link to="/p/privacy" className="font-medium text-brand-700 hover:underline">{t('common.cookie.privacyNotice')}</Link>
+            {' '}<Link to="/p/privacy" className="font-medium text-gold-300 underline-offset-4 hover:text-gold-200 hover:underline">{t('common.cookie.privacyNotice')}</Link>
           </p>
-          {choice && <p className="mt-1 text-xs text-ink-subtle">{t('common.cookie.current', { choice: t(choice === 'analytics' ? 'common.cookie.currentAnalytics' : 'common.cookie.currentEssential') })}</p>}
+          {choice && <p className="mt-1.5 text-xs text-navy-300">{t('common.cookie.current', { choice: t(choice === 'analytics' ? 'common.cookie.currentAnalytics' : 'common.cookie.currentEssential') })}</p>}
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap justify-end gap-2">
-        <Button variant="secondary" size="sm" onClick={() => choose('essential')}>{t('common.cookie.essential')}</Button>
-        <Button size="sm" onClick={() => choose('analytics')}>{t('common.cookie.accept')}</Button>
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <Button variant="glass" size="md" className="!rounded-full" onClick={() => choose('essential')}>{t('common.cookie.essential')}</Button>
+        <Button variant="gold" size="md" className="!rounded-full font-semibold" onClick={() => choose('analytics')}>{t('common.cookie.accept')}</Button>
       </div>
     </div>
   );

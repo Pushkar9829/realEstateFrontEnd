@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Mail, MessageSquare } from 'lucide-react';
-import { Alert, Badge, Button, Card, OtpInput, Stepper } from '@/shared/ui';
+import { Alert, Badge, Button, OtpInput } from '@/shared/ui';
 import { authApi, useAuth } from '@/modules/auth';
 import { useT } from '@/shared/i18n';
+import { AuthCard, AuthSteps, AuthTitle } from './AuthCard';
 
 function Channel({ channel, label, target, done, token, onDone }) {
   const t = useT();
@@ -27,13 +28,13 @@ function Channel({ channel, label, target, done, token, onDone }) {
   };
 
   return (
-    <div className="rounded-lg border p-4">
+    <div className="rounded-2xl border border-navy-900/10 bg-white p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Icon className="h-5 w-5 text-brand-600" aria-hidden />
-          <div>
-            <p className="text-sm font-semibold text-ink">{label}</p>
-            {target && <p className="text-xs text-ink-subtle">{target}</p>}
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-200"><Icon className="h-5 w-5" aria-hidden /></span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-navy-900">{label}</p>
+            {target && <p className="truncate text-xs text-navy-400">{target}</p>}
           </div>
         </div>
         {done && <Badge tone="success" icon={CheckCircle2}>{t('auth.verify.verified')}</Badge>}
@@ -43,8 +44,8 @@ function Channel({ channel, label, target, done, token, onDone }) {
           {notice && <Alert tone="success">{notice}</Alert>}
           <OtpInput value={code} onChange={setCode} error={error} autoSubmit />
           <div className="flex gap-2">
-            <Button onClick={verify} loading={busy}>{t('auth.verify.verify')}</Button>
-            <Button variant="ghost" onClick={resend}>{t('auth.resendCode')}</Button>
+            <Button variant="gold" className="!rounded-full px-6 font-semibold" onClick={verify} loading={busy}>{t('auth.verify.verify')}</Button>
+            <Button variant="outline" className="!rounded-full" onClick={resend}>{t('auth.resendCode')}</Button>
           </div>
         </div>
       )}
@@ -71,14 +72,13 @@ export default function VerifyContactPage() {
   };
 
   return (
-    <Card className="p-6 sm:p-8">
-      <div className="mb-5"><Stepper steps={[{ label: t('auth.steps.details') }, { label: t('auth.steps.verify') }, { label: t('auth.steps.start') }]} current={1} /></div>
-      <h1 className="text-2xl font-semibold text-ink">{t('auth.verify.title')}</h1>
-      <p className="mb-6 mt-1 text-sm text-ink-subtle">{smsNeeded ? t('auth.verify.subtitleBoth') : t('auth.verify.subtitleEmail')}</p>
+    <AuthCard>
+      <AuthSteps steps={[t('auth.steps.details'), t('auth.steps.verify'), t('auth.steps.start')]} current={1} />
+      <AuthTitle title={t('auth.verify.title')} subtitle={smsNeeded ? t('auth.verify.subtitleBoth') : t('auth.verify.subtitleEmail')} />
       <div className="space-y-3">
         <Channel channel="email" label={t('auth.verify.email')} target={state.pending && state.pending.email} done={status.emailVerified} token={state.verificationToken} onDone={onDone} />
         {smsNeeded && <Channel channel="sms" label={t('auth.verify.mobile')} target={state.pending && state.pending.phone} done={status.phoneVerified} token={state.verificationToken} onDone={onDone} />}
       </div>
-    </Card>
+    </AuthCard>
   );
 }

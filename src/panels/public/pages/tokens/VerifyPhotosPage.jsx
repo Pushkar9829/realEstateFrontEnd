@@ -7,11 +7,11 @@ import { useParams } from 'react-router-dom';
 import { Camera, CheckCircle2, Link2Off, LocateFixed, MapPin, Send, ShieldCheck } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { dateTime } from '@/shared/lib/format';
-import { Alert, Button, Card, Checkbox, Skeleton } from '@/shared/ui';
+import { Alert, Button, Checkbox, Skeleton } from '@/shared/ui';
 import { useT } from '@/shared/i18n';
 import useDocumentMeta from '@/shared/hooks/useDocumentMeta';
 import { sendCaptureLocation, submitCapture, uploadCapturePhoto, useCaptureSession } from '@/modules/search/api';
-import { NarrowPage, NotAvailable } from '../../components/States';
+import { TokenCard, TokenEyebrow, TokenNotice, TokenPage } from './TokenFrame';
 
 const STATUS_PAGE = {
   pending_review: ['account.verify.pendingTitle', 'account.verify.pendingText'],
@@ -33,9 +33,9 @@ function position(t) {
 
 function Step({ n, title, done, active, children }) {
   return (
-    <li className={cn('rounded-lg border p-4', active ? 'border-brand-300 bg-white' : 'border-line bg-surface-muted')}>
-      <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-        <span className={cn('flex h-6 w-6 items-center justify-center rounded-full text-xs', done ? 'bg-success-600 text-white' : active ? 'bg-brand-600 text-white' : 'bg-surface-sunken text-ink-subtle')}>{done ? <CheckCircle2 className="h-4 w-4" /> : n}</span>
+    <li className={cn('rounded-2xl border p-4 transition-colors sm:p-5', active ? 'border-gold-300 bg-white shadow-card' : 'border-navy-900/10 bg-sand-50')}>
+      <p className="flex items-center gap-3 text-sm font-semibold text-navy-900">
+        <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold', done ? 'bg-success-600 text-white' : active ? 'bg-navy-900 text-gold-300' : 'bg-sand-200 text-navy-400')}>{done ? <CheckCircle2 className="h-4 w-4" /> : n}</span>
         {title}
       </p>
       {(active || done) && children && <div className="mt-3">{children}</div>}
@@ -59,12 +59,12 @@ export default function VerifyPhotosPage() {
   const [previews, setPreviews] = useState([]);
   useDocumentMeta({ title: t('account.meta.verifyPhotos'), noindex: true });
 
-  if (q.isLoading) return <NarrowPage><Skeleton className="h-96 w-full" /></NarrowPage>;
-  if (q.isError) return <NotAvailable icon={Link2Off} title={t('account.verify.invalidTitle')} description={t('account.verify.invalidText')} />;
+  if (q.isLoading) return <TokenPage><Skeleton className="h-96 w-full" /></TokenPage>;
+  if (q.isError) return <TokenNotice icon={Link2Off} title={t('account.verify.invalidTitle')} description={t('account.verify.invalidText')} />;
   const s = q.data;
   if (sent || STATUS_PAGE[s.status]) {
     const [title, text] = STATUS_PAGE[sent ? 'pending_review' : s.status];
-    return <NotAvailable icon={sent || s.status === 'pending_review' || s.status === 'approved' ? ShieldCheck : Link2Off} title={t(title)} description={t(text)} />;
+    return <TokenNotice tone={sent || s.status === 'pending_review' || s.status === 'approved' ? 'success' : 'neutral'} icon={sent || s.status === 'pending_review' || s.status === 'approved' ? ShieldCheck : Link2Off} title={t(title)} description={t(text)} />;
   }
 
   const count = photos == null ? s.photos : photos;
@@ -105,39 +105,39 @@ export default function VerifyPhotosPage() {
   };
 
   return (
-    <NarrowPage>
-      <Card>
-        <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">{t('account.verify.eyebrow')}</p>
-        <h1 className="mt-1 text-lg font-semibold text-ink">{s.listing.title}</h1>
-        <p className="flex items-center gap-1 text-sm text-ink-muted"><MapPin className="h-4 w-4" aria-hidden />{[s.listing.locality, s.listing.city].filter(Boolean).join(', ')} · {s.listing.listingNo}</p>
-        <p className="mt-2 text-xs text-ink-subtle">{t('account.verify.intro', { date: dateTime(s.expiresAt) })}</p>
+    <TokenPage>
+      <TokenCard>
+        <TokenEyebrow>{t('account.verify.eyebrow')}</TokenEyebrow>
+        <h1 className="mt-3 font-display text-2xl font-medium leading-tight text-navy-900 sm:text-3xl">{s.listing.title}</h1>
+        <p className="mt-1 flex items-center gap-1 text-sm text-navy-500"><MapPin className="h-4 w-4 text-gold-600" aria-hidden />{[s.listing.locality, s.listing.city].filter(Boolean).join(', ')} · {s.listing.listingNo}</p>
+        <p className="mt-3 text-xs leading-relaxed text-navy-400">{t('account.verify.intro', { date: dateTime(s.expiresAt) })}</p>
 
-        <ol className="mt-5 space-y-3">
+        <ol className="mt-7 space-y-3">
           <Step n={1} title={t('account.verify.step1')} done={located} active={!located}>
             {located ? (
               <p className="text-sm text-success-700">{distance != null ? t('account.verify.checkedDistance', { m: distance }) : t('account.verify.checked')}</p>
             ) : (
               <>
-                <p className="mb-3 text-sm text-ink-muted">{t('account.verify.within', { m: s.maxDistanceM })}</p>
-                <Button icon={LocateFixed} loading={locating} onClick={shareLocation} block>{t('account.verify.share')}</Button>
+                <p className="mb-3 text-sm text-navy-500">{t('account.verify.within', { m: s.maxDistanceM })}</p>
+                <Button icon={LocateFixed} variant="gold" size="lg" className="!rounded-full font-semibold" loading={locating} onClick={shareLocation} block>{t('account.verify.share')}</Button>
               </>
             )}
           </Step>
           <Step n={2} title={t('account.verify.step2', { count: s.minPhotos })} done={enough} active={located && !enough}>
-            <p className="mb-3 text-sm text-ink-muted">{t('account.verify.taken', { count, min: s.minPhotos })}</p>
-            {previews.length > 0 && <div className="mb-3 grid grid-cols-4 gap-1.5">{previews.map((u) => <img key={u} src={u} alt="" className="aspect-square w-full rounded object-cover" />)}</div>}
-            <Button icon={Camera} variant={enough ? 'secondary' : 'primary'} block disabled={!located || progress !== null || count >= 12} loading={progress !== null} onClick={() => input.current && input.current.click()}>
+            <p className="mb-3 text-sm text-navy-500">{t('account.verify.taken', { count, min: s.minPhotos })}</p>
+            {previews.length > 0 && <div className="mb-3 grid grid-cols-4 gap-1.5">{previews.map((u) => <img key={u} src={u} alt="" className="aspect-square w-full rounded-lg object-cover" />)}</div>}
+            <Button icon={Camera} variant={enough ? 'outline' : 'gold'} size="lg" className="!rounded-full font-semibold" block disabled={!located || progress !== null || count >= 12} loading={progress !== null} onClick={() => input.current && input.current.click()}>
               {progress !== null ? t('account.verify.uploading', { pct: progress }) : enough ? t('account.verify.another') : t('account.verify.camera')}
             </Button>
             <input ref={input} type="file" accept="image/*" capture="environment" className="sr-only" tabIndex={-1} onChange={(e) => onFiles(e.target.files)} />
           </Step>
           <Step n={3} title={t('account.verify.step3')} done={false} active={enough}>
             <Checkbox label={t('account.verify.gallery')} checked={gallery} onChange={(e) => setGallery(e.target.checked)} />
-            <Button icon={Send} className="mt-3" block loading={sending} onClick={send}>{t('account.verify.send')}</Button>
+            <Button icon={Send} variant="navy" size="lg" className="mt-4 !rounded-full font-semibold" block loading={sending} onClick={send}>{t('account.verify.send')}</Button>
           </Step>
         </ol>
         {error && <Alert tone="danger" className="mt-4">{error}</Alert>}
-      </Card>
-    </NarrowPage>
+      </TokenCard>
+    </TokenPage>
   );
 }

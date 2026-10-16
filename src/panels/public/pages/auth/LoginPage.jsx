@@ -3,9 +3,10 @@
 import { lazy, Suspense, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { KeyRound, Mail, MessageSquare, Smartphone } from 'lucide-react';
-import { Alert, Button, Card, Input, OtpInput, PasswordInput } from '@/shared/ui';
+import { Alert, Button, Input, OtpInput, PasswordInput } from '@/shared/ui';
 import { authApi, loginSchema, useApiForm, useAuth } from '@/modules/auth';
 import { useT } from '@/shared/i18n';
+import { AuthCard, AuthTitle, authLink } from './AuthCard';
 
 // Demo logins are loaded only in development builds.
 const DemoAccounts = import.meta.env.DEV ? lazy(() => import('./DemoAccounts')) : null;
@@ -38,8 +39,8 @@ function PasswordStep({ onChallenge, formRef }) {
       {f.formError && <Alert tone="danger">{f.formError.message}</Alert>}
       <Input label={t('auth.identifier')} autoComplete="username" autoFocus error={f.errorOf('identifier')} {...f.register('identifier')} />
       <PasswordInput label={t('auth.password')} autoComplete="current-password" error={f.errorOf('password')} {...f.register('password')} />
-      <div className="flex justify-end text-sm"><Link to="/forgot-password" className="font-medium text-brand-600 hover:text-brand-700">{t('auth.login.forgot')}</Link></div>
-      <Button type="submit" block size="lg" loading={f.formState.isSubmitting}>{t('auth.login.continue')}</Button>
+      <div className="flex justify-end text-sm"><Link to="/forgot-password" className="font-medium text-navy-600 underline-offset-4 transition-colors hover:text-gold-700 hover:underline">{t('auth.login.forgot')}</Link></div>
+      <Button type="submit" variant="gold" block size="lg" className="!rounded-full font-semibold" loading={f.formState.isSubmitting}>{t('auth.login.continue')}</Button>
     </form>
   );
 }
@@ -89,7 +90,7 @@ function CodeStep({ challenge, setChallenge, onBack }) {
   const method = challenge.method;
   return (
     <form onSubmit={verify} className="space-y-5" noValidate>
-      <div className="rounded-md bg-brand-50 p-3 text-sm text-brand-700">
+      <div className="rounded-xl bg-navy-50 p-4 text-sm leading-relaxed text-navy-700 ring-1 ring-inset ring-navy-900/5">
         {method === 'totp' ? t('auth.twoFa.totpPrompt') : t('auth.twoFa.sentPrompt', { to: challenge.sentTo })}
       </div>
       {notice && <Alert tone="success">{notice}</Alert>}
@@ -98,23 +99,23 @@ function CodeStep({ challenge, setChallenge, onBack }) {
       ) : (
         <OtpInput value={code} onChange={setCode} error={error} autoFocus autoSubmit />
       )}
-      <Button type="submit" block size="lg" loading={busy}>{t('auth.twoFa.verifySignIn')}</Button>
+      <Button type="submit" variant="gold" block size="lg" className="!rounded-full font-semibold" loading={busy}>{t('auth.twoFa.verifySignIn')}</Button>
 
-      <div className="space-y-2 border-t pt-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-subtle">{t('auth.twoFa.otherWays')}</p>
+      <div className="space-y-3 border-t border-navy-900/10 pt-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-400">{t('auth.twoFa.otherWays')}</p>
         <div className="flex flex-wrap gap-2">
           {(challenge.methods || []).filter((m) => m !== method).map((m) => {
             const M = METHOD[m];
-            return <Button key={m} variant="secondary" size="sm" icon={M.icon} onClick={() => switchTo(m)}>{t(M.label)}</Button>;
+            return <Button key={m} variant="outline" size="sm" className="!rounded-full" icon={M.icon} onClick={() => switchTo(m)}>{t(M.label)}</Button>;
           })}
-          {method !== 'totp' && <Button variant="secondary" size="sm" onClick={() => switchTo(method)}>{t('auth.resendCode')}</Button>}
+          {method !== 'totp' && <Button variant="outline" size="sm" className="!rounded-full" onClick={() => switchTo(method)}>{t('auth.resendCode')}</Button>}
           {method === 'totp' && (
-            <Button variant="secondary" size="sm" icon={KeyRound} onClick={() => { setRecovery((r) => !r); setError(null); }}>
+            <Button variant="outline" size="sm" className="!rounded-full" icon={KeyRound} onClick={() => { setRecovery((r) => !r); setError(null); }}>
               {recovery ? t('auth.twoFa.useAuthenticator') : t('auth.twoFa.useRecovery')}
             </Button>
           )}
         </div>
-        <button type="button" onClick={onBack} className="text-sm font-medium text-brand-600 hover:text-brand-700">{t('auth.twoFa.backToPassword')}</button>
+        <button type="button" onClick={onBack} className={`text-sm ${authLink}`}>{t('auth.twoFa.backToPassword')}</button>
       </div>
     </form>
   );
@@ -132,14 +133,13 @@ export default function LoginPage() {
     f.setFocus('password');
   };
   return (
-    <Card className="p-6 sm:p-8">
-      <h1 className="text-2xl font-semibold text-ink">{challenge ? t('auth.twoFa.title') : t('auth.login.title')}</h1>
-      <p className="mb-6 mt-1 text-sm text-ink-subtle">{challenge ? t('auth.twoFa.subtitle') : t('auth.login.subtitle')}</p>
+    <AuthCard>
+      <AuthTitle title={challenge ? t('auth.twoFa.title') : t('auth.login.title')} subtitle={challenge ? t('auth.twoFa.subtitle') : t('auth.login.subtitle')} />
       {challenge
         ? <CodeStep challenge={challenge} setChallenge={setChallenge} onBack={() => setChallenge(null)} />
         : <PasswordStep onChallenge={setChallenge} formRef={formRef} />}
-      {!challenge && <p className="mt-6 text-center text-sm text-ink-subtle">{t('auth.login.newHere')} <Link to="/register" className="font-medium text-brand-600 hover:text-brand-700">{t('auth.login.createAccount')}</Link></p>}
+      {!challenge && <p className="mt-7 border-t border-navy-900/10 pt-6 text-center text-sm text-navy-500">{t('auth.login.newHere')} <Link to="/register" className={authLink}>{t('auth.login.createAccount')}</Link></p>}
       {!challenge && DemoAccounts && <Suspense fallback={null}><DemoAccounts onPick={pick} /></Suspense>}
-    </Card>
+    </AuthCard>
   );
 }

@@ -3,11 +3,12 @@ import { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Building2, Home, KeyRound, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { Alert, Button, Card, Checkbox, Input, PasswordInput, Stepper } from '@/shared/ui';
+import { Alert, Button, Checkbox, Input, PasswordInput } from '@/shared/ui';
 import { authApi, PasswordStrength, registerSchema, useApiForm } from '@/modules/auth';
 import { usePublicSettings } from '@/modules/search/api';
 import { captureReferral, referralCode } from '@/modules/search/prefs';
 import { useT } from '@/shared/i18n';
+import { AuthCard, AuthSteps, AuthTitle, authLink } from './AuthCard';
 
 const SIGNUP_STEPS = ['auth.steps.details', 'auth.steps.verify', 'auth.steps.start'];
 
@@ -20,11 +21,11 @@ const LISTER_TYPES = [
 function Choice({ active, onClick, icon: Icon, title, hint }) {
   return (
     <button type="button" onClick={onClick} aria-pressed={active}
-      className={cn('flex flex-1 flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors',
-        active ? 'border-brand-600 bg-brand-50 ring-1 ring-brand-600' : 'border-line-strong bg-white hover:bg-surface-muted')}>
-      <Icon className={cn('h-5 w-5', active ? 'text-brand-600' : 'text-ink-subtle')} aria-hidden />
-      <span className="text-sm font-semibold text-ink">{title}</span>
-      {hint && <span className="text-xs text-ink-subtle">{hint}</span>}
+      className={cn('flex min-w-0 flex-1 flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all',
+        active ? 'border-navy-900 bg-navy-900/[0.03] ring-1 ring-navy-900' : 'border-navy-900/10 bg-white hover:border-navy-900/30')}>
+      <Icon className={cn('h-5 w-5', active ? 'text-gold-600' : 'text-navy-400')} aria-hidden />
+      <span className="text-sm font-semibold text-navy-900">{title}</span>
+      {hint && <span className="text-xs leading-snug text-navy-400">{hint}</span>}
     </button>
   );
 }
@@ -54,14 +55,13 @@ export default function RegisterPage() {
   });
 
   return (
-    <Card className="p-6 sm:p-8">
-      <div className="mb-5"><Stepper steps={SIGNUP_STEPS.map((k) => ({ label: t(k) }))} current={0} /></div>
-      <h1 className="text-2xl font-semibold text-ink">{t('auth.register.title')}</h1>
-      <p className="mb-6 mt-1 text-sm text-ink-subtle">{t('auth.register.subtitle')}</p>
+    <AuthCard>
+      <AuthSteps steps={SIGNUP_STEPS.map((k) => t(k))} current={0} />
+      <AuthTitle title={t('auth.register.title')} subtitle={t('auth.register.subtitle')} />
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         {f.formError && <Alert tone="danger">{f.formError.message}</Alert>}
         <div>
-          <p className="mb-1.5 text-sm font-medium text-ink">{t('auth.register.iWantTo')}</p>
+          <p className="mb-2 text-sm font-medium text-navy-800">{t('auth.register.iWantTo')}</p>
           <div className="flex gap-2">
             <Choice active={role === 'buyer'} onClick={() => f.setValue('role', 'buyer')} icon={Search} title={t('auth.register.buyOrRent')} hint={t('auth.register.buyOrRentHint')} />
             <Choice active={role === 'lister'} onClick={() => f.setValue('role', 'lister')} icon={Home} title={t('auth.register.listProperty')} hint={t('auth.register.listPropertyHint')} />
@@ -69,7 +69,7 @@ export default function RegisterPage() {
         </div>
         {role === 'lister' && (
           <div>
-            <p className="mb-1.5 text-sm font-medium text-ink">{t('auth.register.iAmA')}</p>
+            <p className="mb-2 text-sm font-medium text-navy-800">{t('auth.register.iAmA')}</p>
             <div className="grid grid-cols-3 gap-2">
               {LISTER_TYPES.map((lt) => <Choice key={lt.value} active={listerType === lt.value} onClick={() => f.setValue('listerType', lt.value, { shouldValidate: true })} icon={lt.icon} title={t(lt.label)} hint={t(lt.hint)} />)}
             </div>
@@ -90,14 +90,14 @@ export default function RegisterPage() {
           <PasswordInput label={t('auth.register.confirmPassword')} autoComplete="new-password" required error={f.errorOf('confirmPassword')} {...f.register('confirmPassword')} />
         </div>
         <Input label={t('auth.register.referral')} error={f.errorOf('referralCode')} {...f.register('referralCode')} />
-        <div className="space-y-3 rounded-md bg-surface-muted p-3">
+        <div className="space-y-3 rounded-2xl bg-sand-100 p-4 ring-1 ring-inset ring-navy-900/5">
           {role === 'lister' && <Checkbox label={t('auth.register.noBroker')} description={t('auth.register.noBrokerHint')} error={f.errorOf('noBrokerDeclaration')} {...f.register('noBrokerDeclaration')} />}
-          <Checkbox label={<>{t('auth.register.termsBefore')}<Link to="/p/terms" className="text-brand-600 underline">{t('auth.register.terms')}</Link>{t('auth.register.termsAnd')}<Link to="/p/privacy" className="text-brand-600 underline">{t('auth.register.privacy')}</Link>{t('auth.register.termsAfter')}</>} error={f.errorOf('acceptTerms')} {...f.register('acceptTerms')} />
+          <Checkbox label={<>{t('auth.register.termsBefore')}<Link to="/p/terms" className="font-medium text-navy-900 underline decoration-gold-400 underline-offset-2">{t('auth.register.terms')}</Link>{t('auth.register.termsAnd')}<Link to="/p/privacy" className="font-medium text-navy-900 underline decoration-gold-400 underline-offset-2">{t('auth.register.privacy')}</Link>{t('auth.register.termsAfter')}</>} error={f.errorOf('acceptTerms')} {...f.register('acceptTerms')} />
           <Checkbox label={t('auth.register.marketing')} {...f.register('marketingOptIn')} />
         </div>
-        <Button type="submit" block size="lg" loading={f.formState.isSubmitting}>{t('auth.register.submit')}</Button>
+        <Button type="submit" variant="gold" block size="lg" className="!rounded-full font-semibold" loading={f.formState.isSubmitting}>{t('auth.register.submit')}</Button>
       </form>
-      <p className="mt-6 text-center text-sm text-ink-subtle">{t('auth.register.already')} <Link to="/login" className="font-medium text-brand-600 hover:text-brand-700">{t('auth.register.login')}</Link></p>
-    </Card>
+      <p className="mt-7 border-t border-navy-900/10 pt-6 text-center text-sm text-navy-500">{t('auth.register.already')} <Link to="/login" className={authLink}>{t('auth.register.login')}</Link></p>
+    </AuthCard>
   );
 }

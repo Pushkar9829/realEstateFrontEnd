@@ -1,19 +1,21 @@
 // RE-S-PUB-02 filter sidebar (a drawer on mobile). Every change is a patch
 // applied to the URL by the page.
-import { useMemo, useState } from 'react';
-import { Info } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { Check, ChevronDown, Info } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { shortRupees } from '@/shared/lib/format';
-import { Checkbox, Select } from '@/shared/ui';
 import { useCities, useLocalities, useMasters } from '@/modules/listings/api';
 import { BHK_OPTIONS, BUDGETS, CATEGORIES, FURNISHING, POSSESSION, POSTED_BY, csvList, toggleCsv } from '@/modules/search/api';
 import { useT } from '@/shared/i18n';
 import { enumLabel } from './useSearchFilters';
 
+// Sand inputs, rounded-xl, gold focus ring (docs/PUBLIC_DESIGN.md).
+export const FIELD = 'w-full rounded-xl border-0 bg-sand-100 text-sm text-navy-900 ring-1 ring-inset ring-navy-900/10 placeholder:text-navy-400 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-gold-500';
+
 function Group({ title, children, className }) {
   return (
-    <fieldset className={cn('border-b border-line py-4 first:pt-0 last:border-0', className)}>
-      <legend className="mb-2 text-sm font-semibold text-ink">{title}</legend>
+    <fieldset className={cn('border-b border-navy-900/5 pb-5 last:border-0 last:pb-0 [&:first-child>legend]:pt-0', className)}>
+      <legend className="mb-3 pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-navy-500">{title}</legend>
       {children}
     </fieldset>
   );
@@ -22,9 +24,40 @@ function Group({ title, children, className }) {
 function Chip({ on, onClick, children }) {
   return (
     <button type="button" aria-pressed={on} onClick={onClick}
-      className={cn('rounded-full border px-3 py-1 text-sm transition-colors', on ? 'border-brand-600 bg-brand-50 font-medium text-brand-700' : 'border-line-strong bg-white text-ink-muted hover:border-brand-300')}>
+      className={cn('min-h-[36px] rounded-full px-3.5 py-1.5 text-sm transition-all', on ? 'bg-navy-900 font-medium text-white shadow-sm' : 'bg-white text-navy-600 ring-1 ring-inset ring-navy-900/10 hover:text-navy-900 hover:ring-navy-900/30')}>
       {children}
     </button>
+  );
+}
+
+// Native select in the public skin (same API as the shared Select used before).
+function Select({ options = [], placeholder, className, ...rest }) {
+  return (
+    <div className={cn('relative', className)}>
+      <select className={cn(FIELD, 'h-11 appearance-none pl-3.5 pr-9')} {...rest}>
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" aria-hidden />
+    </div>
+  );
+}
+
+// Checkbox with a navy box and a gold focus ring (same props as the shared Checkbox).
+function Checkbox({ label, description, checked, disabled, onChange }) {
+  const id = useId();
+  return (
+    <label htmlFor={id} className={cn('group flex cursor-pointer items-start gap-3 rounded-lg py-1', disabled && 'cursor-not-allowed opacity-50')}>
+      <span className="relative mt-0.5 flex h-[18px] w-[18px] shrink-0">
+        <input id={id} type="checkbox" checked={checked} disabled={disabled} onChange={onChange}
+          className="peer absolute inset-0 h-full w-full cursor-[inherit] appearance-none rounded-[5px] border-0 bg-white ring-1 ring-inset ring-navy-900/25 transition checked:bg-navy-900 checked:ring-navy-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500" />
+        <Check className="pointer-events-none relative m-auto hidden h-3 w-3 text-white peer-checked:block" strokeWidth={3} aria-hidden />
+      </span>
+      <span className="text-sm">
+        <span className="text-navy-700 group-hover:text-navy-900">{label}</span>
+        {description && <span className="block text-xs leading-relaxed text-navy-400">{description}</span>}
+      </span>
+    </label>
   );
 }
 
@@ -65,9 +98,9 @@ export default function FilterPanel({ filters: f, onChange }) {
         {cityCode && (
           <div className="mt-3">
             <input value={locQ} onChange={(e) => setLocQ(e.target.value)} placeholder={t('search.filters.filterLocalities')} aria-label={t('search.filters.filterLocalities')}
-              className="h-9 w-full rounded-md border border-line-strong px-3 text-sm focus:border-brand-500 focus:outline-none" />
-            <div className="mt-2 max-h-44 space-y-1.5 overflow-y-auto pr-1">
-              {localities.isLoading && <p className="text-xs text-ink-subtle">{t('search.filters.loadingLocalities')}</p>}
+              className={cn(FIELD, 'h-10 px-3.5')} />
+            <div className="mt-3 max-h-48 space-y-0.5 overflow-y-auto pr-1">
+              {localities.isLoading && <p className="text-xs text-navy-400">{t('search.filters.loadingLocalities')}</p>}
               {locs.map((l) => {
                 const on = selectedLocs.includes(l.code) || selectedLocs.includes(l._id);
                 const next = on ? selectedLocs.filter((x) => x !== l.code && x !== l._id) : [...selectedLocs, l.code];
@@ -76,9 +109,9 @@ export default function FilterPanel({ filters: f, onChange }) {
                     onChange={() => onChange({ localities: next.join(',') || undefined })} />
                 );
               })}
-              {!localities.isLoading && !locs.length && <p className="text-xs text-ink-subtle">{t('search.filters.noLocalities')}</p>}
+              {!localities.isLoading && !locs.length && <p className="text-xs text-navy-400">{t('search.filters.noLocalities')}</p>}
             </div>
-            {selectedLocs.length >= 10 && <p className="mt-1 text-xs text-ink-subtle">{t('search.filters.upTo10')}</p>}
+            {selectedLocs.length >= 10 && <p className="mt-1 text-xs text-navy-400">{t('search.filters.upTo10')}</p>}
           </div>
         )}
       </Group>
@@ -87,7 +120,7 @@ export default function FilterPanel({ filters: f, onChange }) {
           <Chip on={!f.category} onClick={() => onChange({ category: undefined, types: undefined })}>{t('search.filters.all')}</Chip>
           {Object.keys(CATEGORIES).map((v) => <Chip key={v} on={f.category === v} onClick={() => onChange({ category: v, types: undefined, ...(v !== 'residential' ? { bhk: undefined, furnishing: undefined } : {}) })}>{enumLabel(t, 'category', v)}</Chip>)}
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-0.5">
           {types.map((pt) => <Checkbox key={pt.code} label={pt.name} checked={csvList(f.types).includes(pt.code)} onChange={() => onChange({ types: toggleCsv(f.types, pt.code) || undefined })} />)}
         </div>
       </Group>
@@ -114,7 +147,7 @@ export default function FilterPanel({ filters: f, onChange }) {
             <input key={`${k}-${f[k] || ''}`} type="number" min="0" inputMode="numeric" placeholder={t(`search.filters.${l}`)} aria-label={t(`search.filters.${k}`)} defaultValue={f[k] || ''}
               onBlur={(e) => onChange({ [k]: e.target.value && Number(e.target.value) >= 0 ? e.target.value : undefined })}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-              className="h-10 w-full rounded-md border border-line-strong px-3 text-sm focus:border-brand-500 focus:outline-none" />
+              className={cn(FIELD, 'h-11 px-3.5')} />
           ))}
         </div>
       </Group>
@@ -139,8 +172,8 @@ export default function FilterPanel({ filters: f, onChange }) {
         <div className="flex items-start gap-2">
           <Checkbox label={t('search.filters.verifiedOnly')} description={t('search.filters.verifiedDesc')} checked={Boolean(f.verified)} onChange={(e) => onChange({ verified: e.target.checked ? '1' : undefined })} />
           <span className="group relative mt-0.5">
-            <button type="button" className="text-ink-subtle hover:text-ink" aria-label={t('search.filters.whatVerified')}><Info className="h-4 w-4" /></button>
-            <span role="tooltip" className="absolute right-0 top-6 z-20 hidden w-64 rounded-md bg-ink px-3 py-2 text-xs text-white shadow-lg group-focus-within:block group-hover:block">
+            <button type="button" className="text-navy-400 hover:text-navy-900" aria-label={t('search.filters.whatVerified')}><Info className="h-4 w-4" /></button>
+            <span role="tooltip" className="absolute right-0 top-6 z-20 hidden w-64 rounded-xl bg-navy-900 px-3.5 py-2.5 text-xs leading-relaxed text-navy-100 shadow-lift group-focus-within:block group-hover:block">
               {t('search.filters.verifiedTip')}
             </span>
           </span>
@@ -148,10 +181,10 @@ export default function FilterPanel({ filters: f, onChange }) {
       </Group>
       {amenities.length > 0 && (
         <Group title={t('search.filters.amenities')}>
-          <div className="space-y-1.5">
+          <div className="space-y-0.5">
             {(showAllAmenities ? amenities : amenities.slice(0, 8)).map((a) => <Checkbox key={a.code} label={a.name} checked={csvList(f.amenities).includes(a.code)} onChange={() => onChange({ amenities: toggleCsv(f.amenities, a.code) || undefined })} />)}
           </div>
-          {amenities.length > 8 && <button type="button" className="mt-2 text-xs font-medium text-brand-700 hover:underline" onClick={() => setShowAllAmenities((s) => !s)}>{showAllAmenities ? t('search.filters.showFewer') : t('search.filters.showAll', { n: amenities.length })}</button>}
+          {amenities.length > 8 && <button type="button" className="mt-3 text-xs font-semibold text-navy-900 underline decoration-gold-400 underline-offset-4 hover:text-gold-700" onClick={() => setShowAllAmenities((s) => !s)}>{showAllAmenities ? t('search.filters.showFewer') : t('search.filters.showAll', { n: amenities.length })}</button>}
         </Group>
       )}
     </div>

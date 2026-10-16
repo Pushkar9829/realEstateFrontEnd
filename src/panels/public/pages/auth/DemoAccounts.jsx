@@ -26,7 +26,7 @@ function CopyButton({ text, label }) {
     try { await navigator.clipboard.writeText(text); setDone(true); setTimeout(() => setDone(false), 1200); } catch { /* clipboard blocked */ }
   };
   return (
-    <button type="button" onClick={copy} className="rounded p-1 text-ink-subtle hover:bg-surface-sunken hover:text-ink" aria-label={t('auth.demo.copy', { label })}>
+    <button type="button" onClick={copy} className="rounded-md p-1.5 text-navy-400 hover:bg-sand-100 hover:text-navy-900" aria-label={t('auth.demo.copy', { label })}>
       {done ? <Check className="h-3.5 w-3.5 text-success-600" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
@@ -35,32 +35,32 @@ function CopyButton({ text, label }) {
 export default function DemoAccounts({ onPick }) {
   const t = useT();
   return (
-    <section className="mt-6 rounded-xl border border-dashed border-accent-300 bg-accent-50/60 p-4" aria-label={t('auth.demo.title')}>
+    <section className="mt-6 rounded-3xl border border-dashed border-gold-300 bg-gold-50/60 p-4 sm:p-5" aria-label={t('auth.demo.title')}>
       <div className="mb-3 flex items-center gap-2">
-        <FlaskConical className="h-4 w-4 text-accent-700" aria-hidden />
-        <h2 className="text-sm font-semibold text-ink">{t('auth.demo.title')}</h2>
+        <FlaskConical className="h-4 w-4 text-gold-700" aria-hidden />
+        <h2 className="font-display text-base font-medium text-navy-900">{t('auth.demo.title')}</h2>
         <Badge tone="accent" className="ml-auto">{t('auth.demo.devOnly')}</Badge>
       </div>
-      <p className="mb-3 text-xs text-ink-muted">
-        {t('auth.demo.intro')}<code className="rounded bg-white px-1.5 py-0.5 font-mono font-semibold text-ink">{DEMO_PASSWORD}</code>
+      <p className="mb-3 text-xs text-navy-500">
+        {t('auth.demo.intro')}<code className="rounded bg-white px-1.5 py-0.5 font-mono font-semibold text-navy-900 ring-1 ring-navy-900/10">{DEMO_PASSWORD}</code>
         <CopyButton text={DEMO_PASSWORD} label={t('auth.demo.copyPassword')} />
       </p>
       <ul className="space-y-1.5">
         {DEMO_ACCOUNTS.map((a) => (
           <li key={a.email}>
             <div role="button" tabIndex={0} onClick={() => onPick(a.email, DEMO_PASSWORD)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(a.email, DEMO_PASSWORD); } }}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border bg-white px-3 py-2 text-left transition hover:border-brand-300 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40">
+              className="flex cursor-pointer items-center gap-3 rounded-xl border border-navy-900/10 bg-white px-3 py-2 text-left transition hover:border-gold-400 hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40">
               <Badge tone={a.tone} className="w-28 shrink-0 justify-center whitespace-nowrap">{t(`auth.demo.role.${a.key}`)}</Badge>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-mono text-xs font-medium text-ink">{a.email}</span>
-                <span className="block truncate text-[11px] text-ink-subtle">{t(`auth.demo.panel.${a.key}`)}</span>
+                <span className="block truncate font-mono text-xs font-medium text-navy-900">{a.email}</span>
+                <span className="block truncate text-[11px] text-navy-400">{t(`auth.demo.panel.${a.key}`)}</span>
               </span>
               <CopyButton text={a.email} label={a.email} />
             </div>
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[11px] leading-relaxed text-ink-subtle">
+      <p className="mt-3 text-[11px] leading-relaxed text-navy-400">
         {t('auth.demo.footer')}{t('auth.demo.recreateBefore')}<code className="font-mono">node scripts/seed-demo-users.js</code>{t('auth.demo.recreateMid')}<code className="font-mono">backend/</code>{t('auth.demo.recreateAfter')}
       </p>
     </section>

@@ -45,8 +45,8 @@ export default function ShortlistButton({ id, className, label = false, listingN
   };
   return (
     <button type="button" onClick={onClick} disabled={toggle.isPending} aria-pressed={saved} aria-label={saved ? t('search.shortlist.removeAria') : t('search.shortlist.saveAria')}
-      className={cn('inline-flex items-center justify-center gap-1.5 rounded-full transition-colors disabled:opacity-60', label ? 'h-10 border border-line-strong bg-white px-4 text-sm font-medium text-ink hover:bg-surface-muted' : 'h-9 w-9 bg-white/95 shadow-sm hover:bg-white', className)}>
-      <Heart className={cn('h-4 w-4', saved ? 'fill-danger-600 text-danger-600' : 'text-ink-muted')} aria-hidden />
+      className={cn('inline-flex items-center justify-center gap-1.5 rounded-full transition-colors disabled:opacity-60', label ? 'h-11 border border-navy-900/15 bg-white px-5 text-sm font-medium text-navy-900 hover:border-navy-900/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500' : 'h-9 w-9 bg-white/95 shadow-sm backdrop-blur hover:scale-105 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-500', className)}>
+      <Heart className={cn('h-4 w-4', saved ? 'fill-danger-600 text-danger-600' : 'text-navy-600')} aria-hidden />
       {label && (saved ? t('search.shortlist.savedLabel') : t('search.shortlist.saveLabel'))}
     </button>
   );

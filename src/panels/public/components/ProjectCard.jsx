@@ -18,19 +18,19 @@ export default function ProjectCard({ p }) {
   const bhks = [...new Set((p.configurations || []).map((c) => c.bhk).filter(Boolean))].sort((a, b) => a - b);
   const cover = p.media && p.media.photos && p.media.photos[0];
   return (
-    <Link to={`/projects/${p.slug}`} className="group flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md">
-      <div className="relative aspect-[4/3] bg-surface-sunken">
-        {cover ? <img src={cover.url} alt="" loading="lazy" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-ink-subtle"><Building2 className="h-8 w-8" aria-hidden /></span>}
-        <span className="absolute left-2 top-2 flex gap-1">
+    <Link to={`/projects/${p.slug}`} className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-navy-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-lift">
+      <div className="relative aspect-[4/3] overflow-hidden bg-sand-200">
+        {cover ? <img src={cover.url} alt="" loading="lazy" className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]" /> : <span className="flex h-full items-center justify-center bg-gradient-to-br from-navy-800 to-navy-950 text-gold-400"><Building2 className="h-8 w-8" aria-hidden /></span>}
+        <span className="absolute left-3 top-3 flex gap-1">
           {p.status === 'sold_out' ? <Badge>{t('search.project.soldOut')}</Badge> : p.possession && p.possession.status === 'ready' ? <Badge tone="success">{t('search.project.ready')}</Badge> : <Badge tone="info">{t('search.project.underConstruction')}</Badge>}
         </span>
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-semibold text-ink group-hover:text-brand-700">{p.name}</h3>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-subtle"><MapPin className="h-3.5 w-3.5" aria-hidden />{[p.location && p.location.locality, p.location && p.location.city].filter(Boolean).join(', ')}</p>
-        {range && <p className="mt-2 font-semibold text-ink">{shortRupees(range[0])}{range[1] !== range[0] && ` - ${shortRupees(range[1])}`}</p>}
-        {bhks.length > 0 && <p className="text-xs text-ink-muted">{t('search.project.bhk', { list: bhks.join(', ') })}</p>}
-        <div className="mt-auto flex items-center justify-between pt-3 text-xs text-ink-subtle">
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="font-display text-xl font-semibold tracking-tight text-navy-900 transition-colors group-hover:text-gold-700">{p.name}</h3>
+        <p className="mt-1 flex items-center gap-1 text-xs text-navy-400"><MapPin className="h-3.5 w-3.5 text-gold-600" aria-hidden />{[p.location && p.location.locality, p.location && p.location.city].filter(Boolean).join(', ')}</p>
+        {range && <p className="mt-3 font-display text-lg font-semibold text-navy-900">{shortRupees(range[0])}{range[1] !== range[0] && ` - ${shortRupees(range[1])}`}</p>}
+        {bhks.length > 0 && <p className="text-xs font-medium text-navy-500">{t('search.project.bhk', { list: bhks.join(', ') })}</p>}
+        <div className="mt-auto flex items-center justify-between border-t border-navy-900/5 pt-3 text-xs text-navy-400">
           <span className="inline-flex items-center gap-1 text-success-700">{t('search.project.verifiedBuilder')}</span>
           {p.possession && p.possession.date && <span className="inline-flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" aria-hidden />{date(p.possession.date)}</span>}
         </div>

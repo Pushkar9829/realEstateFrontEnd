@@ -5,12 +5,11 @@ import { CheckCircle2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Alert, Button, Checkbox, Input, Select, Textarea } from '@/shared/ui';
 import { useT } from '@/shared/i18n';
-import env from '@/config/env';
 import { useCities, useLocalities, useMasters } from '@/modules/listings/api';
 import { CATEGORIES, csvList } from '@/modules/search/api';
 import { TIMELINES, useRequestProperty } from '@/modules/leads/publicApi';
 import { ConsentFields, ContactFields, OtpStep, contactBody, emptyContact, leadErrorText, useBuyerIdentity, validateContact } from './GuestVerify';
-import { hotlineHref } from './States';
+import { FORM_SKIN, currentHotline, hotlineHref } from './States';
 
 const BHKS = [1, 2, 3, 4, 5];
 
@@ -96,15 +95,15 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
   if (stage === 'done' && result) {
     return (
       <div className="py-6 text-center">
-        <CheckCircle2 className="mx-auto h-12 w-12 text-success-600" aria-hidden />
-        <p className="mt-3 text-lg font-semibold text-ink">{t('account.request.reference', { no: result.leadNo })}</p>
-        <p className="mt-1 text-sm text-ink-muted">{result.merged ? t('account.request.merged') : t('account.request.willCall')}</p>
-        {result.savedSearchId && <p className="mt-1 text-sm text-ink-muted">{t('account.request.alertDaily')}</p>}
-        <p className="mt-4 text-sm text-ink-muted">{t('account.request.callAny')} <a className="font-semibold text-brand-700" href={hotlineHref()}>{env.hotline}</a></p>
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-300 ring-offset-4 ring-offset-white"><CheckCircle2 className="h-7 w-7" aria-hidden /></span>
+        <p className="mt-6 font-display text-2xl font-medium text-navy-900">{t('account.request.reference', { no: result.leadNo })}</p>
+        <p className="mt-2 text-sm text-navy-500">{result.merged ? t('account.request.merged') : t('account.request.willCall')}</p>
+        {result.savedSearchId && <p className="mt-1 text-sm text-navy-500">{t('account.request.alertDaily')}</p>}
+        <p className="mt-5 text-sm text-navy-500">{t('account.request.callAny')} <a className="font-semibold text-navy-900 underline decoration-gold-400 underline-offset-4" href={hotlineHref()}>{currentHotline()}</a></p>
       </div>
     );
   }
-  if (!canEnquire) return <Alert tone="info">{t('account.request.staff', { hotline: env.hotline })}</Alert>;
+  if (!canEnquire) return <Alert tone="info">{t('account.request.staff', { hotline: currentHotline() })}</Alert>;
   if (stage === 'otp') {
     return (
       <div>
@@ -116,7 +115,7 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
 
   const rent = v.purpose === 'rent';
   return (
-    <form onSubmit={onContinue} className="space-y-4" noValidate>
+    <form onSubmit={onContinue} className={cn('space-y-5', FORM_SKIN)} noValidate>
       <div className="grid gap-3 sm:grid-cols-2">
         <Select label={t('account.request.lookingTo')} required value={v.purpose} onChange={set('purpose')} options={[{ value: 'sale', label: t('account.request.buy') }, { value: 'rent', label: t('account.request.rent') }]} />
         <Select label={t('common.city')} required placeholder={t('account.request.chooseCity')} value={city ? city.code : ''} error={errors.city}
@@ -124,11 +123,11 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
       </div>
       {city && (localities.data || []).length > 0 && (
         <fieldset>
-          <legend className="mb-1.5 text-sm font-medium text-ink">{t('account.request.localities')} <span className="font-normal text-ink-subtle">{t('account.request.upTo5')}</span></legend>
-          <div className={cn('flex flex-wrap gap-1.5 overflow-y-auto', compact ? 'max-h-28' : 'max-h-40')}>
+          <legend className="mb-2 text-sm font-medium text-navy-800">{t('account.request.localities')} <span className="font-normal text-navy-400">{t('account.request.upTo5')}</span></legend>
+          <div className={cn('flex flex-wrap gap-2 overflow-y-auto p-0.5', compact ? 'max-h-28' : 'max-h-40')}>
             {localities.data.map((l) => {
               const on = v.localities.includes(l.name);
-              return <button key={l._id} type="button" aria-pressed={on} onClick={() => toggle('localities', l.name, 5)} className={cn('rounded-full border px-2.5 py-1 text-xs', on ? 'border-brand-600 bg-brand-50 font-medium text-brand-700' : 'border-line-strong bg-white text-ink-muted')}>{l.name}</button>;
+              return <button key={l._id} type="button" aria-pressed={on} onClick={() => toggle('localities', l.name, 5)} className={cn('min-h-[32px] rounded-full px-3 py-1 text-xs transition-all', on ? 'bg-navy-900 font-medium text-white shadow-sm' : 'bg-white text-navy-600 ring-1 ring-inset ring-navy-900/10 hover:text-navy-900 hover:ring-navy-900/30')}>{l.name}</button>;
             })}
           </div>
         </fieldset>
@@ -139,9 +138,9 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
       </div>
       {v.category !== 'commercial' && v.category !== 'land' && (
         <fieldset>
-          <legend className="mb-1.5 text-sm font-medium text-ink">BHK</legend>
-          <div className="flex flex-wrap gap-1.5">
-            {BHKS.map((b) => { const on = v.bhk.includes(b); return <button key={b} type="button" aria-pressed={on} onClick={() => toggle('bhk', b, 6)} className={cn('rounded-full border px-3 py-1 text-sm', on ? 'border-brand-600 bg-brand-50 font-medium text-brand-700' : 'border-line-strong bg-white text-ink-muted')}>{t('account.request.bhk', { n: b === 5 ? '5+' : b })}</button>; })}
+          <legend className="mb-2 text-sm font-medium text-navy-800">BHK</legend>
+          <div className="flex flex-wrap gap-2 p-0.5">
+            {BHKS.map((b) => { const on = v.bhk.includes(b); return <button key={b} type="button" aria-pressed={on} onClick={() => toggle('bhk', b, 6)} className={cn('min-h-[36px] rounded-full px-3.5 py-1.5 text-sm transition-all', on ? 'bg-navy-900 font-medium text-white shadow-sm' : 'bg-white text-navy-600 ring-1 ring-inset ring-navy-900/10 hover:text-navy-900 hover:ring-navy-900/30')}>{t('account.request.bhk', { n: b === 5 ? '5+' : b })}</button>; })}
           </div>
         </fieldset>
       )}
@@ -159,7 +158,7 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
       <ConsentFields consent={consent} onConsent={setConsent} error={errors.consent} />
       {!isGuest && <Checkbox label={t('account.request.alertMe')} checked={v.alertMe} onChange={set('alertMe')} />}
       {req.error && <Alert tone="danger">{leadErrorText(req.error)}</Alert>}
-      <div className="flex justify-end"><Button type="submit" loading={req.isPending}>{isGuest ? t('account.request.continue') : t('account.request.send')}</Button></div>
+      <div className="flex justify-end pt-2"><Button type="submit" variant="gold" size="lg" className="rounded-full px-8 font-semibold" loading={req.isPending}>{isGuest ? t('account.request.continue') : t('account.request.send')}</Button></div>
     </form>
   );
 }

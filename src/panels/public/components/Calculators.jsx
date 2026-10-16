@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/cn';
 import { shortRupees } from '@/shared/lib/format';
 import { t as translateNow, useT } from '@/shared/i18n';
 import { track } from '@/shared/lib/analytics';
+import { FORM_SKIN } from './SmallModals';
 
 const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 export const fmtInr = (r) => (Number.isFinite(r) ? inr.format(Math.round(r)) : '-');
@@ -80,19 +81,19 @@ export function YearBars({ rows }) {
   const max = Math.max(...rows.map((r) => r.principal + r.interest));
   return (
     <div>
-      <div className="mb-2 flex gap-4 text-xs text-ink-muted">
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-brand-600" />{t('account.calc.principal')}</span>
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-accent-500" />{t('account.calc.interest')}</span>
+      <div className="mb-2 flex gap-4 text-xs text-navy-500">
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-navy-800" />{t('account.calc.principal')}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-gold-500" />{t('account.calc.interest')}</span>
       </div>
       <div className="flex h-36 items-end gap-0.5" role="img" aria-label={t('account.calc.barsAria')}>
         {rows.map((r) => (
           <div key={r.year} className="group relative flex h-full flex-1 flex-col justify-end" title={t('account.calc.barTitle', { year: r.year, principal: fmtInr(r.principal), interest: fmtInr(r.interest) })}>
-            <div className="w-full rounded-t-sm bg-accent-500" style={{ height: `${(r.interest / max) * 100}%` }} />
-            <div className="w-full bg-brand-600" style={{ height: `${(r.principal / max) * 100}%` }} />
+            <div className="w-full rounded-t-sm bg-gold-500" style={{ height: `${(r.interest / max) * 100}%` }} />
+            <div className="w-full bg-navy-800" style={{ height: `${(r.principal / max) * 100}%` }} />
           </div>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-[10px] text-ink-subtle"><span>{t('account.calc.year', { n: 1 })}</span><span>{t('account.calc.year', { n: rows.length })}</span></div>
+      <div className="mt-1 flex justify-between text-[10px] text-navy-400"><span>{t('account.calc.year', { n: 1 })}</span><span>{t('account.calc.year', { n: rows.length })}</span></div>
     </div>
   );
 }
@@ -100,8 +101,8 @@ export function YearBars({ rows }) {
 export function ResultRow({ label, value, strong }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1.5">
-      <span className="text-sm text-ink-muted">{label}</span>
-      <span className={cn('text-right', strong ? 'text-xl font-semibold text-ink' : 'text-sm font-medium text-ink')}>{value}</span>
+      <span className="text-sm text-navy-500">{label}</span>
+      <span className={cn('text-right', strong ? 'font-display text-xl font-semibold text-navy-900' : 'text-sm font-medium text-navy-900')}>{value}</span>
     </div>
   );
 }
@@ -123,16 +124,17 @@ export function EmiMini({ pricePaise, defaults }) {
   }, [d]); // eslint-disable-line react-hooks/exhaustive-deps
   const change = (setter) => (e) => { used(); setter(e.target.value); };
   return (
-    <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
-      <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-[1fr_240px]">
+      <div className={cn('grid gap-3 sm:grid-cols-3', FORM_SKIN)}>
         <Input label={t('account.calc.loanAmountInr')} type="number" inputMode="numeric" value={amount} onChange={change(setAmount)} error={errors.amount} />
         <Input label={t('account.calc.interestPa')} type="number" step="0.01" value={rate} onChange={change(setRate)} error={errors.rate} />
         <Input label={t('account.calc.tenure')} type="number" value={years} onChange={change(setYears)} error={errors.years} />
       </div>
-      <div className="rounded-lg bg-brand-50 p-4">
-        <p className="text-xs text-brand-700">{t('account.calc.monthlyEmi')}</p>
-        <p className="text-2xl font-semibold text-ink">{result ? fmtInr(result.m) : '-'}</p>
-        {result && <p className="mt-1 text-xs text-ink-muted">{t('account.calc.totalPayable', { amount: shortRupees(result.total * 100) })}</p>}
+      <div className="relative overflow-hidden rounded-2xl bg-navy-950 p-5 text-white">
+        <span className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gold-500/15 blur-2xl" aria-hidden />
+        <p className="relative text-xs font-semibold uppercase tracking-[0.16em] text-gold-300">{t('account.calc.monthlyEmi')}</p>
+        <p className="relative mt-1 font-display text-3xl font-semibold tracking-tight">{result ? fmtInr(result.m) : '-'}</p>
+        {result && <p className="relative mt-1 text-xs text-navy-200">{t('account.calc.totalPayable', { amount: shortRupees(result.total * 100) })}</p>}
       </div>
     </div>
   );

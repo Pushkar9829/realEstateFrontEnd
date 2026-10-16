@@ -11,7 +11,7 @@ export default {
     screens: breakpoint,
     extend: {
       colors: color,
-      fontFamily: { sans: font.family.sans.split(',').map((s) => s.trim()), mono: font.family.mono.split(',').map((s) => s.trim()) },
+      fontFamily: { display: font.family.display.split(',').map((s) => s.trim()), sans: font.family.sans.split(',').map((s) => s.trim()), mono: font.family.mono.split(',').map((s) => s.trim()) },
       fontSize: Object.fromEntries(Object.entries(font.size).map(([k, [size, lineHeight]]) => [k, [size, { lineHeight }]])),
       borderRadius: radius,
       boxShadow: shadow,

@@ -23,20 +23,20 @@ export default function TrendChart({ series = [], unit, height = 180 }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={t('home.trend.aria', { unit: u, n: pts.length, from: rupees(vals[0]), to: rupees(vals[vals.length - 1]) })}>
       <defs>
-        <linearGradient id={gid} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#2E6599" stopOpacity="0.25" /><stop offset="100%" stopColor="#2E6599" stopOpacity="0" /></linearGradient>
+        <linearGradient id={gid} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#C8A24A" stopOpacity="0.28" /><stop offset="100%" stopColor="#C8A24A" stopOpacity="0" /></linearGradient>
       </defs>
       {ticks.map((tk) => (
         <g key={tk}>
-          <line x1={P.l} x2={W - P.r} y1={y(tk)} y2={y(tk)} stroke="#E4E7EC" strokeDasharray="3 3" />
-          <text x={P.l - 6} y={y(tk) + 4} textAnchor="end" fontSize="11" fill="#667085">{rupees(tk)}</text>
+          <line x1={P.l} x2={W - P.r} y1={y(tk)} y2={y(tk)} stroke="#E3E9F2" strokeDasharray="3 4" />
+          <text x={P.l - 6} y={y(tk) + 4} textAnchor="end" fontSize="11" fill="#6B7C99">{rupees(tk)}</text>
         </g>
       ))}
       <path d={area} fill={`url(#${gid})`} />
-      <path d={line} fill="none" stroke="#1F4E78" strokeWidth="2.5" strokeLinejoin="round" />
+      <path d={line} fill="none" stroke="#152036" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       {pts.map((p, i) => (
         <g key={p.month}>
-          <circle cx={x(i)} cy={y(p.avgPerSqft)} r="3.5" fill="#fff" stroke="#1F4E78" strokeWidth="2"><title>{t('home.trend.point', { month: monthLabel(p.month, months), price: rupees(p.avgPerSqft), unit: u, n: p.dataPoints })}</title></circle>
-          {(i === 0 || i === pts.length - 1 || pts.length <= 6 || i % 3 === 0) && <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fill="#667085">{monthLabel(p.month, months)}</text>}
+          <circle cx={x(i)} cy={y(p.avgPerSqft)} r={i === pts.length - 1 ? 5.5 : 3.5} fill={i === pts.length - 1 ? '#C8A24A' : '#fff'} stroke={i === pts.length - 1 ? '#fff' : '#152036'} strokeWidth="2"><title>{t('home.trend.point', { month: monthLabel(p.month, months), price: rupees(p.avgPerSqft), unit: u, n: p.dataPoints })}</title></circle>
+          {(i === 0 || i === pts.length - 1 || pts.length <= 6 || i % 3 === 0) && <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fill="#6B7C99">{monthLabel(p.month, months)}</text>}
         </g>
       ))}
     </svg>
@@ -44,7 +44,7 @@ export default function TrendChart({ series = [], unit, height = 180 }) {
 }
 
 export function ChangePill({ pct }) {
-  if (pct == null) return <span className="text-ink-subtle">-</span>;
+  if (pct == null) return <span className="text-navy-400">-</span>;
   const up = pct >= 0;
   return <span className={up ? 'font-medium text-success-700' : 'font-medium text-danger-700'}>{up ? '▲' : '▼'} {Math.abs(pct)}%</span>;
 }

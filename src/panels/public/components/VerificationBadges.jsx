@@ -6,27 +6,27 @@ import { cn } from '@/shared/lib/cn';
 import { useT } from '@/shared/i18n';
 
 const META = {
-  verified_lister: { icon: BadgeCheck, cls: 'bg-success-50 text-success-700', text: 'property.badge.verified_lister' },
-  photo_verified: { icon: Camera, cls: 'bg-info-50 text-info-700', text: 'property.badge.photo_verified' },
-  site_verified: { icon: MapPinned, cls: 'bg-brand-50 text-brand-700', text: 'property.badge.site_verified' },
-  rera: { icon: FileCheck2, cls: 'bg-accent-50 text-accent-700', text: 'property.badge.rera' },
+  verified_lister: { icon: BadgeCheck, cls: 'bg-navy-900 text-white ring-navy-900 [&_svg]:text-gold-300', text: 'property.badge.verified_lister' },
+  photo_verified: { icon: Camera, cls: 'bg-gold-50 text-gold-800 ring-gold-200 [&_svg]:text-gold-600', text: 'property.badge.photo_verified' },
+  site_verified: { icon: MapPinned, cls: 'bg-gold-50 text-gold-800 ring-gold-200 [&_svg]:text-gold-600', text: 'property.badge.site_verified' },
+  rera: { icon: FileCheck2, cls: 'bg-white text-navy-800 ring-navy-900/15 [&_svg]:text-gold-600', text: 'property.badge.rera' },
 };
 
 export function VerificationBadge({ badge, size = 'sm' }) {
   const t = useT();
   const id = useId();
   const [open, setOpen] = useState(false);
-  const m = META[badge.code] || { icon: BadgeCheck, cls: 'bg-surface-sunken text-ink-muted' };
+  const m = META[badge.code] || { icon: BadgeCheck, cls: 'bg-sand-100 text-navy-700 ring-navy-900/10' };
   const Icon = m.icon;
   return (
     <span className="relative inline-flex">
       <button type="button" aria-describedby={id}
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }}
         onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}
-        className={cn('inline-flex items-center gap-1 rounded-full font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40', m.cls, size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm')}>
+        className={cn('inline-flex items-center gap-1 rounded-full font-medium ring-1 ring-inset transition-shadow hover:shadow-sm focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500', m.cls, size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1.5 text-[13px]')}>
         <Icon className={size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'} aria-hidden />{badge.label}
       </button>
-      <span id={id} role="tooltip" className={cn('absolute bottom-full left-0 z-30 mb-1.5 w-60 rounded-md bg-ink px-3 py-2 text-xs font-normal leading-snug text-white shadow-lg', open ? 'block' : 'hidden')}>
+      <span id={id} role="tooltip" className={cn('absolute bottom-full left-0 z-30 mb-2 w-60 max-w-[calc(100vw-2rem)] rounded-xl bg-navy-950 px-3.5 py-2.5 text-xs font-normal leading-snug text-navy-100 shadow-lift ring-1 ring-white/10', open ? 'block' : 'hidden')}>
         {badge.tooltip || (m.text ? t(m.text) : badge.label)}
       </span>
     </span>
