@@ -99,6 +99,7 @@ export default {
     demo: {
       title: 'Demo accounts',
       devOnly: 'Development only',
+      demoSite: 'Demo',
       intro: 'Click an account to fill the form. Password for all: ',
       copy: 'Copy {label}',
       copyPassword: 'password',
@@ -225,6 +226,7 @@ export default {
     demo: {
       title: 'डेमो खाते',
       devOnly: 'सिर्फ़ डेवलपमेंट के लिए',
+      demoSite: 'डेमो',
       intro: 'फ़ॉर्म भरने के लिए किसी खाते पर क्लिक करें। सभी का पासवर्ड: ',
       copy: '{label} कॉपी करें',
       copyPassword: 'पासवर्ड',

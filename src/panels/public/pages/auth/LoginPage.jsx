@@ -9,7 +9,10 @@ import { useT } from '@/shared/i18n';
 import { AuthCard, AuthTitle, authLink } from './AuthCard';
 
 // Demo logins are loaded only in development builds.
-const DemoAccounts = import.meta.env.DEV ? lazy(() => import('./DemoAccounts')) : null;
+// Demo logins: always in development; in a production build only when
+// VITE_SHOW_DEMO_LOGINS=true (a demo / client-preview deployment).
+const SHOW_DEMO = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_LOGINS === 'true';
+const DemoAccounts = SHOW_DEMO ? lazy(() => import('./DemoAccounts')) : null;
 
 const METHOD = {
   email: { icon: Mail, label: 'auth.twoFa.method.email' },

@@ -1,6 +1,6 @@
-// Development only: the demo logins created by backend/scripts/seed-demo-users.js,
-// shown on the login page with one-click fill. Rendered only when
-// import.meta.env.DEV is true, so production builds drop this file entirely.
+// The demo logins created by backend/scripts/seed-demo-users.js, shown on the
+// login page with one-click fill. Rendered in development, and in a production
+// build only when VITE_SHOW_DEMO_LOGINS=true (otherwise the file is not loaded).
 import { useState } from 'react';
 import { Check, Copy, FlaskConical } from 'lucide-react';
 import { Badge } from '@/shared/ui';
@@ -39,7 +39,7 @@ export default function DemoAccounts({ onPick }) {
       <div className="mb-3 flex items-center gap-2">
         <FlaskConical className="h-4 w-4 text-gold-700" aria-hidden />
         <h2 className="font-display text-base font-medium text-navy-900">{t('auth.demo.title')}</h2>
-        <Badge tone="accent" className="ml-auto">{t('auth.demo.devOnly')}</Badge>
+        <Badge tone="accent" className="ml-auto">{t(import.meta.env.DEV ? 'auth.demo.devOnly' : 'auth.demo.demoSite')}</Badge>
       </div>
       <p className="mb-3 text-xs text-navy-500">
         {t('auth.demo.intro')}<code className="rounded bg-white px-1.5 py-0.5 font-mono font-semibold text-navy-900 ring-1 ring-navy-900/10">{DEMO_PASSWORD}</code>
