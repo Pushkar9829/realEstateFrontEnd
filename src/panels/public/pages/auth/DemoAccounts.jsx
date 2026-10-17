@@ -7,6 +7,8 @@ import { Badge } from '@/shared/ui';
 import { useT } from '@/shared/i18n';
 
 export const DEMO_PASSWORD = 'Demo@12345';
+// The fixed one-time code of a demo deployment (backend DEMO_OTP_CODE), shown when set.
+const DEMO_OTP = import.meta.env.VITE_DEMO_OTP_CODE || '';
 
 export const DEMO_ACCOUNTS = [
   { email: 'superadmin@demo.local', key: 'superadmin', tone: 'danger' },
@@ -45,6 +47,11 @@ export default function DemoAccounts({ onPick }) {
         {t('auth.demo.intro')}<code className="rounded bg-white px-1.5 py-0.5 font-mono font-semibold text-navy-900 ring-1 ring-navy-900/10">{DEMO_PASSWORD}</code>
         <CopyButton text={DEMO_PASSWORD} label={t('auth.demo.copyPassword')} />
       </p>
+      {DEMO_OTP && (
+        <p className="-mt-1 mb-3 text-xs text-navy-500">
+          {t('auth.demo.otpHint')}<code className="rounded bg-white px-1.5 py-0.5 font-mono font-semibold text-navy-900 ring-1 ring-navy-900/10">{DEMO_OTP}</code>
+        </p>
+      )}
       <ul className="space-y-1.5">
         {DEMO_ACCOUNTS.map((a) => (
           <li key={a.email}>
