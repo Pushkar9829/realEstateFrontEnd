@@ -55,13 +55,16 @@ export default function DemoAccounts({ onPick }) {
       <ul className="space-y-1.5">
         {DEMO_ACCOUNTS.map((a) => (
           <li key={a.email}>
-            <div role="button" tabIndex={0} onClick={() => onPick(a.email, DEMO_PASSWORD)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(a.email, DEMO_PASSWORD); } }}
-              className="flex cursor-pointer items-center gap-3 rounded-xl border border-navy-900/10 bg-white px-3 py-2 text-left transition hover:border-gold-400 hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40">
-              <Badge tone={a.tone} className="w-28 shrink-0 justify-center whitespace-nowrap">{t(`auth.demo.role.${a.key}`)}</Badge>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-mono text-xs font-medium text-navy-900">{a.email}</span>
-                <span className="block truncate text-[11px] text-navy-500">{t(`auth.demo.panel.${a.key}`)}</span>
-              </span>
+            {/* one real button fills the form; the copy button is its sibling (no nested controls) */}
+            <div className="flex items-center gap-1 rounded-xl border border-navy-900/10 bg-white pr-1.5 transition hover:border-gold-400 hover:shadow-card">
+              <button type="button" onClick={() => onPick(a.email, DEMO_PASSWORD)}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40">
+                <Badge tone={a.tone} className="w-28 shrink-0 justify-center whitespace-nowrap">{t(`auth.demo.role.${a.key}`)}</Badge>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-mono text-xs font-medium text-navy-900">{a.email}</span>
+                  <span className="block truncate text-[11px] text-navy-500">{t(`auth.demo.panel.${a.key}`)}</span>
+                </span>
+              </button>
               <CopyButton text={a.email} label={a.email} />
             </div>
           </li>

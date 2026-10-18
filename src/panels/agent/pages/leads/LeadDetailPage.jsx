@@ -101,22 +101,20 @@ export default function LeadDetailPage() {
         {openRequest && <Badge tone="warning">{t('agent.lead.reassignRequestedAgo', { ago: timeAgo(openRequest.at) })}</Badge>}
       </div>
 
+      {/* each item holds only <dt> + <dd> (the icon sits inside the <dt>) */}
       <dl className="mb-6 grid gap-3 rounded-lg border bg-white p-3 text-sm shadow-sm sm:grid-cols-3">
-        <div className="flex items-start gap-2">
-          <Handshake className="mt-0.5 h-4 w-4 shrink-0 text-ink-subtle" aria-hidden />
-          <div><dt className="text-xs text-ink-subtle">{t('agent.lead.deal')}</dt>
+        <div className="relative pl-6">
+          <dt className="text-xs text-ink-subtle"><Handshake className="absolute left-0 top-0.5 h-4 w-4 text-ink-subtle" aria-hidden />{t('agent.lead.deal')}</dt>
             <dd>{lead.deal ? <Link to={`/agent/deals/${lead.deal._id}`} className="font-medium text-brand-700 hover:underline">{lead.deal.dealNo}</Link> : <span className="text-ink-subtle">{t('agent.lead.noDeal')}</span>}
-              {ds && <> <Badge tone={ds.tone}>{ds.label}</Badge></>}</dd></div>
+              {ds && <> <Badge tone={ds.tone}>{ds.label}</Badge></>}</dd>
         </div>
-        <div className="flex items-start gap-2">
-          <Users className="mt-0.5 h-4 w-4 shrink-0 text-ink-subtle" aria-hidden />
-          <div><dt className="text-xs text-ink-subtle">{t('agent.lead.agentTeam')}</dt>
-            <dd className="text-ink">{(lead.agent && lead.agent.name) || t('agent.lead.unassigned')}{lead.team ? ` · ${lead.team.name}` : ''}</dd></div>
+        <div className="relative pl-6">
+          <dt className="text-xs text-ink-subtle"><Users className="absolute left-0 top-0.5 h-4 w-4 text-ink-subtle" aria-hidden />{t('agent.lead.agentTeam')}</dt>
+            <dd className="text-ink">{(lead.agent && lead.agent.name) || t('agent.lead.unassigned')}{lead.team ? ` · ${lead.team.name}` : ''}</dd>
         </div>
-        <div className="flex items-start gap-2">
-          <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-ink-subtle" aria-hidden />
-          <div><dt className="text-xs text-ink-subtle">{t('agent.lead.nextFollowup')}</dt>
-            <dd className={next && new Date(next.dueAt) < new Date() ? 'font-medium text-danger-700' : 'text-ink'}>{next ? `${(FOLLOWUP_TYPES.find((x) => x.value === next.type) || { label: titleCase(next.type) }).label} · ${dateTime(next.dueAt)}` : <span className="text-ink-subtle">{t('agent.lead.noneOpen')}</span>}</dd></div>
+        <div className="relative pl-6">
+          <dt className="text-xs text-ink-subtle"><CalendarClock className="absolute left-0 top-0.5 h-4 w-4 text-ink-subtle" aria-hidden />{t('agent.lead.nextFollowup')}</dt>
+            <dd className={next && new Date(next.dueAt) < new Date() ? 'font-medium text-danger-700' : 'text-ink'}>{next ? `${(FOLLOWUP_TYPES.find((x) => x.value === next.type) || { label: titleCase(next.type) }).label} · ${dateTime(next.dueAt)}` : <span className="text-ink-subtle">{t('agent.lead.noneOpen')}</span>}</dd>
         </div>
       </dl>
 

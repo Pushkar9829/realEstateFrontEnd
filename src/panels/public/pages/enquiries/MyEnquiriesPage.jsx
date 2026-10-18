@@ -54,7 +54,8 @@ export function Journey({ steps = JOURNEY, step = 0, closed, status }) {
   );
 }
 
-function PropertyMini({ property, requirement }) {
+// linked=false inside the list card, which is itself a link (no nested links).
+function PropertyMini({ property, requirement, linked = true }) {
   const t = useT();
   if (!property) {
     const city = (requirement && requirement.city) || t('account.enquiries.anyCity');
@@ -75,7 +76,7 @@ function PropertyMini({ property, requirement }) {
       </div>
     </div>
   );
-  return property.slug ? <Link to={`/property/${property.slug}`} className="block hover:opacity-90">{body}</Link> : body;
+  return property.slug && linked ? <Link to={`/property/${property.slug}`} className="block hover:opacity-90">{body}</Link> : body;
 }
 
 function RescheduleModal({ visit, onClose, onSubmit, busy }) {
@@ -246,14 +247,14 @@ export default function MyEnquiriesPage() {
               <ul className="space-y-3">
                 {rows.map((l) => (
                   <li key={l.id}>
-                    <button type="button" onClick={() => navigate(`/my-enquiries/${l.id}`)} aria-current={shown === String(l.id) ? 'true' : undefined}
-                      className={cn('w-full rounded-2xl bg-white p-4 text-left shadow-card ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-lift', shown === String(l.id) ? 'ring-2 ring-gold-500' : 'ring-navy-900/5')}>
-                      <PropertyMini property={l.property} requirement={l.requirement} />
+                    <Link to={`/my-enquiries/${l.id}`} aria-current={shown === String(l.id) ? 'true' : undefined}
+                      className={cn('block w-full rounded-2xl bg-white p-4 text-left shadow-card ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-lift', shown === String(l.id) ? 'ring-2 ring-gold-500' : 'ring-navy-900/5')}>
+                      <PropertyMini property={l.property} requirement={l.requirement} linked={false} />
                       <div className="mt-3 flex items-center justify-between gap-2 border-t border-navy-900/5 pt-3 text-xs">
                         <span className="text-navy-500">{l.leadNo} · {date(l.createdAt)}</span>
                         <Pill tone={STATUS_TONE[l.status] || 'neutral'}>{stageLabel(t, l.status)}</Pill>
                       </div>
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>

@@ -142,12 +142,13 @@ export function KeyFacts({ items, className }) {
   return (
     <dl className={cn('grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4', className)}>
       {list.map((f) => (
-        <div key={f.label} className="flex min-w-0 items-center gap-3 rounded-2xl bg-white px-3 py-3.5 shadow-card ring-1 ring-navy-900/5 sm:px-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-200"><f.icon className="h-[18px] w-[18px]" aria-hidden /></span>
-          <div className="min-w-0">
-            <dt className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-500">{f.label}</dt>
-            <dd className="truncate text-sm font-semibold text-navy-900">{f.value}</dd>
-          </div>
+        // A <dl> item holds only <dt> + <dd>; the icon sits inside the <dt>.
+        <div key={f.label} className="relative flex min-h-[4.25rem] min-w-0 flex-col justify-center rounded-2xl bg-white py-3.5 pl-16 pr-3 shadow-card ring-1 ring-navy-900/5 sm:pl-[4.25rem] sm:pr-4">
+          <dt className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-500">
+            <span className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-200 sm:left-4"><f.icon className="h-[18px] w-[18px]" aria-hidden /></span>
+            {f.label}
+          </dt>
+          <dd className="truncate text-sm font-semibold text-navy-900">{f.value}</dd>
         </div>
       ))}
     </dl>
