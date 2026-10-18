@@ -9,6 +9,7 @@ import { Alert, Badge, Button, Card, CardHeader, Checkbox, PageHeader, PageSpinn
 import { dateTime } from '@/shared/lib/format';
 import { useAuth } from '@/modules/auth';
 import { PHOTO_REJECT_REASONS, sessionStatus, useClaimSession, useDecideSession, usePhotoSession, useReleaseSession } from '@/modules/listings/photoQaApi';
+import { useT } from '@/shared/i18n';
 
 const osm = (lat, lng) => `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}`;
 
@@ -17,6 +18,7 @@ function Row({ label, children }) {
 }
 
 export default function PhotoReviewPage() {
+  const t = useT();
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
@@ -45,26 +47,26 @@ export default function PhotoReviewPage() {
   const act = async (fn, msg) => { try { await fn(); toast.success(msg); } catch (e) { toast.error(e.message); } };
   const submit = async (decision) => {
     setFormError(null);
-    if (decision === 'reject' && (!reason || comment.trim().length < 10)) { setFormError('Pick a reason and write a comment of at least 10 characters.'); return; }
+    if (decision === 'reject' && (!reason || comment.trim().length < 10)) { setFormError(t('admin.photos.rejectNeedsReason')); return; }
     try {
       await decide.mutateAsync({ decision, ...(decision === 'reject' ? { reason } : { addToGallery }), ...(comment.trim() ? { comment: comment.trim() } : {}) });
-      toast.success(decision === 'approve' ? 'Approved: Photo verified badge granted' : 'Rejected; the lister is told why');
+      toast.success(decision === 'approve' ? t('admin.photos.approvedToast') : t('admin.photos.rejectedToast'));
       navigate('/admin/photo-verification');
     } catch (e) { setFormError(e.message); }
   };
 
   return (
     <>
-      <Link to="/admin/photo-verification" className="mb-3 inline-flex items-center gap-1 text-sm text-brand-700 hover:underline"><ArrowLeft className="h-4 w-4" /> Photo verification</Link>
+      <Link to="/admin/photo-verification" className="mb-3 inline-flex items-center gap-1 text-sm text-brand-700 hover:underline"><ArrowLeft className="h-4 w-4" /> {t('panel.nav.adminPhotoVerification')}</Link>
       <PageHeader title={p.title || s.sessionNo} breadcrumb={`${s.sessionNo} · ${p.listingNo || ''}`}
         actions={<>
           <Badge tone={st.tone}>{st.label}</Badge>
-          {pending && !claimActive && <Button icon={Lock} loading={claim.isPending} onClick={() => act(() => claim.mutateAsync(), 'Claimed for 30 minutes')}>Claim to review</Button>}
-          {mine && <Button variant="secondary" icon={LockOpen} loading={release.isPending} onClick={() => act(() => release.mutateAsync(), 'Released')}>Release</Button>}
+          {pending && !claimActive && <Button icon={Lock} loading={claim.isPending} onClick={() => act(() => claim.mutateAsync(), t('admin.photos.claimedToast'))}>{t('admin.photos.claim')}</Button>}
+          {mine && <Button variant="secondary" icon={LockOpen} loading={release.isPending} onClick={() => act(() => release.mutateAsync(), t('admin.photos.releasedToast'))}>{t('admin.photos.release')}</Button>}
         </>} />
-      {claimActive && !mine && <Alert tone="warning" className="mb-4">Another reviewer holds this session until {dateTime(s.review.claimUntil)}. Read only.</Alert>}
+      {claimActive && !mine && <Alert tone="warning" className="mb-4">{t('admin.photos.heldByOther', { until: dateTime(s.review.claimUntil) })}</Alert>}
       {!pending && s.review?.decision && (
-        <Alert tone={s.review.decision === 'approve' ? 'success' : 'danger'} className="mb-4" title={s.review.decision === 'approve' ? 'Approved' : 'Rejected'}>
+        <Alert tone={s.review.decision === 'approve' ? 'success' : 'danger'} className="mb-4" title={s.review.decision === 'approve' ? t('admin.photos.approved') : t('admin.photos.rejected')}>
           {[s.review.reason && s.review.reason.replace(/_/g, ' '), s.review.comment, s.review.at && dateTime(s.review.at)].filter(Boolean).join(' · ')}
         </Alert>
       )}
@@ -72,12 +74,12 @@ export default function PhotoReviewPage() {
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">
           <Card>
-            <CardHeader title={`Captured photos (${(s.photos || []).length})`} description="Taken live during the session. Links expire after 10 minutes and refresh automatically." />
+            <CardHeader title={t('admin.photos.captured', { n: (s.photos || []).length })} description={t('admin.photos.capturedHint')} />
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {(s.photos || []).map((ph, i) => (
                 <li key={String(ph.fileId) || i} className="overflow-hidden rounded-lg border bg-white">
-                  {ph.url ? <a href={ph.url} target="_blank" rel="noreferrer" className="block aspect-[4/3] bg-surface-sunken"><img src={ph.url} alt={`Captured photo ${i + 1}`} className="h-full w-full object-cover" loading="lazy" /></a>
-                    : <div className="flex aspect-[4/3] items-center justify-center bg-surface-sunken text-xs text-ink-subtle">File missing</div>}
+                  {ph.url ? <a href={ph.url} target="_blank" rel="noreferrer" className="block aspect-[4/3] bg-surface-sunken"><img src={ph.url} alt={t('admin.photos.capturedAlt', { n: i + 1 })} className="h-full w-full object-cover" loading="lazy" /></a>
+                    : <div className="flex aspect-[4/3] items-center justify-center bg-surface-sunken text-xs text-ink-subtle">{t('admin.photos.fileMissing')}</div>}
                   <div className="p-2 text-xs text-ink-muted">
                     <p>{dateTime(ph.capturedAt)}</p>
                     {ph.lat != null && <a className="inline-flex items-center gap-1 text-brand-700 hover:underline" href={osm(ph.lat, ph.lng)} target="_blank" rel="noreferrer"><MapPin className="h-3 w-3" />{Number(ph.lat).toFixed(5)}, {Number(ph.lng).toFixed(5)}</a>}
@@ -87,44 +89,44 @@ export default function PhotoReviewPage() {
             </ul>
           </Card>
           <Card>
-            <CardHeader title={`Listing gallery (${gallery.length})`} description="Compare with the captured photos." />
+            <CardHeader title={t('admin.photos.gallery', { n: gallery.length })} description={t('admin.photos.galleryHint')} />
             <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {gallery.map((ph) => <li key={ph._id || ph.fileId}><a href={ph.url} target="_blank" rel="noreferrer" className="block aspect-[4/3] overflow-hidden rounded-md bg-surface-sunken"><img src={ph.thumbUrl || ph.url} alt={ph.caption || ''} className="h-full w-full object-cover" loading="lazy" /></a></li>)}
-              {!gallery.length && <li className="col-span-full text-sm text-ink-subtle">No gallery photos.</li>}
+              {!gallery.length && <li className="col-span-full text-sm text-ink-subtle">{t('admin.photos.noGallery')}</li>}
             </ul>
           </Card>
         </div>
 
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Location check" />
+            <CardHeader title={t('admin.photos.locationCheck')} />
             <dl className="divide-y">
-              <Row label="Distance from pin">{s.gps?.distanceM != null ? `${s.gps.distanceM} m` : null}</Row>
-              <Row label="GPS accuracy">{s.gps?.accuracy != null ? `±${Math.round(s.gps.accuracy)} m` : null}</Row>
-              <Row label="Exact pin">{pin ? <a className="text-brand-700 hover:underline" target="_blank" rel="noreferrer" href={osm(pin[1], pin[0])}>{pin[1]}, {pin[0]} <ExternalLink className="inline h-3 w-3" /></a> : null}</Row>
-              <Row label="Capture point">{s.gps?.lat != null ? <a className="text-brand-700 hover:underline" target="_blank" rel="noreferrer" href={osm(s.gps.lat, s.gps.lng)}>{s.gps.lat}, {s.gps.lng} <ExternalLink className="inline h-3 w-3" /></a> : null}</Row>
-              <Row label="Locality">{[p.location?.locality, p.location?.city].filter(Boolean).join(', ')}</Row>
-              <Row label="Session started">{dateTime(s.createdAt)}</Row>
-              <Row label="Add to gallery">{s.addToGallery ? 'Yes, the lister asked to add these photos to the gallery on approval' : 'No'}</Row>
-              <Row label="Current badge">{p.verification?.photo?.status ? `${p.verification.photo.status}${p.verification.photo.expiresAt ? ` until ${dateTime(p.verification.photo.expiresAt)}` : ''}` : 'None'}</Row>
+              <Row label={t('admin.photos.row.distance')}>{s.gps?.distanceM != null ? `${s.gps.distanceM} m` : null}</Row>
+              <Row label={t('admin.photos.row.accuracy')}>{s.gps?.accuracy != null ? `±${Math.round(s.gps.accuracy)} m` : null}</Row>
+              <Row label={t('admin.photos.row.pin')}>{pin ? <a className="text-brand-700 hover:underline" target="_blank" rel="noreferrer" href={osm(pin[1], pin[0])}>{pin[1]}, {pin[0]} <ExternalLink className="inline h-3 w-3" /></a> : null}</Row>
+              <Row label={t('admin.photos.row.capture')}>{s.gps?.lat != null ? <a className="text-brand-700 hover:underline" target="_blank" rel="noreferrer" href={osm(s.gps.lat, s.gps.lng)}>{s.gps.lat}, {s.gps.lng} <ExternalLink className="inline h-3 w-3" /></a> : null}</Row>
+              <Row label={t('admin.photos.row.locality')}>{[p.location?.locality, p.location?.city].filter(Boolean).join(', ')}</Row>
+              <Row label={t('admin.photos.row.started')}>{dateTime(s.createdAt)}</Row>
+              <Row label={t('admin.photos.row.addToGallery')}>{s.addToGallery ? t('admin.photos.addYes') : t('common.no')}</Row>
+              <Row label={t('admin.photos.row.badge')}>{p.verification?.photo?.status ? `${p.verification.photo.status}${p.verification.photo.expiresAt ? t('admin.photos.badgeUntil', { date: dateTime(p.verification.photo.expiresAt) }) : ''}` : t('admin.photos.none')}</Row>
             </dl>
           </Card>
 
           {mine ? (
             <Card>
-              <CardHeader title="Decision" description="Approving grants the Photo verified badge for 180 days." />
+              <CardHeader title={t('admin.photos.decision')} description={t('admin.photos.decisionHint')} />
               <div className="space-y-4">
-                <Checkbox label="Add the captured photos to the listing gallery" description={`The lister ${s.addToGallery ? 'asked to add them' : 'did not ask to add them'}. Up to 20 gallery photos in all.`} checked={addToGallery} onChange={(e) => setGalleryChoice(e.target.checked)} />
-                <Button block icon={Check} loading={decide.isPending} onClick={() => submit('approve')}>Approve</Button>
+                <Checkbox label={t('admin.photos.addCheckbox')} description={s.addToGallery ? t('admin.photos.listerAsked') : t('admin.photos.listerNotAsked')} checked={addToGallery} onChange={(e) => setGalleryChoice(e.target.checked)} />
+                <Button block icon={Check} loading={decide.isPending} onClick={() => submit('approve')}>{t('admin.photos.approve')}</Button>
                 <div className="space-y-3 border-t pt-4">
-                  <Select label="Reject reason" placeholder="Choose a reason" value={reason} onChange={(e) => setReason(e.target.value)} options={PHOTO_REJECT_REASONS} />
-                  <Textarea label="Comment" rows={3} maxLength={500} value={comment} onChange={(e) => setComment(e.target.value)} hint="Required to reject (10-500 characters). Sent to the lister." />
-                  <Button block variant="danger" icon={X} disabled={!reason || comment.trim().length < 10} loading={decide.isPending} onClick={() => submit('reject')}>Reject</Button>
+                  <Select label={t('admin.photos.rejectReason')} placeholder={t('admin.photos.chooseReason')} value={reason} onChange={(e) => setReason(e.target.value)} options={PHOTO_REJECT_REASONS} />
+                  <Textarea label={t('admin.photos.comment')} rows={3} maxLength={500} value={comment} onChange={(e) => setComment(e.target.value)} hint={t('admin.photos.commentHint')} />
+                  <Button block variant="danger" icon={X} disabled={!reason || comment.trim().length < 10} loading={decide.isPending} onClick={() => submit('reject')}>{t('admin.photos.reject')}</Button>
                 </div>
                 {formError && <Alert tone="danger">{formError}</Alert>}
               </div>
             </Card>
-          ) : pending && !claimActive ? <Alert tone="info">Claim this session to decide.</Alert> : null}
+          ) : pending && !claimActive ? <Alert tone="info">{t('admin.photos.claimToDecide')}</Alert> : null}
         </div>
       </div>
     </>

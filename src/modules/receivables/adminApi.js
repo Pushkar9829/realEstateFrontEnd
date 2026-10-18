@@ -4,20 +4,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
 import { downloadFile } from '@/modules/reports/adminApi';
+import { t } from '@/shared/i18n';
 
-export const RECEIVABLE_STATUS = {
-  pending_invoice: { label: 'Pending invoice', tone: 'neutral' },
-  invoiced: { label: 'Invoiced', tone: 'info' },
-  partially_paid: { label: 'Partially paid', tone: 'brand' },
-  overdue: { label: 'Overdue', tone: 'danger' },
-  paid: { label: 'Paid', tone: 'success' },
-  disputed: { label: 'Disputed', tone: 'warning' },
-  written_off: { label: 'Written off', tone: 'neutral' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const labels = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+
+export const RECEIVABLE_STATUS = toned('admin.enum.receivableStatus', {
+  pending_invoice: 'neutral',
+  invoiced: 'info',
+  partially_paid: 'brand',
+  overdue: 'danger',
+  paid: 'success',
+  disputed: 'warning',
+  written_off: 'neutral',
+  cancelled: 'neutral',
+});
 export const receivableStatus = (s) => RECEIVABLE_STATUS[s] || { label: s, tone: 'neutral' };
 export const INVOICE_TONE = { draft: 'neutral', issued: 'success', cancelled: 'danger' };
-export const PAYMENT_MODES = { bank_transfer: 'Bank transfer', upi: 'UPI', cheque: 'Cheque', cash: 'Cash', other: 'Other' };
+export const PAYMENT_MODES = labels('admin.enum.paymentMode', ['bank_transfer', 'upi', 'cheque', 'cash', 'other']);
 
 const keys = {
   list: (p) => ['admin', 'receivables', 'list', p],
@@ -61,12 +67,12 @@ export const useWriteOff = (id) => useRecMutation(id, (body) => api.post(`/admin
 // ---------------------------------------------------------------- sold-elsewhere checks (RE-A-19, RE-D-09)
 // Endpoints: backend/src/modules/listings/routes/admin.routes.js (receivables.manage)
 
-export const CHECK_STATUS = {
-  open: { label: 'Open', tone: 'warning' },
-  no_claim: { label: 'No claim', tone: 'neutral' },
-  claim_raised: { label: 'Claim raised', tone: 'danger' },
-  closed: { label: 'Closed', tone: 'success' },
-};
+export const CHECK_STATUS = toned('admin.enum.soldElsewhereStatus', {
+  open: 'warning',
+  no_claim: 'neutral',
+  claim_raised: 'danger',
+  closed: 'success',
+});
 export const useSoldElsewhereChecks = (params, enabled = true) => useQuery({ queryKey: ['admin', 'sold-elsewhere', params], queryFn: () => api.page('/admin/sold-elsewhere-checks', params), enabled, placeholderData: (prev) => prev });
 export function useDecideSoldElsewhere() {
   const qc = useQueryClient();

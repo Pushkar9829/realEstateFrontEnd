@@ -3,26 +3,25 @@
 // Endpoints: backend/src/modules/approvals/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const VERIFICATION_VISIT_STATUS = {
-  requested: { label: 'Requested', tone: 'info' },
-  scheduled: { label: 'Scheduled', tone: 'brand' },
-  verified: { label: 'Verified', tone: 'success' },
-  not_verified: { label: 'Not verified', tone: 'danger' },
-  lister_absent: { label: 'Lister absent', tone: 'warning' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const labels = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+
+export const VERIFICATION_VISIT_STATUS = toned('admin.enum.verificationVisitStatus', {
+  requested: 'info',
+  scheduled: 'brand',
+  verified: 'success',
+  not_verified: 'danger',
+  lister_absent: 'warning',
+  cancelled: 'neutral',
+});
 export const verificationVisitStatus = (s) => VERIFICATION_VISIT_STATUS[s] || { label: s, tone: 'neutral' };
 
 // Friendly text for the API error codes this screen can meet.
-export const VISIT_ERRORS = {
-  FEATURE_DISABLED: 'Site verification visits are switched off in Settings (verification.siteVisitEnabled).',
-  CITY_NOT_OFFERED: 'The listing city is not in verification.siteVisitCities.',
-  LISTING_STATUS: 'Only live or pending-approval listings can be site verified.',
-  VISIT_OPEN: 'This listing already has an open visit.',
-  RESCHEDULE_LIMIT: 'A visit can be rescheduled only once after the lister was absent.',
-  INVALID_TRANSITION: 'The visit is no longer in a state that allows this.',
-};
+export const VISIT_ERRORS = labels('admin.enum.visitError', ['FEATURE_DISABLED', 'CITY_NOT_OFFERED', 'LISTING_STATUS', 'VISIT_OPEN', 'RESCHEDULE_LIMIT', 'INVALID_TRANSITION']);
 
 export const useVerificationVisits = (params) => useQuery({ queryKey: ['admin', 'verification-visits', params], queryFn: () => api.page('/admin/verification/visits', params) });
 

@@ -2,32 +2,37 @@
 // Endpoints: backend/src/modules/deals/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, http } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const DEAL_STATUS = {
-  draft: { label: 'Draft', tone: 'neutral' },
-  submitted: { label: 'Submitted', tone: 'info' },
-  under_review: { label: 'Under review', tone: 'brand' },
-  returned: { label: 'Returned', tone: 'warning' },
-  verified: { label: 'Verified', tone: 'success' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-  reversed: { label: 'Reversed', tone: 'danger' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const labels = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+
+export const DEAL_STATUS = toned('admin.enum.dealStatus', {
+  draft: 'neutral',
+  submitted: 'info',
+  under_review: 'brand',
+  returned: 'warning',
+  verified: 'success',
+  rejected: 'danger',
+  reversed: 'danger',
+  cancelled: 'neutral',
+});
 export const dealStatus = (s) => DEAL_STATUS[s] || { label: s, tone: 'neutral' };
 
 // Spec RE-S-ADM-19: every item is required to verify.
+// [key, label] pairs; the label (index 1) is read from the dictionary when used.
 export const DEAL_CHECKLIST = [
-  ['payer_matches_buyer', 'Receipt payer name matches the buyer'],
-  ['payee_matches_lister', 'Payee matches the lister (or their authorised account)'],
-  ['amount_date_match', 'Amount and date match the deal'],
-  ['agreement_identifies_parties', 'Agreement copy identifies the property and parties'],
-  ['completed_site_visit', 'At least one completed site visit exists'],
-  ['commission_matches_agreement', 'Commission % equals the agreement in force on the booking date'],
-  ['no_duplicate_receipt', 'No duplicate receipt (file hash and reference not used in another deal)'],
-];
+  'payer_matches_buyer', 'payee_matches_lister', 'amount_date_match', 'agreement_identifies_parties',
+  'completed_site_visit', 'commission_matches_agreement', 'no_duplicate_receipt',
+].map((k) => Object.defineProperty([k], 1, { get: () => t(`admin.enum.dealChecklist.${k}`), enumerable: true }));
 
+// The English reason is what the API stores; rejectReasonLabel() is the display text.
 export const REJECT_REASONS = ['Fake receipt', 'Duplicate receipt', 'Deal not through platform', 'Cancelled by buyer', 'Other'];
-export const PAYMENT_MODES = { bank_transfer: 'Bank transfer', cheque: 'Cheque', upi: 'UPI', cash: 'Cash', dd: 'Demand draft', other: 'Other' };
+const REJECT_REASON_KEYS = { 'Fake receipt': 'fake', 'Duplicate receipt': 'duplicate', 'Deal not through platform': 'offPlatform', 'Cancelled by buyer': 'buyerCancelled', Other: 'other' };
+export const rejectReasonLabel = (r) => (REJECT_REASON_KEYS[r] ? t(`admin.enum.dealRejectReason.${REJECT_REASON_KEYS[r]}`) : r);
+export const PAYMENT_MODES = labels('admin.enum.paymentMode', ['bank_transfer', 'cheque', 'upi', 'cash', 'dd', 'other']);
 
 const keys = {
   queue: (p) => ['admin', 'deals', 'queue', p],
@@ -67,7 +72,7 @@ export const useReverseDeal = (id) => useDealMutation(id, (body) => api.post(`/a
 
 // ---------------------------------------------------------------- partners and referrals (Could)
 
-export const PARTNER_TYPES = { bank: 'Bank', nbfc: 'NBFC', rental_agreement: 'Rental agreement', other: 'Other' };
+export const PARTNER_TYPES = labels('admin.enum.partnerType', ['bank', 'nbfc', 'rental_agreement', 'other']);
 export const LOAN_FLOW = { referred: ['contacted', 'rejected', 'withdrawn'], contacted: ['sanctioned', 'rejected', 'withdrawn'], sanctioned: ['disbursed', 'rejected', 'withdrawn'], disbursed: [], rejected: [], withdrawn: [] };
 export const SERVICE_FLOW = { requested: ['in_progress', 'cancelled'], in_progress: ['completed', 'cancelled'], completed: [], cancelled: [] };
 

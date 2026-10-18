@@ -3,19 +3,25 @@
 // allowed values. Keys without an entry fall back to their value's type and
 // to units guessed from the key name.
 
+import { t } from '@/shared/i18n';
+
+// Option lists as [value, label] pairs; labels are translated when read.
+const opts = (prefix, values) => values.map((v) => [v, t(`admin.settings.options.${prefix}.${v.replace(/\./g, '_')}`)]);
+
 // Fixed choices (string settings) - same values the API accepts.
+// Each entry is a getter so the labels follow the current language.
 export const ENUMS = {
-  'public.locationPrecision': [['approx', 'Approximate (pin moved 300-500 m)'], ['exact', 'Exact pin']],
-  'routing.mode': [['round_robin', 'Round robin (take turns)'], ['least_open_leads', 'Fewest open leads first']],
-  'seeker.autoAction': [['flag_only', 'Flag only (no action)'], ['throttle', 'Throttle new enquiries'], ['block', 'Block the phone number']],
+  get 'public.locationPrecision'() { return opts('locationPrecision', ['approx', 'exact']); },
+  get 'routing.mode'() { return opts('routingMode', ['round_robin', 'least_open_leads']); },
+  get 'seeker.autoAction'() { return opts('seekerAutoAction', ['flag_only', 'throttle', 'block']); },
 };
 
 // Lists picked from known options, kept in the chosen order.
 export const LIST_OPTIONS = {
-  'home.sections': [['search', 'Search box'], ['featured_properties', 'Featured properties'], ['projects', 'New projects'], ['localities', 'Popular localities'], ['how_it_works', 'How it works'], ['testimonials', 'Testimonials'], ['faqs', 'FAQs'], ['banners', 'Banners']],
-  'i18n.languages': [['en', 'English'], ['hi', 'Hindi']],
-  'auth.otpChannels': [['email', 'Email'], ['sms', 'SMS (+91 numbers only)']],
-  'mlm.events': [['deal.closed', 'Deal closed'], ['deal.reversed', 'Deal reversed'], ['user.signup', 'User signed up']],
+  get 'home.sections'() { return opts('homeSections', ['search', 'featured_properties', 'projects', 'localities', 'how_it_works', 'testimonials', 'faqs', 'banners']); },
+  get 'i18n.languages'() { return opts('languages', ['en', 'hi']); },
+  get 'auth.otpChannels'() { return opts('otpChannels', ['email', 'sms']); },
+  get 'mlm.events'() { return opts('mlmEvents', ['deal.closed', 'deal.reversed', 'user.signup']); },
 };
 
 // Lists of objects edited as JSON even when empty.
@@ -24,7 +30,8 @@ export const JSON_KEYS = new Set(['rera.agentRegistrations']);
 // Lists where the order matters (shown with move up / down).
 export const ORDERED = new Set(['home.sections']);
 
-// Unit shown after a number field, guessed from the key.
+// Unit shown after a number field, guessed from the key. Word units are
+// translation ids (admin.settings.units.*); '%' and '₹' are shown as is.
 const UNITS = [
   [/percent|Percent/, '%'],
   [/[Pp]aise|Amount|Fee$|Rupees/, '₹'],
@@ -35,11 +42,12 @@ const UNITS = [
   [/Meters$/, 'metres'],
   [/Seconds$/, 'seconds'],
 ];
+const unitText = (u) => (u === '%' || u === '₹' ? u : t(`admin.settings.units.${u}`));
 export function unitOf(key, description = '') {
   if (/\b(INR|rupees)\b/i.test(description)) return '₹';
   const last = String(key).split('.').slice(1).join('.') || key;
   const hit = UNITS.find(([re]) => re.test(last));
-  return hit ? hit[1] : '';
+  return hit ? unitText(hit[1]) : '';
 }
 
 // "commission.minPercent.sale" -> "Min percent sale" (fallback when there is no description).

@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom';
 import { BarChart3, ChevronRight } from 'lucide-react';
 import { Badge, PageHeader } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
+import { useT } from '@/shared/i18n';
 import { REPORTS } from '@/modules/reports/adminApi';
 
 export default function ReportsIndexPage() {
   const { user } = useAuth();
+  const t = useT();
   return (
     <>
-      <PageHeader title="Reports" description="Pick a report, set the date range and export the table as CSV. Large exports run in the background and stay downloadable for 24 hours."
-        actions={user.role === 'manager' ? <Badge tone="info">Your teams only</Badge> : null} />
+      <PageHeader title={t('admin.reports.title')} description={t('admin.reports.indexDesc')}
+        actions={user.role === 'manager' ? <Badge tone="info">{t('admin.reports.yourTeamsOnly')}</Badge> : null} />
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {REPORTS.map((r) => (
           <li key={r.key}>

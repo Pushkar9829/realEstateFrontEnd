@@ -2,16 +2,13 @@
 // Endpoints: backend/src/modules/approvals/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const CHECKLIST_LABELS = {
-  photos_genuine: 'Photos are genuine and of this property',
-  details_match: 'Details, area and price look right',
-  ownership_proof_matches_kyc: 'Ownership proof matches the verified lister',
-  no_contact_info: 'No contact details in text or photos',
-  commission_ok: 'Commission is within limits',
-  location_ok: 'Map pin and locality are correct',
-  rera_verified: 'RERA number checked on the official site',
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const labels = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+
+export const CHECKLIST_LABELS = labels('admin.enum.listingChecklist', ['photos_genuine', 'details_match', 'ownership_proof_matches_kyc', 'no_contact_info', 'commission_ok', 'location_ok', 'rera_verified']);
 
 export const reviewKeys = {
   queue: (p) => ['admin', 'properties', 'queue', p],

@@ -2,6 +2,7 @@
 // dates in IST, the dd/mm/yyyy date field, the compact cookie bar, dictionaries
 // loaded per language and namespace, and the panel menu's Jump to filter.
 import { describe, test, expect, beforeEach } from 'vitest';
+import { useState } from 'react';
 import { act, render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -107,5 +108,29 @@ describe('Dictionaries per language and namespace (bundle)', () => {
     expect(translate('hi', 'panel.nav.listerListings')).toBe('मेरी लिस्टिंग');
     expect(translate('en', 'panel.layout.jumpTo')).toBe('Jump to…');
     expect(translate('hi', 'common.skipToContent')).toBe('मुख्य सामग्री पर जाएँ');
+  });
+});
+
+describe('Routing rules: property type checkboxes', () => {
+  test('MultiCheck takes { value, label } options: labels shown, ticking stores the value and stays ticked', async () => {
+    const { MultiCheck } = await import('@/panels/admin/pages/routing/RoutingRulesPage');
+    function Harness() {
+      const [v, setV] = useState([]);
+      return <><MultiCheck label="Property types" values={v} options={[{ value: 'apartment', label: 'Apartment / flat' }, { value: 'villa', label: 'Villa' }]} onChange={setV} /><p data-testid="v">{v.join(',')}</p></>;
+    }
+    render(<Harness />);
+    await userEvent.click(screen.getByLabelText('Apartment / flat'));
+    expect(screen.getByTestId('v')).toHaveTextContent('apartment');
+    expect(screen.getByLabelText('Apartment / flat')).toBeChecked();
+    expect(screen.getByLabelText('Villa')).not.toBeChecked();
+  });
+
+  test('plain string options still work (sources, lister types)', async () => {
+    const { MultiCheck } = await import('@/panels/admin/pages/routing/RoutingRulesPage');
+    const got = [];
+    render(<MultiCheck label="Sources" values={['walk_in']} options={['enquiry', 'walk_in']} onChange={(v) => got.push(v)} />);
+    expect(screen.getByLabelText('Walk In')).toBeChecked();
+    await userEvent.click(screen.getByLabelText('Enquiry'));
+    expect(got.at(-1)).toEqual(['walk_in', 'enquiry']);
   });
 });

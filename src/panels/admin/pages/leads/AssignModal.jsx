@@ -1,11 +1,13 @@
 // Shared assign / reassign dialog for one or many leads. Agents come from the
 // teams the user can see (own teams for managers).
 import { useState } from 'react';
+import { useT } from '@/shared/i18n';
 import { Alert, Button, Modal, Select, Textarea, useToast } from '@/shared/ui';
 import { useAgentOptions } from '@/modules/teams/api';
 import { useAssignLead, useBulkAssign } from '@/modules/leads/adminApi';
 
 export default function AssignModal({ open, onClose, leadIds = [], title, currentAgentId, onDone }) {
+  const t = useT();
   const toast = useToast();
   const { options, isLoading, error } = useAgentOptions();
   const assign = useAssignLead();
@@ -21,10 +23,10 @@ export default function AssignModal({ open, onClose, leadIds = [], title, curren
     try {
       if (many) {
         const r = await bulk.mutateAsync({ leadIds, agentId, ...(reason.trim() ? { reason: reason.trim() } : {}) });
-        toast.success(`${r.assigned} of ${leadIds.length} leads assigned`);
+        toast.success(t('admin.leads.assign.bulkDone', { n: r.assigned, total: leadIds.length }));
       } else {
         await assign.mutateAsync({ id: leadIds[0], agentId, reason: reason.trim() || undefined });
-        toast.success(currentAgentId ? 'Lead reassigned' : 'Lead assigned');
+        toast.success(currentAgentId ? t('admin.leads.assign.reassigned') : t('admin.leads.assign.assigned'));
       }
       if (onDone) onDone();
       close();
@@ -32,14 +34,14 @@ export default function AssignModal({ open, onClose, leadIds = [], title, curren
   };
 
   return (
-    <Modal open={open} onClose={close} title={title || (many ? `Assign ${leadIds.length} leads` : currentAgentId ? 'Reassign lead' : 'Assign lead')}
-      description="The new agent is notified; the old agent too on a reassignment. Open follow-ups, visits and offers move with the lead."
-      footer={<><Button variant="ghost" onClick={close}>Cancel</Button><Button disabled={!agentId || agentId === currentAgentId} loading={assign.isPending || bulk.isPending} onClick={submit}>Assign</Button></>}>
+    <Modal open={open} onClose={close} title={title || (many ? t('admin.leads.assign.titleMany', { n: leadIds.length }) : currentAgentId ? t('admin.leads.assign.titleReassign') : t('admin.leads.assign.titleAssign'))}
+      description={t('admin.leads.assign.description')}
+      footer={<><Button variant="ghost" onClick={close}>{t('common.cancel')}</Button><Button disabled={!agentId || agentId === currentAgentId} loading={assign.isPending || bulk.isPending} onClick={submit}>{t('admin.leads.assignBtn')}</Button></>}>
       <div className="space-y-4">
         {error && <Alert tone="danger">{error.message}</Alert>}
-        <Select label="Agent" required placeholder={isLoading ? 'Loading agents…' : 'Choose an agent'} value={agentId} onChange={(e) => setAgentId(e.target.value)}
-          options={options.filter((o) => o.value !== currentAgentId)} hint="Shown as name · team · open leads / capacity." />
-        <Textarea label="Reason" rows={2} value={reason} maxLength={300} onChange={(e) => setReason(e.target.value)} hint="Optional. Added to the lead timeline and the audit log." />
+        <Select label={t('admin.leads.agent')} required placeholder={isLoading ? t('admin.leads.assign.loadingAgents') : t('admin.leads.assign.chooseAgent')} value={agentId} onChange={(e) => setAgentId(e.target.value)}
+          options={options.filter((o) => o.value !== currentAgentId)} hint={t('admin.leads.assign.agentHint')} />
+        <Textarea label={t('admin.leads.assign.reason')} rows={2} value={reason} maxLength={300} onChange={(e) => setReason(e.target.value)} hint={t('admin.leads.assign.reasonHint')} />
         {formError && <Alert tone="danger">{formError}</Alert>}
       </div>
     </Modal>

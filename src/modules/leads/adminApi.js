@@ -3,40 +3,45 @@
 // Endpoints: backend/src/modules/leads/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, http } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const LEAD_STAGES = {
-  new: { label: 'New', tone: 'info' },
-  contacted: { label: 'Contacted', tone: 'brand' },
-  qualified: { label: 'Qualified', tone: 'brand' },
-  site_visit_scheduled: { label: 'Visit scheduled', tone: 'accent' },
-  site_visit_done: { label: 'Visit done', tone: 'accent' },
-  negotiation: { label: 'Negotiation', tone: 'warning' },
-  booking: { label: 'Booking', tone: 'warning' },
-  closed_won: { label: 'Won', tone: 'success' },
-  closed_lost: { label: 'Lost', tone: 'danger' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+
+export const LEAD_STAGES = toned('admin.enum.leadStage', {
+  new: 'info',
+  contacted: 'brand',
+  qualified: 'brand',
+  site_visit_scheduled: 'accent',
+  site_visit_done: 'accent',
+  negotiation: 'warning',
+  booking: 'warning',
+  closed_won: 'success',
+  closed_lost: 'danger',
+});
 export const leadStage = (s) => LEAD_STAGES[s] || { label: String(s || '-').replace(/_/g, ' '), tone: 'neutral' };
 
 export const LEAD_SOURCES = ['enquiry', 'callback', 'site_visit', 'best_price', 'contact_form', 'whatsapp', 'hotline', 'walk_in', 'referral', 'requirement', 'recycled'];
 export const LEAD_PRIORITIES = { hot: 'danger', warm: 'warning', cold: 'info' };
 
-export const VISIT_STATUS = {
-  requested: { label: 'Requested', tone: 'info' },
-  scheduled: { label: 'Scheduled', tone: 'brand' },
-  confirmed: { label: 'Confirmed', tone: 'success' },
-  completed: { label: 'Completed', tone: 'success' },
-  no_show: { label: 'No-show', tone: 'danger' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+export const VISIT_STATUS = toned('admin.enum.visitStatus', {
+  requested: 'info',
+  scheduled: 'brand',
+  confirmed: 'success',
+  completed: 'success',
+  no_show: 'danger',
+  cancelled: 'neutral',
+});
 export const visitStatus = (s) => VISIT_STATUS[s] || { label: s, tone: 'neutral' };
 
 // SLA state of a lead row: breached, due (first contact pending) or met.
 export function leadSla(l) {
-  if (l.slaBreachedAt) return { tone: 'danger', label: 'Breached' };
+  if (l.slaBreachedAt) return { tone: 'danger', label: t('admin.enum.leadSla.breached') };
   if (l.stage === 'new' && !l.firstContactAt && l.slaDueAt) {
-    return new Date(l.slaDueAt) < new Date() ? { tone: 'danger', label: 'Overdue' } : { tone: 'warning', label: 'Due' };
+    return new Date(l.slaDueAt) < new Date() ? { tone: 'danger', label: t('admin.enum.leadSla.overdue') } : { tone: 'warning', label: t('admin.enum.leadSla.due') };
   }
-  if (l.firstContactAt) return { tone: 'success', label: 'Met' };
+  if (l.firstContactAt) return { tone: 'success', label: t('admin.enum.leadSla.met') };
   return { tone: 'neutral', label: '-' };
 }
 

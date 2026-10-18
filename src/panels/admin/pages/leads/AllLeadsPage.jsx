@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Download, Inbox, Search, UserPlus, X } from 'lucide-react';
 import { Badge, Button, Card, FiltersBox, Input, PageHeader, Pagination, Select, Table, useToast } from '@/shared/ui';
-import { dateTime, plural, shortRupees, timeAgo, titleCase } from '@/shared/lib/format';
+import { dateTime, shortRupees, timeAgo, titleCase } from '@/shared/lib/format';
+import { useT } from '@/shared/i18n';
 import { useAuth } from '@/modules/auth';
 import { useAgentOptions, useTeams } from '@/modules/teams/api';
 import { LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STAGES, exportLeadsCsv, leadSla, leadStage, useAdminLeads } from '@/modules/leads/adminApi';
@@ -15,6 +16,7 @@ const istStart = (d) => (d ? `${d}T00:00:00+05:30` : undefined);
 const istEnd = (d) => (d ? `${d}T23:59:59+05:30` : undefined);
 
 export default function AllLeadsPage() {
+  const t = useT();
   const toast = useToast();
   const { hasPermission } = useAuth();
   const [sp, setSp] = useSearchParams();
@@ -54,54 +56,54 @@ export default function AllLeadsPage() {
     setExporting(true);
     try {
       await exportLeadsCsv({ stage: f.stage, from: istStart(f.from), to: istEnd(f.to) });
-      toast.success('Export downloaded');
+      toast.success(t('admin.leads.list.exported'));
     } catch (e) { toast.error(e.message); } finally { setExporting(false); }
   };
 
   return (
     <>
-      <PageHeader title="All leads" description="Every lead with its stage, agent and SLA. Managers see their own teams."
+      <PageHeader title={t('panel.nav.adminLeads')} description={t('admin.leads.list.description')}
         actions={<>
-          {selected.length > 0 && <Button icon={UserPlus} onClick={() => setAssignOpen(true)}>Assign {selected.length} selected</Button>}
-          {hasPermission('leads.export') && <Button variant="secondary" icon={Download} loading={exporting} onClick={doExport}>Export CSV</Button>}
+          {selected.length > 0 && <Button icon={UserPlus} onClick={() => setAssignOpen(true)}>{t('admin.leads.list.assignSelected', { n: selected.length })}</Button>}
+          {hasPermission('leads.export') && <Button variant="secondary" icon={Download} loading={exporting} onClick={doExport}>{t('admin.leads.list.exportCsv')}</Button>}
         </>} />
 
       <Card className="mb-4">
         <form className="mb-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); setFilter('q', q.trim()); }}>
-          <Input className="flex-1" aria-label="Search" leading={<Search className="h-4 w-4" />} placeholder="Lead number, buyer name or phone" value={q} onChange={(e) => setQ(e.target.value)} />
-          <Button type="submit" variant="secondary">Search</Button>
+          <Input className="flex-1" aria-label={t('admin.leads.search')} leading={<Search className="h-4 w-4" />} placeholder={t('admin.leads.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} />
+          <Button type="submit" variant="secondary">{t('admin.leads.search')}</Button>
         </form>
         <FiltersBox count={FILTER_KEYS.filter((k) => k !== 'q' && f[k]).length} onClear={clearAll}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
-          <Select label="Stage" placeholder="Any stage" value={f.stage} onChange={(e) => setFilter('stage', e.target.value)} options={Object.entries(LEAD_STAGES).map(([value, s]) => ({ value, label: s.label }))} />
-          <Select label="Agent" placeholder="Any agent" value={f.agentId} onChange={(e) => setFilter('agentId', e.target.value)} options={[{ value: 'none', label: 'Unassigned' }, ...agentOptions]} />
-          <Select label="Team" placeholder="Any team" value={f.teamId} onChange={(e) => setFilter('teamId', e.target.value)} options={(teams.data || []).map((t) => ({ value: t._id, label: t.name }))} />
-          <Select label="Source" placeholder="Any source" value={f.source} onChange={(e) => setFilter('source', e.target.value)} options={LEAD_SOURCES.map((s) => ({ value: s, label: titleCase(s) }))} />
-          <Select label="Priority" placeholder="Any" value={f.priority} onChange={(e) => setFilter('priority', e.target.value)} options={Object.keys(LEAD_PRIORITIES).map((p) => ({ value: p, label: titleCase(p) }))} />
-          <Select label="SLA" placeholder="Any" value={f.breached} onChange={(e) => setFilter('breached', e.target.value)} options={[{ value: 'true', label: 'Breached only' }]} />
-          <Input label="Created from" type="date" value={f.from} onChange={(e) => setFilter('from', e.target.value)} />
-          <Input label="Created to" type="date" value={f.to} onChange={(e) => setFilter('to', e.target.value)} />
+          <Select label={t('admin.leads.list.stage')} placeholder={t('admin.leads.list.anyStage')} value={f.stage} onChange={(e) => setFilter('stage', e.target.value)} options={Object.entries(LEAD_STAGES).map(([value, s]) => ({ value, label: s.label }))} />
+          <Select label={t('admin.leads.agent')} placeholder={t('admin.leads.list.anyAgent')} value={f.agentId} onChange={(e) => setFilter('agentId', e.target.value)} options={[{ value: 'none', label: t('admin.leads.unassigned') }, ...agentOptions]} />
+          <Select label={t('admin.leads.list.team')} placeholder={t('admin.leads.list.anyTeam')} value={f.teamId} onChange={(e) => setFilter('teamId', e.target.value)} options={(teams.data || []).map((t) => ({ value: t._id, label: t.name }))} />
+          <Select label={t('admin.leads.list.source')} placeholder={t('admin.leads.list.anySource')} value={f.source} onChange={(e) => setFilter('source', e.target.value)} options={LEAD_SOURCES.map((s) => ({ value: s, label: titleCase(s) }))} />
+          <Select label={t('admin.leads.list.priority')} placeholder={t('admin.leads.any')} value={f.priority} onChange={(e) => setFilter('priority', e.target.value)} options={Object.keys(LEAD_PRIORITIES).map((p) => ({ value: p, label: titleCase(p) }))} />
+          <Select label="SLA" placeholder={t('admin.leads.any')} value={f.breached} onChange={(e) => setFilter('breached', e.target.value)} options={[{ value: 'true', label: t('admin.leads.list.breachedOnly') }]} />
+          <Input label={t('admin.leads.list.createdFrom')} type="date" value={f.from} onChange={(e) => setFilter('from', e.target.value)} />
+          <Input label={t('admin.leads.list.createdTo')} type="date" value={f.to} onChange={(e) => setFilter('to', e.target.value)} />
         </div>
         </FiltersBox>
-        {active && <Button className="mt-3 hidden sm:inline-flex" size="sm" variant="ghost" icon={X} onClick={clearAll}>Clear filters</Button>}
-        {hasPermission('leads.export') && <p className="mt-2 text-xs text-ink-subtle">CSV export applies the stage and date filters. Phone and email are included only with the contacts.view permission.</p>}
+        {active && <Button className="mt-3 hidden sm:inline-flex" size="sm" variant="ghost" icon={X} onClick={clearAll}>{t('admin.leads.list.clearFilters')}</Button>}
+        {hasPermission('leads.export') && <p className="mt-2 text-xs text-ink-subtle">{t('admin.leads.list.exportNote')}</p>}
       </Card>
 
       {error && <Card className="mb-4 text-sm text-danger-700">{error.message}</Card>}
-      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/leads/${r._id}`} empty={active ? 'No leads match these filters.' : 'No leads yet.'}
+      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/leads/${r._id}`} empty={active ? t('admin.leads.list.emptyFiltered') : t('admin.leads.list.empty')}
         columns={[
-          { key: 'sel', header: <input type="checkbox" aria-label="Select all on this page" className="h-4 w-4 rounded border-line-strong" checked={allOnPage} onChange={toggleAll} />, className: 'w-8',
-            render: (r) => <input type="checkbox" aria-label={`Select ${r.leadNo}`} className="h-4 w-4 rounded border-line-strong" checked={selected.includes(r._id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(r._id)} /> },
-          { key: 'lead', header: 'Lead', render: (r) => <span><span className="block font-medium text-ink">{r.leadNo}</span><span className="text-xs text-ink-subtle">{r.buyerName} · {r.buyerPhone}</span>{r.throttled && <Badge className="ml-1" tone="warning">Throttled</Badge>}</span> },
-          { key: 'property', header: 'Property', render: (r) => (r.property ? <span className="block max-w-[14rem]"><span className="block truncate text-sm">{r.property.title}</span><span className="text-xs text-ink-subtle">{r.property.listingNo} · {r.property.locality} · {shortRupees(r.property.price)}</span></span> : <span className="text-xs text-ink-subtle">{r.requirement?.city ? `Requirement · ${r.requirement.city}` : '-'}</span>) },
-          { key: 'source', header: 'Source', render: (r) => <span className="text-sm">{(r.sources || []).map(titleCase).join(', ') || '-'}</span> },
-          { key: 'stage', header: 'Stage', render: (r) => { const s = leadStage(r.stage); return <span className="space-x-1"><Badge tone={s.tone}>{s.label}</Badge>{r.priority && <Badge tone={LEAD_PRIORITIES[r.priority]}>{titleCase(r.priority)}</Badge>}</span>; } },
-          { key: 'agent', header: 'Agent / team', render: (r) => (r.agent ? <span className="text-sm">{r.agent}<span className="block text-xs text-ink-subtle">{r.team || '-'}</span></span> : <Badge tone="warning" icon={Inbox}>Unassigned</Badge>) },
-          { key: 'sla', header: 'SLA', render: (r) => { const s = leadSla(r); return <span title={r.slaDueAt ? `Due ${dateTime(r.slaDueAt)}` : undefined}><Badge tone={s.tone}>{s.label}</Badge></span>; } },
-          { key: 'created', header: 'Created', render: (r) => <span className="whitespace-nowrap text-sm" title={dateTime(r.createdAt)}>{timeAgo(r.createdAt)}</span> },
-          { key: 'activity', header: 'Last activity', render: (r) => <span className="whitespace-nowrap text-sm">{timeAgo(r.lastActivityAt)}</span> },
+          { key: 'sel', header: <input type="checkbox" aria-label={t('admin.leads.list.selectAll')} className="h-4 w-4 rounded border-line-strong" checked={allOnPage} onChange={toggleAll} />, className: 'w-8',
+            render: (r) => <input type="checkbox" aria-label={t('admin.leads.list.selectOne', { no: r.leadNo })} className="h-4 w-4 rounded border-line-strong" checked={selected.includes(r._id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(r._id)} /> },
+          { key: 'lead', header: t('admin.leads.list.colLead'), render: (r) => <span><span className="block font-medium text-ink">{r.leadNo}</span><span className="text-xs text-ink-subtle">{r.buyerName} · {r.buyerPhone}</span>{r.throttled && <Badge className="ml-1" tone="warning">{t('admin.leads.throttled')}</Badge>}</span> },
+          { key: 'property', header: t('admin.leads.list.colProperty'), render: (r) => (r.property ? <span className="block max-w-[14rem]"><span className="block truncate text-sm">{r.property.title}</span><span className="text-xs text-ink-subtle">{r.property.listingNo} · {r.property.locality} · {shortRupees(r.property.price)}</span></span> : <span className="text-xs text-ink-subtle">{r.requirement?.city ? t('admin.leads.list.requirementCity', { city: r.requirement.city }) : '-'}</span>) },
+          { key: 'source', header: t('admin.leads.list.source'), render: (r) => <span className="text-sm">{(r.sources || []).map(titleCase).join(', ') || '-'}</span> },
+          { key: 'stage', header: t('admin.leads.list.stage'), render: (r) => { const s = leadStage(r.stage); return <span className="space-x-1"><Badge tone={s.tone}>{s.label}</Badge>{r.priority && <Badge tone={LEAD_PRIORITIES[r.priority]}>{titleCase(r.priority)}</Badge>}</span>; } },
+          { key: 'agent', header: t('admin.leads.list.colAgentTeam'), render: (r) => (r.agent ? <span className="text-sm">{r.agent}<span className="block text-xs text-ink-subtle">{r.team || '-'}</span></span> : <Badge tone="warning" icon={Inbox}>{t('admin.leads.unassigned')}</Badge>) },
+          { key: 'sla', header: 'SLA', render: (r) => { const s = leadSla(r); return <span title={r.slaDueAt ? t('admin.leads.due', { date: dateTime(r.slaDueAt) }) : undefined}><Badge tone={s.tone}>{s.label}</Badge></span>; } },
+          { key: 'created', header: t('admin.leads.created'), render: (r) => <span className="whitespace-nowrap text-sm" title={dateTime(r.createdAt)}>{timeAgo(r.createdAt)}</span> },
+          { key: 'activity', header: t('admin.leads.lastActivity'), render: (r) => <span className="whitespace-nowrap text-sm">{timeAgo(r.lastActivityAt)}</span> },
         ]} />
-      {data && <div className="mt-2 flex items-center justify-between text-xs text-ink-subtle"><span>{plural(data.meta.total, 'lead')}{selected.length ? ` · ${selected.length} selected` : ''}</span></div>}
+      {data && <div className="mt-2 flex items-center justify-between text-xs text-ink-subtle"><span>{t('admin.leads.list.total', { count: data.meta.total })}{selected.length ? t('admin.leads.list.selectedSuffix', { n: selected.length }) : ''}</span></div>}
       {data && <Pagination page={data.meta.page} pages={data.meta.pages} onChange={setPage} />}
       <AssignModal open={assignOpen} onClose={() => setAssignOpen(false)} leadIds={selected} onDone={() => setSelected([])} />
     </>

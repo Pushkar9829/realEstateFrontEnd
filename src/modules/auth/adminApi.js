@@ -7,17 +7,21 @@
 // (backend/src/modules/teams/routes/admin.routes.js).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const CONSENT_PURPOSES = {
-  sales_contact: 'Sales contact', whatsapp_updates: 'WhatsApp updates', marketing_alerts: 'Marketing alerts',
-  partner_sharing: 'Partner sharing', call_recording: 'Call recording', analytics: 'Analytics',
-};
-export const DELETION_STATUS = {
-  requested: { label: 'Requested', tone: 'warning' },
-  in_progress: { label: 'In progress', tone: 'info' },
-  completed: { label: 'Completed', tone: 'success' },
-  rejected: { label: 'Rejected', tone: 'neutral' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const labels = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+const options = (prefix, values) => values.map((value) => ({ value, get label() { return t(`${prefix}.${value}`); } }));
+
+export const CONSENT_PURPOSES = labels('admin.enum.consentPurpose', ['sales_contact', 'whatsapp_updates', 'marketing_alerts', 'partner_sharing', 'call_recording', 'analytics']);
+export const DELETION_STATUS = toned('admin.enum.deletionStatus', {
+  requested: 'warning',
+  in_progress: 'info',
+  completed: 'success',
+  rejected: 'neutral',
+});
 
 export const useBuyers = (params) => useQuery({ queryKey: ['admin', 'buyers', params], queryFn: () => api.page('/admin/users', { role: 'buyer', ...params }), retry: false, placeholderData: (prev) => prev });
 export const useBuyer = (id) => useQuery({ queryKey: ['admin', 'buyer', id], queryFn: () => api.get(`/admin/users/${id}`), enabled: Boolean(id), retry: false });
@@ -37,7 +41,7 @@ export const useDecideDeletion = () => useBuyerMutation(({ id, body }) => api.pa
 
 // ---------------------------------------------------------------- staff users (RE-S-ADM-16)
 
-export const STAFF_ROLES = [{ value: 'agent', label: 'Sales agent' }, { value: 'manager', label: 'Sales manager' }, { value: 'admin', label: 'Admin staff' }];
+export const STAFF_ROLES = options('admin.enum.staffRole', ['agent', 'manager', 'admin']);
 export const staffKeys = { list: (p) => ['admin', 'staff-users', p] };
 
 // params: { page, limit, q, role, status }
@@ -62,16 +66,8 @@ export const isMissingEndpoint = (e) => Boolean(e && (e.code === 'ROUTE_NOT_FOUN
 
 // Permission catalogue (backend/src/constants/permissions.js). Managers always
 // get MANAGER_DEFAULTS; agents can only be given verification.field.
+// Labels: admin.enum.permission.<key with dots as underscores>.
 export const STAFF_PERMISSIONS = [
-  ['dashboard.view', 'Dashboard'], ['listers.verify', 'Review and decide KYC'], ['listers.manage', 'Suspend, ban, reinstate listers; broker flags'],
-  ['properties.approve', 'Approve, reject, request changes on listings'], ['properties.manage', 'Manage any listing (feature, extend, pause, deactivate)'],
-  ['verification.review', 'Photo verification QA'], ['verification.schedule', 'Schedule site verification visits'], ['verification.field', 'Do site verification visits'],
-  ['partners.manage', 'Partner banks and service partners'], ['projects.approve', 'Moderate builder projects'], ['agreements.manage', 'Agreement registry: upload, terminate'],
-  ['agreements.view', 'View agreements'], ['leads.view_all', 'All leads'], ['leads.assign', 'Assign, reassign, reopen leads'], ['leads.export', 'Lead CSV export'],
-  ['contacts.view', 'See buyer and lister phone / email'], ['routing.manage', 'Routing rules'], ['teams.manage', 'Teams, territories, capacities'],
-  ['staff.manage', 'Staff users and 2FA resets'], ['sitevisits.view', 'Site visits'], ['deals.verify', 'Verify, return, reject deals'],
-  ['receivables.manage', 'Receivables, payments, write-offs'], ['invoices.issue', 'Create and send invoices'], ['users.manage', 'Buyers, privacy, seeker flags'],
-  ['masters.manage', 'Masters (cities, localities, types, reasons)'], ['cms.manage', 'CMS pages, banners, FAQs'], ['templates.manage', 'Notification templates'],
-  ['settings.manage', 'Platform settings'], ['reports.view', 'Reports'], ['logs.view', 'Audit logs and login history'], ['integrations.manage', 'Jobs and MLM outbox'],
-].map(([value, label]) => ({ value, label }));
+  'dashboard.view', 'listers.verify', 'listers.manage', 'properties.approve', 'properties.manage', 'verification.review', 'verification.schedule', 'verification.field', 'partners.manage', 'projects.approve', 'agreements.manage', 'agreements.view', 'leads.view_all', 'leads.assign', 'leads.export', 'contacts.view', 'routing.manage', 'teams.manage', 'staff.manage', 'sitevisits.view', 'deals.verify', 'receivables.manage', 'invoices.issue', 'users.manage', 'masters.manage', 'cms.manage', 'templates.manage', 'settings.manage', 'reports.view', 'logs.view', 'integrations.manage',
+].map((value) => ({ value, get label() { return t(`admin.enum.permission.${value.replace(/\./g, '_')}`); } }));
 export const MANAGER_DEFAULT_PERMISSIONS = ['dashboard.view', 'agreements.view', 'leads.view_all', 'leads.assign', 'sitevisits.view', 'reports.view'];

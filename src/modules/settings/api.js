@@ -4,6 +4,7 @@
 // ({ value, edit, description } per key) and overrides in core/settings.js.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
 // Accepts either [{ key, value, default, edit, description }] or { key: value }
 // (or { key: { value, edit, description } }) and returns the list form.
@@ -23,15 +24,22 @@ export function useUpdateSettings() {
   return useMutation({ mutationFn: (changes) => api.patch('/admin/settings', { changes: Object.entries(changes).map(([key, value]) => ({ key, value })) }), onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'settings'] }) });
 }
 
-// Group labels for key prefixes (first segment of the key).
-export const SETTING_GROUPS = {
-  general: 'General', company: 'General', public: 'Masking and public display', commission: 'Commission', listing: 'Listings', lister: 'Listings',
-  media: 'Listings', kyc: 'Verification', verification: 'Verification', broker: 'Trust', guard: 'Trust', seeker: 'Trust', trust: 'Trust',
-  rera: 'RERA', lead: 'Leads and SLA', sla: 'Leads and SLA', routing: 'Routing', visit: 'Visits', visits: 'Visits', offer: 'Offers', offers: 'Offers',
-  search: 'Search and tools', tools: 'Search and tools', invoice: 'Invoices', deal: 'Deals', notifications: 'Notifications', whatsapp: 'WhatsApp and telephony',
-  telephony: 'WhatsApp and telephony', partners: 'Partners', privacy: 'Privacy', retention: 'Privacy', audit: 'Privacy', mlm: 'MLM', home: 'Home page',
-  calendar: 'Leads and SLA', agent: 'Leads and SLA', review: 'Listings', buyer: 'Leads and SLA', alerts: 'Search and tools', notify: 'Notifications',
-  stats: 'Masking and public display', reports: 'Reports', trends: 'Search and tools', calc: 'Search and tools', nlsearch: 'Search and tools',
-  agreement: 'Commission', consent: 'Privacy', analytics: 'Privacy', auth: 'Sign-in and security', i18n: 'General', projects: 'Listings',
+// Group of each key prefix (first segment of the key): a stable id used for
+// grouping and anchors; groupLabel() gives the translated name for display.
+const GROUP_IDS = {
+  general: 'general', company: 'general', public: 'masking', commission: 'commission', listing: 'listings', lister: 'listings',
+  media: 'listings', kyc: 'verification', verification: 'verification', broker: 'trust', guard: 'trust', seeker: 'trust', trust: 'trust',
+  rera: 'rera', lead: 'leads', sla: 'leads', routing: 'routing', visit: 'visits', visits: 'visits', offer: 'offers', offers: 'offers',
+  search: 'search', tools: 'search', invoice: 'invoices', deal: 'deals', notifications: 'notifications', whatsapp: 'telephony',
+  telephony: 'telephony', partners: 'partners', privacy: 'privacy', retention: 'privacy', audit: 'privacy', mlm: 'mlm', home: 'home',
+  calendar: 'leads', agent: 'leads', review: 'listings', buyer: 'leads', alerts: 'search', notify: 'notifications',
+  stats: 'masking', reports: 'reports', trends: 'search', calc: 'search', nlsearch: 'search',
+  agreement: 'commission', consent: 'privacy', analytics: 'privacy', auth: 'auth', i18n: 'general', projects: 'listings',
 };
-export const groupOf = (key) => SETTING_GROUPS[String(key).split('.')[0]] || 'Other';
+export const groupIdOf = (key) => GROUP_IDS[String(key).split('.')[0]] || 'other';
+// Translated group name (read at call time, so it follows the current language).
+export const groupLabel = (id) => t(`admin.settings.groups.${id}`);
+// Prefix -> translated group name (same shape as before; values are getters).
+export const SETTING_GROUPS = Object.defineProperties({}, Object.fromEntries(Object.entries(GROUP_IDS)
+  .map(([prefix, id]) => [prefix, { enumerable: true, get: () => groupLabel(id) }])));
+export const groupOf = (key) => groupLabel(groupIdOf(key));

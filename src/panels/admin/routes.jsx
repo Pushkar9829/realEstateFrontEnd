@@ -30,7 +30,7 @@ export const adminRoutes = {
   children: [
     { index: true, element: <Dashboard /> },
     { path: 'account', element: <Account /> },
-    { path: 'notifications', element: <Notifications base="/admin" description="Review queues, escalations, security and system notices. Kept for 180 days." /> },
+    { path: 'notifications', element: <Notifications base="/admin" variant="admin" /> },
     { path: 'staff', element: perm('staff.manage', <Staff />) },
     { path: 'kyc', element: perm('listers.verify', <KycQueue />) },
     { path: 'kyc/:userId', element: perm('listers.verify', <KycReview />) },

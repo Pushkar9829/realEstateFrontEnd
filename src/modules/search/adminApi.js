@@ -2,33 +2,27 @@
 // properties.manage). Endpoints: backend/src/modules/search/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const REPORT_REASONS = {
-  wrong_info: 'Wrong information',
-  already_sold: 'Already sold or rented',
-  fraud: 'Fraud or fake listing',
-  broker: 'Lister is a broker',
-  duplicate: 'Duplicate listing',
-  other: 'Other',
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const labels = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+const options = (prefix, values) => values.map((value) => ({ value, get label() { return t(`${prefix}.${value}`); } }));
 
-export const REPORT_ACTIONS = [
-  { value: 'dismiss', label: 'Dismiss (no action)' },
-  { value: 'ask_fix', label: 'Ask the lister to fix' },
-  { value: 'pause', label: 'Pause the listing (admin review)' },
-  { value: 'take_down', label: 'Take the listing down' },
-  { value: 'raise_broker_flag', label: 'Raise a broker flag on the lister' },
-];
+export const REPORT_REASONS = labels('admin.enum.reportReason', ['wrong_info', 'already_sold', 'fraud', 'broker', 'duplicate', 'other']);
+
+export const REPORT_ACTIONS = options('admin.enum.reportAction', ['dismiss', 'ask_fix', 'pause', 'take_down', 'raise_broker_flag']);
 
 // Actions that may also raise a broker flag (sent as flag: true).
 export const FLAGGABLE_ACTIONS = ['ask_fix', 'pause', 'take_down'];
 
-export const REPORT_STATUS = {
-  open: { label: 'Open', tone: 'info' },
-  under_review: { label: 'Under review', tone: 'warning' },
-  actioned: { label: 'Actioned', tone: 'success' },
-  dismissed: { label: 'Dismissed', tone: 'neutral' },
-};
+export const REPORT_STATUS = toned('admin.enum.reportStatus', {
+  open: 'info',
+  under_review: 'warning',
+  actioned: 'success',
+  dismissed: 'neutral',
+});
 
 export const useListingReports = (params) => useQuery({ queryKey: ['admin', 'listing-reports', params], queryFn: () => api.page('/admin/listing-reports', params) });
 

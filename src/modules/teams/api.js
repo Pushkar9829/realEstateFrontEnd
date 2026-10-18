@@ -4,13 +4,14 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const TEAM_MODES = [
-  { value: 'round_robin', label: 'Round robin' },
-  { value: 'least_open_leads', label: 'Least open leads' },
-];
-export const modeLabel = (m) => (TEAM_MODES.find((x) => x.value === m) || { label: m || 'Inherit' }).label;
-export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Labels are read from the dictionary when used (getters).
+export const TEAM_MODES = ['round_robin', 'least_open_leads'].map((value) => ({ value, get label() { return t(`admin.enum.teamMode.${value}`); } }));
+export const modeLabel = (m) => (TEAM_MODES.find((x) => x.value === m) || { label: m || t('admin.enum.teamMode.inherit') }).label;
+// Short day names, Sunday first (index = Date#getDay()).
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+export const WEEKDAYS = DAY_KEYS.reduce((a, k, i) => Object.defineProperty(a, i, { get: () => t(`admin.enum.weekday.${k}`), enumerable: true }), new Array(7));
 export const LISTER_TYPES = ['owner', 'builder', 'landlord'];
 
 export const teamKeys = {
@@ -48,7 +49,7 @@ export function useAgentOptions() {
     status: m.agentId.status,
   }))), [teams.data]);
   const options = useMemo(() => agents.map((a) => ({
-    value: a.agentId, label: `${a.name} · ${a.team} · ${a.openLeads}/${a.capacity}${a.available ? '' : ' · away'}`,
+    value: a.agentId, label: `${a.name} · ${a.team} · ${a.openLeads}/${a.capacity}${a.available ? '' : ` · ${t('admin.enum.agentAway')}`}`,
   })), [agents]);
   return { agents, options, isLoading: teams.isLoading, error: teams.error };
 }

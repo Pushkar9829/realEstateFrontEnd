@@ -3,24 +3,23 @@
 // Endpoints: backend/src/modules/kyc/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const SEEKER_RULES = {
-  many_listers: 'Enquired with many different listers in the window',
-  many_localities: 'Enquired across many localities in the window',
-  manual: 'Raised by staff from a lead',
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const labels = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+const options = (prefix, values) => values.map((value) => ({ value, get label() { return t(`${prefix}.${value}`); } }));
 
-export const SEEKER_ACTIONS = [
-  { value: 'dismiss', label: 'Clear (lift limits)' },
-  { value: 'throttle', label: 'Throttle (1 enquiry a day, manager queue)' },
-  { value: 'block', label: 'Block (enquiries refused)' },
-];
+export const SEEKER_RULES = labels('admin.enum.seekerRule', ['many_listers', 'many_localities', 'manual']);
 
-export const SEEKER_STATUS = {
-  open: { label: 'Open', tone: 'warning' },
-  actioned: { label: 'Actioned', tone: 'danger' },
-  cleared: { label: 'Cleared', tone: 'success' },
-};
+export const SEEKER_ACTIONS = options('admin.enum.seekerAction', ['dismiss', 'throttle', 'block']);
+
+export const SEEKER_STATUS = toned('admin.enum.seekerStatus', {
+  open: 'warning',
+  actioned: 'danger',
+  cleared: 'success',
+});
 
 export const useSeekerFlags = (params) => useQuery({ queryKey: ['admin', 'seeker-flags', params], queryFn: () => api.page('/admin/seeker-flags', params) });
 export const useSeekerFlag = (id) => useQuery({ queryKey: ['admin', 'seeker-flag', id], queryFn: () => api.get(`/admin/seeker-flags/${id}`), enabled: Boolean(id) });

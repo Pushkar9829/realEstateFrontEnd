@@ -4,13 +4,16 @@
 // backend/src/modules/notifications/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
 // CRUD collections under /api/admin/<path> (list is paginated).
+// Labels are read from the dictionary when used (getters).
+const kind = (path) => ({ path, get label() { return t(`admin.enum.cmsKind.${path}`); } });
 export const CMS_KINDS = {
-  pages: { path: 'pages', label: 'Pages' },
-  banners: { path: 'banners', label: 'Banners' },
-  faqs: { path: 'faqs', label: 'FAQs' },
-  testimonials: { path: 'testimonials', label: 'Testimonials' },
+  pages: kind('pages'),
+  banners: kind('banners'),
+  faqs: kind('faqs'),
+  testimonials: kind('testimonials'),
 };
 
 export const useCmsList = (kind, params) => useQuery({ queryKey: ['admin', 'cms', kind, params], queryFn: () => api.page(`/admin/${CMS_KINDS[kind].path}`, params), enabled: Boolean(CMS_KINDS[kind]) });

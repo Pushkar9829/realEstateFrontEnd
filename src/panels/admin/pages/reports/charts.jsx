@@ -1,14 +1,16 @@
 // Plain CSS / SVG charts for reports and the dashboard (no chart library).
 import { cn } from '@/shared/lib/cn';
+import { useT } from '@/shared/i18n';
 
 const TONES = { brand: 'bg-brand-500', success: 'bg-success-600', warning: 'bg-warning-600', danger: 'bg-danger-600', info: 'bg-info-600', accent: 'bg-accent-500', neutral: 'bg-ink-subtle' };
 
 /**
  * Horizontal bars. rows: [{ label, value, hint? }]; format(value) renders the number.
  */
-export function HBars({ rows, format = (v) => v, tone = 'brand', empty = 'No data in this period' }) {
+export function HBars({ rows, format = (v) => v, tone = 'brand', empty }) {
+  const t = useT();
   const max = Math.max(0, ...rows.map((r) => Number(r.value) || 0));
-  if (!rows.length || !max) return <p className="py-6 text-center text-sm text-ink-subtle">{empty}</p>;
+  if (!rows.length || !max) return <p className="py-6 text-center text-sm text-ink-subtle">{empty ?? t('admin.reports.chart.noData')}</p>;
   return (
     <ul className="space-y-2">
       {rows.map((r) => (
@@ -28,9 +30,10 @@ export function HBars({ rows, format = (v) => v, tone = 'brand', empty = 'No dat
  * Vertical grouped columns. rows: [{ label, values: { seriesKey: number } }],
  * series: [{ key, label, tone }].
  */
-export function Columns({ rows, series, format = (v) => v, height = 160, empty = 'No data in this period' }) {
+export function Columns({ rows, series, format = (v) => v, height = 160, empty }) {
+  const t = useT();
   const max = Math.max(0, ...rows.flatMap((r) => series.map((s) => Number(r.values[s.key]) || 0)));
-  if (!rows.length || !max) return <p className="py-6 text-center text-sm text-ink-subtle">{empty}</p>;
+  if (!rows.length || !max) return <p className="py-6 text-center text-sm text-ink-subtle">{empty ?? t('admin.reports.chart.noData')}</p>;
   return (
     <div>
       <div className="flex items-end gap-3 overflow-x-auto pb-1" style={{ height }}>
@@ -57,15 +60,16 @@ export function Columns({ rows, series, format = (v) => v, height = 160, empty =
 
 /** SVG sparkline of numbers. */
 export function Sparkline({ values, width = 160, height = 40, className, label }) {
+  const t = useT();
   const nums = values.map((v) => Number(v) || 0);
-  if (nums.length < 2) return <span className="text-xs text-ink-subtle">Not enough history yet</span>;
+  if (nums.length < 2) return <span className="text-xs text-ink-subtle">{t('admin.reports.chart.noHistory')}</span>;
   const max = Math.max(...nums);
   const min = Math.min(...nums);
   const span = max - min || 1;
   const step = width / (nums.length - 1);
   const pts = nums.map((v, i) => `${(i * step).toFixed(1)},${(height - 2 - ((v - min) / span) * (height - 4)).toFixed(1)}`);
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className={cn('overflow-visible text-brand-600', className)} role="img" aria-label={label || 'Trend'}>
+    <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className={cn('overflow-visible text-brand-600', className)} role="img" aria-label={label || t('admin.reports.chart.trend')}>
       <polyline points={`0,${height} ${pts.join(' ')} ${width},${height}`} className="fill-current opacity-10" stroke="none" />
       <polyline points={pts.join(' ')} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
@@ -74,8 +78,9 @@ export function Sparkline({ values, width = 160, height = 40, className, label }
 
 /** Funnel: decreasing bars, each with the % of the previous step. */
 export function Funnel({ rows }) {
+  const t = useT();
   const max = Math.max(0, ...rows.map((r) => r.value));
-  if (!max) return <p className="py-6 text-center text-sm text-ink-subtle">No leads in this period</p>;
+  if (!max) return <p className="py-6 text-center text-sm text-ink-subtle">{t('admin.reports.chart.noLeads')}</p>;
   return (
     <ol className="space-y-1.5">
       {rows.map((r) => (
