@@ -17,7 +17,7 @@ export function Field({ label, hint, error, required, children, className, id })
       )}
       {children({ id: fieldId, 'aria-invalid': error ? true : undefined, 'aria-describedby': error || hint ? `${fieldId}-msg` : undefined })}
       {(error || hint) && (
-        <p id={`${fieldId}-msg`} className={cn('text-xs', error ? 'text-danger-600' : 'text-ink-subtle')}>{error || hint}</p>
+        <p id={`${fieldId}-msg`} className={cn('text-xs', error ? 'text-danger-600' : 'text-ink-muted')}>{error || hint}</p>
       )}
     </div>
   );

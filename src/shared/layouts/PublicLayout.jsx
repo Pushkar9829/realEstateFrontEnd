@@ -31,12 +31,13 @@ function navLinks(city, t) {
   ];
 }
 
-// Buy and Rent both point at /search: only the one whose purpose matches is current.
-function linkActive(to, loc) {
+// Buy and Rent both point at /search: only the one whose purpose matches is
+// current; a search without a purpose is a sale search (the API default).
+export function linkActive(to, loc) {
   const [path, query = ''] = to.split('?');
   if (loc.pathname !== path && !loc.pathname.startsWith(`${path}/`)) return false;
   const want = new URLSearchParams(query).get('purpose');
-  return !want || new URLSearchParams(loc.search).get('purpose') === want;
+  return !want || (new URLSearchParams(loc.search).get('purpose') || 'sale') === want;
 }
 
 const waLink = (n) => { const d = String(n || '').replace(/\D/g, ''); return d.length >= 10 ? `https://wa.me/${d}` : null; };
@@ -126,7 +127,7 @@ export default function PublicLayout({ account, settings, settingsReady = true, 
           <Logo luxe />
           <nav className="hidden items-center gap-1 md:flex" aria-label={t('common.nav.main')}>
             {LINKS.slice(0, 3).map((l) => (
-              <Link key={l.to} to={l.to} aria-current={linkActive(l.to, loc) ? 'page' : undefined} className={cn('rounded-full px-4 py-2 text-sm font-medium transition-colors', linkActive(l.to, loc) ? 'bg-navy-900/5 text-navy-900' : 'text-navy-600 hover:bg-navy-900/5 hover:text-navy-900')}>{l.label}</Link>
+              <Link key={l.to} to={l.to} aria-current={linkActive(l.to, loc) ? 'page' : undefined} className={cn('rounded-full px-4 py-2 text-sm font-medium transition-colors', linkActive(l.to, loc) ? 'bg-gold-50 font-semibold text-navy-900 ring-1 ring-inset ring-gold-300' : 'text-navy-600 hover:bg-navy-900/5 hover:text-navy-900')}>{l.label}</Link>
             ))}
           </nav>
           <div className="hidden items-center gap-2 md:flex">

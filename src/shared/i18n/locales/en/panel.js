@@ -77,6 +77,7 @@ export default {
     help: 'Help',
     hotline: 'Support hotline',
     notifications: 'Notifications',
+    openNotifications: 'Open notifications',
     notificationsUnread: 'Notifications, {count} unread',
     account: 'Account and security',
     publicSite: 'Open public site',

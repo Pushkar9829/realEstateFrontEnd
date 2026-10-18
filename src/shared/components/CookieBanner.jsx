@@ -73,7 +73,8 @@ function stopGa(id) {
 }
 
 // Compact bar (audit P1): one line of text and two buttons along the bottom
-// edge, about 56 px on desktop and under 90 px on a phone. Its height is
+// edge, about 56 px on desktop; on a phone one short sentence next to two
+// short buttons (about 60 px, audit N11). Its height is
 // published as --cookie-bar so the sticky mobile Enquire bar sits above it and
 // the page gets the same bottom padding (nothing is covered).
 function Bar({ t, choice, choose }) {
@@ -90,18 +91,23 @@ function Bar({ t, choice, choose }) {
   return (
     <div ref={ref} role="region" aria-label={t('common.cookie.title')}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy-950/95 px-4 py-2.5 text-white shadow-lift backdrop-blur pb-[max(0.625rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+      <div className="mx-auto flex max-w-7xl flex-row items-center gap-3 sm:gap-4">
         <p id="cookie-d" className="flex min-w-0 flex-1 items-start gap-2 text-xs leading-snug text-navy-100 sm:items-center sm:text-sm">
-          <Cookie className="mt-0.5 h-4 w-4 shrink-0 text-gold-300 sm:mt-0" aria-hidden />
+          <Cookie className="mt-0.5 hidden h-4 w-4 shrink-0 text-gold-300 sm:mt-0 sm:block" aria-hidden />
           <span>
-            {t('common.cookie.short')}{' '}
+            <span className="sm:hidden">{t('common.cookie.phone')}</span>
+            <span className="hidden sm:inline">{t('common.cookie.short')}</span>{' '}
             <Link to="/p/privacy" className="font-medium text-gold-300 underline underline-offset-2 hover:text-gold-200">{t('common.cookie.privacyNotice')}</Link>
             {choice && <span className="text-navy-300"> · {t('common.cookie.current', { choice: t(choice === 'analytics' ? 'common.cookie.currentAnalytics' : 'common.cookie.currentEssential') })}</span>}
           </span>
         </p>
         <div className="flex shrink-0 gap-2">
-          <Button variant="glass" size="sm" className="!rounded-full flex-1 sm:flex-none" onClick={() => choose('essential')}>{t('common.cookie.essential')}</Button>
-          <Button variant="gold" size="sm" className="!rounded-full flex-1 font-semibold sm:flex-none" onClick={() => choose('analytics')}>{t('common.cookie.accept')}</Button>
+          <Button variant="glass" size="sm" className="!rounded-full !px-3 sm:!px-4" aria-label={t('common.cookie.essential')} onClick={() => choose('essential')}>
+            <span className="sm:hidden">{t('common.cookie.essentialShort')}</span><span className="hidden sm:inline">{t('common.cookie.essential')}</span>
+          </Button>
+          <Button variant="gold" size="sm" className="!rounded-full !px-3 font-semibold sm:!px-4" aria-label={t('common.cookie.accept')} onClick={() => choose('analytics')}>
+            <span className="sm:hidden">{t('common.cookie.acceptShort')}</span><span className="hidden sm:inline">{t('common.cookie.accept')}</span>
+          </Button>
         </div>
       </div>
     </div>

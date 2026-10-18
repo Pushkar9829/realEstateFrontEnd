@@ -222,11 +222,14 @@ export default function DealDetailPage() {
           <Card>
             <CardHeader title={t('admin.deals.detail.timeline.title')} description={`${lead.leadNo || ''} · ${titleCase(lead.stage)} · ${t('admin.deals.detail.timeline.enquiry', { date: date(lead.createdAt) })}${(lead.sources || []).length ? ` · ${lead.sources.map(titleCase).join(', ')}` : ''}`} />
             {(lead.timeline || []).length ? (
-              <ol className="max-h-80 space-y-2 overflow-y-auto text-sm">
+              // a scrollable region the keyboard can reach (axe scrollable-region-focusable)
+              <div tabIndex={0} role="region" aria-label={t('admin.deals.detail.timeline.title')} className="max-h-80 overflow-y-auto rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40">
+              <ol className="space-y-2 text-sm">
                 {[...lead.timeline].reverse().slice(0, 40).map((e, i) => (
                   <li key={i} className="flex justify-between gap-3"><span className="text-ink"><span className="font-medium">{titleCase(e.type)}</span>{timelineText(e, agentNames, t) && <span className="text-ink-muted"> · {timelineText(e, agentNames, t)}</span>}</span><span className="shrink-0 text-xs text-ink-subtle">{dateTime(e.at)}</span></li>
                 ))}
               </ol>
+              </div>
             ) : <p className="text-sm text-ink-subtle">{t('admin.deals.detail.timeline.none')}</p>}
           </Card>
         </div>

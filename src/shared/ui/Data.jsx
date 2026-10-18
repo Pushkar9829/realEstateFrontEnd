@@ -18,6 +18,9 @@ const INTERACTIVE = 'a,button,input,select,textarea,label,[role=button],[role=me
  * onRowClick(row): the row opens something on this page (drawer, modal). The
  *   first cell becomes a button with the same action.
  * Below 640 px the rows become labelled cards (stack={false} keeps the table).
+ * A bulk-select column ({ mobile: 'select', header: <checkbox> }) shows on
+ * cards as a labelled "Select" box in the title row, with "Select all on this
+ * page" above the list.
  */
 export function Table({ columns, rows, loading, empty, rowKey = (r) => r._id || r.id, onRowClick, rowHref, rowLabel, stack = true, error, onRetry }) {
   const narrow = useMediaQuery('(max-width: 639px)');
@@ -53,16 +56,26 @@ export function Table({ columns, rows, loading, empty, rowKey = (r) => r._id || 
     if (loading) return <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>;
     if (errorBox) return <div className="rounded-lg border bg-white">{errorBox}</div>;
     if (!rows.length) return <EmptyState title={emptyText} />;
-    const visible = columns.filter((c) => c.mobile !== false);
+    const select = columns.find((c) => c.mobile === 'select');
+    const visible = columns.filter((c) => c.mobile !== false && c !== select);
     const title = visible.find((c) => c.mobile === 'title') || (visible.includes(linkCol) ? linkCol : visible.find((c) => c.header));
     const footer = visible.filter((c) => c !== title && (c.mobile === 'footer' || typeof c.header !== 'string' || !c.header));
     const body = visible.filter((c) => c !== title && !footer.includes(c));
     return (
+      <>
+      {select && select.header && typeof select.header !== 'string' && (
+        <label className="mb-2 inline-flex items-center gap-2 rounded-md px-1 py-1 text-sm text-ink-muted" data-testid="select-all-mobile">{select.header}<span>{t('common.table.selectAllOnPage')}</span></label>
+      )}
       <ul className="space-y-2">
         {rows.map((r) => (
           <li key={rowKey(r)} onClick={clickable ? (e) => open(r, e) : undefined}
             className={cn('min-w-0 rounded-lg border bg-white p-3 text-sm shadow-sm', clickable && 'cursor-pointer hover:bg-surface-muted')}>
-            {title && <div className="min-w-0 break-words font-medium text-ink">{title === linkCol ? cellOf(title, r) : (title.render ? title.render(r) : r[title.key])}</div>}
+            {(title || select) && (
+              <div className="flex items-start justify-between gap-3">
+                {title ? <div className="min-w-0 break-words font-medium text-ink">{title === linkCol ? cellOf(title, r) : (title.render ? title.render(r) : r[title.key])}</div> : <span />}
+                {select && <label className="inline-flex shrink-0 items-center gap-1.5 text-xs text-ink-muted">{cellOf(select, r)}<span aria-hidden>{t('common.table.select')}</span></label>}
+              </div>
+            )}
             {body.length > 0 && (
               <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
                 {body.map((c) => (
@@ -77,6 +90,7 @@ export function Table({ columns, rows, loading, empty, rowKey = (r) => r._id || 
           </li>
         ))}
       </ul>
+      </>
     );
   }
   return (

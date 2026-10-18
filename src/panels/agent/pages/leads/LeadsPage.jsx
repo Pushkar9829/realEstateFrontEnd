@@ -78,7 +78,7 @@ export default function LeadsPage() {
       ) : (
         <Table loading={isLoading} rows={rows} rowHref={(r) => `/agent/leads/${r._id}`}
           columns={[
-            { key: 'sel', header: <input type="checkbox" aria-label={t('agent.leads.selectAll')} checked={allOnPage} onChange={() => setSelected(allOnPage ? [] : rows.map((r) => r._id))} />, className: 'w-8',
+            { key: 'sel', mobile: 'select', header: <input type="checkbox" aria-label={t('agent.leads.selectAll')} checked={allOnPage} onChange={() => setSelected(allOnPage ? [] : rows.map((r) => r._id))} />, className: 'w-8',
               render: (r) => <input type="checkbox" aria-label={t('agent.props.select', { no: r.leadNo })} checked={selected.includes(r._id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(r._id)} /> },
             { key: 'lead', header: t('agent.common.lead'), render: (r) => <span><span className="block font-medium text-ink">{r.buyerName}</span><span className="text-xs text-ink-subtle">{r.leadNo} · {r.buyerPhone}</span></span> },
             { key: 'property', header: t('agent.common.property'), render: (r) => (r.property ? <span className="block max-w-[14rem] truncate text-sm">{r.property.listingNo}<span className="block truncate text-xs text-ink-subtle">{r.property.title}</span></span> : <span className="text-xs text-ink-subtle">{budgetText(r.requirement) || t('agent.req.title')}</span>) },

@@ -9,6 +9,7 @@ import { agentRoutes } from '@/panels/agent/routes';
 import { adminRoutes } from '@/panels/admin/routes';
 import RouteError from './RouteError';
 import NotFound from './NotFound';
+import PublicShell from '@/panels/public/PublicShell';
 import MaintenanceBanner from '@/shared/components/MaintenanceBanner';
 
 const UiGallery = lazy(() => import('@/dev/UiGallery'));
@@ -34,7 +35,8 @@ export const routes = [
       adminRoutes,
       { path: 'sso/cc', element: <SsoCc /> }, // Control Center single sign-on hand-off
       ...(import.meta.env.DEV ? [{ path: 'dev/ui', element: <UiGallery /> }] : []),
-      { path: '*', element: <NotFound /> },
+      // Unknown paths: the 404 inside the public layout (skip link, header, footer).
+      { element: <PublicShell />, children: [{ path: '*', element: <NotFound /> }] },
     ],
   },
 ];

@@ -10,7 +10,7 @@ import PanelLayout from '@/shared/layouts/PanelLayout';
 import ControlBar, { useControlContext } from '@/shared/components/ControlBar';
 import { PageSpinner, useToast } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
-import { useUnreadCount } from '@/modules/notifications/api';
+import { useMarkAllRead, useUnreadCount } from '@/modules/notifications/api';
 import { useNamespaces, useT } from '@/shared/i18n';
 import { PANEL_NAMESPACES } from '@/shared/i18n/locales';
 import { ADMIN_NAV, AGENT_NAV, LISTER_NAV, navKey, visibleNav } from './panelNav';
@@ -45,6 +45,10 @@ function Shell({ panel, base, controlBar }) {
   const toast = useToast();
   const t = useT();
   const unread = useUnreadCount({ poll: true });
+  const markAll = useMarkAllRead();
+  const onMarkAllRead = async () => {
+    try { const r = await markAll.mutateAsync(); toast.success(r && r.updated ? t('panel.notifications.marked', { count: r.updated }) : t('panel.notifications.nothingUnread')); } catch (e) { toast.error(e.message); }
+  };
   const raw = visibleNav(NAVS[panel], auth);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const sections = useMemo(() => labelled(raw, t), [JSON.stringify(raw.map((s) => s.items.map((i) => i.to))), t]);
@@ -58,7 +62,7 @@ function Shell({ panel, base, controlBar }) {
   };
   return (
     <PanelLayout panel={panel} panelLabel={label} base={base} sections={sections} user={auth.user} onLogout={onLogout}
-      accountTo={`${base}/account`} notificationsTo={`${base}/notifications`} notificationsCount={unread.data || 0}
+      accountTo={`${base}/account`} notificationsTo={`${base}/notifications`} notificationsCount={unread.data || 0} onMarkAllRead={onMarkAllRead}
       banner={panel === 'lister' ? <ListerBanner user={auth.user} /> : null} crumbSections={allSections}
       topBar={controlBar && cc ? <ControlBar current={controlBar} ctx={cc} /> : null} />
   );

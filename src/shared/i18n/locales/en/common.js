@@ -28,6 +28,12 @@ export default {
   buy: 'Buy',
   allCities: 'All cities',
   city: 'City',
+  notFound: {
+    title: 'Page not found',
+    text: 'The address may be mistyped, or the page has moved.',
+    home: 'Go to home',
+    search: 'Search properties',
+  },
   nav: {
     main: 'Main',
     mobile: 'Mobile',
@@ -68,6 +74,9 @@ export default {
     rights: '© {year} {company}. All rights reserved.',
   },
   cookie: {
+    phone: 'Analytics cookies only if you accept.',
+    essentialShort: 'Essential',
+    acceptShort: 'Accept',
     title: 'Cookies on this site',
     body: 'We use essential storage to keep you signed in and remember your city and choices. With your permission we also use analytics cookies to understand how the site is used. You can change this at any time from "Cookie settings" in the footer.',
     short: 'We use essential storage to keep you signed in, and analytics cookies only if you accept. Change it any time under Cookie settings.',
@@ -111,6 +120,8 @@ export default {
   },
   confirm: 'Confirm',
   table: {
+    select: 'Select',
+    selectAllOnPage: 'Select all on this page',
     empty: 'Nothing here yet',
     error: 'Could not load this list',
     prev: 'Previous page',

@@ -19,7 +19,7 @@ export default function KycQueuePage() {
   const t = useT();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useKycQueue({ page, limit: 20, ...(status ? { status } : {}) });
+  const { data, isLoading, error, refetch } = useKycQueue({ page, limit: 20, ...(status ? { status } : {}) });
   const rows = (data && data.items) || [];
   const reviewing = status === '';
   const sla = (level) => (SLA_TONE[level] ? [SLA_TONE[level], t(`admin.kyc.sla.${level}`)] : ['success', t('admin.kyc.sla.green')]);
@@ -28,7 +28,7 @@ export default function KycQueuePage() {
     <>
       <PageHeader title={t('admin.kyc.title')} description={t('admin.kyc.description')} />
       <Tabs className="mb-4" value={status} onChange={(v) => { setStatus(v); setPage(1); }} tabs={TABS(t).map((x) => (x.value === status && data ? { ...x, count: data.meta.total } : x))} />
-      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/kyc/${r._id}`} empty={reviewing ? t('admin.kyc.emptyReview') : t('admin.kyc.emptyState')}
+      <Table loading={isLoading} error={error} onRetry={() => refetch()} rows={rows} rowHref={(r) => `/admin/kyc/${r._id}`} empty={reviewing ? t('admin.kyc.emptyReview') : t('admin.kyc.emptyState')}
         columns={[
           { key: 'name', header: t('admin.kyc.col.lister'), render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.email}</span></span> },
           { key: 'type', header: t('admin.kyc.col.type'), render: (r) => <Badge tone="brand">{titleCase(r.listerType)}</Badge> },

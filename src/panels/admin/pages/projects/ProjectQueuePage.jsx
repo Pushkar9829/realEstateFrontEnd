@@ -18,12 +18,12 @@ export default function ProjectQueuePage() {
   const t = useT();
   const [status, setStatus] = useState('pending_approval');
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useProjectQueue({ page, limit: 20, status });
+  const { data, isLoading, error, refetch } = useProjectQueue({ page, limit: 20, status });
   return (
     <>
       <PageHeader title={t('admin.projects.title')} description={t('admin.projects.description')} />
       <Tabs className="mb-4" value={status} onChange={(v) => { setStatus(v); setPage(1); }} tabs={TABS(t).map((x) => (x.value === status && data ? { ...x, count: data.meta.total } : x))} />
-      <Table loading={isLoading} rows={(data && data.items) || []} rowHref={(r) => `/admin/projects/${r._id}`} empty={t('admin.projects.empty')}
+      <Table loading={isLoading} error={error} onRetry={() => refetch()} rows={(data && data.items) || []} rowHref={(r) => `/admin/projects/${r._id}`} empty={t('admin.projects.empty')}
         columns={[
           { key: 'name', header: t('admin.projects.col.project'), render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.projectNo}</span></span> },
           { key: 'builder', header: t('admin.projects.col.builder'), render: (r) => (r.builderId ? <span>{r.builderId.brand?.name || r.builderId.name}<span className="block text-xs text-ink-subtle">KYC {r.builderId.kyc?.status || t('admin.projects.notStarted')}</span></span> : '-') },

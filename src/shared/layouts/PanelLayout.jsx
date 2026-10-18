@@ -4,7 +4,7 @@
 // module-agnostic.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
-import { Bell, ChevronDown, ChevronRight, ExternalLink, LifeBuoy, LogOut, Menu, Search, UserRound } from 'lucide-react';
+import { Bell, CheckCheck, ChevronDown, ChevronRight, ExternalLink, LifeBuoy, LogOut, Menu, Search, UserRound } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Avatar, Drawer } from '@/shared/ui';
 import Logo from '@/shared/components/Logo';
@@ -101,6 +101,43 @@ function useOutsideClose(open, setOpen) {
   return ref;
 }
 
+// Bell: a small menu with "Open notifications" and "Mark all read" (audit L8).
+function BellMenu({ to, count, onMarkAllRead }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const loc = useLocation();
+  const ref = useOutsideClose(open, setOpen);
+  useEffect(() => setOpen(false), [loc.pathname]);
+  const markAll = async () => {
+    setBusy(true);
+    try { await onMarkAllRead(); } finally { setBusy(false); setOpen(false); }
+  };
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu"
+        className="relative rounded-md p-2 text-ink-muted hover:bg-surface-sunken hover:text-ink"
+        aria-label={count ? t('panel.layout.notificationsUnread', { count }) : t('panel.layout.notifications')}>
+        <Bell className="h-5 w-5" aria-hidden />
+        {count > 0 && <span className="absolute right-0.5 top-0.5 min-w-[1.1rem] rounded-full bg-danger-600 px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white" aria-hidden>{count > 9 ? '9+' : count}</span>}
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-lg border bg-white py-1 shadow-lg">
+          <Link role="menuitem" to={to} className="flex items-center gap-2 px-4 py-2 text-sm text-ink hover:bg-surface-muted">
+            <Bell className="h-4 w-4 text-ink-subtle" aria-hidden /> {t('panel.layout.openNotifications')}
+          </Link>
+          {onMarkAllRead && (
+            <button role="menuitem" type="button" disabled={!count || busy} onClick={markAll}
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-ink hover:bg-surface-muted disabled:cursor-not-allowed disabled:text-ink-subtle">
+              <CheckCheck className="h-4 w-4 text-ink-subtle" aria-hidden /> {count ? t('panel.notifications.markAll') : t('panel.notifications.nothingUnread')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function UserMenu({ user, panelLabel, accountTo, onLogout }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -151,7 +188,7 @@ function useCrumb(sections, base) {
 // topBar: the Control Center bar (40 px, sticky) when the session came from the
 // Control Center. It follows the skip link in tab order, and --cc-bar takes its
 // height off the sticky sidebar and header so nothing sits below the screen.
-export default function PanelLayout({ panel = 'admin', panelLabel, base, sections, user, onLogout, accountTo, notificationsTo, notificationsCount, banner, topBar, crumbSections }) {
+export default function PanelLayout({ panel = 'admin', panelLabel, base, sections, user, onLogout, accountTo, notificationsTo, notificationsCount, banner, topBar, crumbSections, onMarkAllRead }) {
   const t = useT();
   const [drawer, setDrawer] = useState(false);
   // crumbSections: the full menu, so a blocked screen (no-access page) still
@@ -203,12 +240,7 @@ export default function PanelLayout({ panel = 'admin', panelLabel, base, section
             <a href={`tel:${env.hotline.replace(/\s/g, '')}`} className="hidden items-center gap-1.5 rounded-md px-2.5 py-2 text-sm text-ink-muted hover:bg-surface-sunken hover:text-ink md:flex" title={t('panel.layout.hotline')}>
               <LifeBuoy className="h-4 w-4" aria-hidden /> {t('panel.layout.help')}
             </a>
-            {notificationsTo && (
-              <Link to={notificationsTo} className="relative rounded-md p-2 text-ink-muted hover:bg-surface-sunken hover:text-ink" aria-label={notificationsCount ? t('panel.layout.notificationsUnread', { count: notificationsCount }) : t('panel.layout.notifications')}>
-                <Bell className="h-5 w-5" />
-                {notificationsCount > 0 && <span className="absolute right-0.5 top-0.5 min-w-[1.1rem] rounded-full bg-danger-600 px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white" aria-hidden>{notificationsCount > 9 ? '9+' : notificationsCount}</span>}
-              </Link>
-            )}
+            {notificationsTo && <BellMenu to={notificationsTo} count={notificationsCount} onMarkAllRead={onMarkAllRead} />}
             <UserMenu user={user} panelLabel={panelLabel} accountTo={accountTo} onLogout={onLogout} />
           </div>
         </header>

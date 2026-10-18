@@ -26,7 +26,7 @@ const BADGE = {
   warning: 'bg-warning-50 text-warning-700',
   danger: 'bg-danger-50 text-danger-700',
   info: 'bg-info-50 text-info-700',
-  accent: 'bg-accent-50 text-accent-700',
+  accent: 'bg-accent-50 text-accent-800', // 5.8:1 (accent-700 was 4.2:1)
 };
 
 export function Badge({ tone = 'neutral', icon: Icon, className, children }) {

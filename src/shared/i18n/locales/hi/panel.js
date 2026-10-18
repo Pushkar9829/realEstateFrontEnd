@@ -76,6 +76,7 @@ export default {
     help: 'मदद',
     hotline: 'सहायता हॉटलाइन',
     notifications: 'सूचनाएँ',
+    openNotifications: 'सूचनाएँ खोलें',
     notificationsUnread: 'सूचनाएँ, {count} अपठित',
     account: 'खाता और सुरक्षा',
     publicSite: 'पब्लिक साइट खोलें',
