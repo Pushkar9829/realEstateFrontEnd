@@ -6,6 +6,7 @@ import { Alert, Badge, Button, EmptyState, PageHeader, Skeleton, Tabs } from '@/
 import { dateTime, rupees } from '@/shared/lib/format';
 import { lastRound, offerStatus, timeLeft, useListerOffers } from '@/modules/leads/listerApi';
 import { useT } from '@/shared/i18n';
+import { buyerText } from '@/panels/lister/components/buyerLabel';
 
 // Tab labels: lister.offers.tabs.<key>.
 const TABS = [
@@ -30,7 +31,7 @@ function OfferCard({ o }) {
             {left && <Badge tone={left === 'expired' ? 'danger' : 'warning'} icon={Clock}>{left === 'expired' ? t('lister.offers.expired') : left}</Badge>}
           </div>
           <p className="mt-1 truncate text-base font-semibold text-ink">{o.property ? `${o.property.listingNo} · ${o.property.title}` : t('lister.leads.col.listing')}</p>
-          <p className="text-sm text-ink-subtle">{o.buyer} · {t('lister.offers.round', { n: o.rounds.length })}{r ? ` · ${r.by === 'You' ? t('lister.offers.you') : r.by} · ${dateTime(r.at)}` : ''}</p>
+          <p className="text-sm text-ink-subtle">{buyerText(t, o.buyer)} · {t('lister.offers.round', { n: o.rounds.length })}{r ? ` · ${r.by === 'You' ? t('lister.offers.you') : r.by} · ${dateTime(r.at)}` : ''}</p>
         </div>
         <div className="text-left sm:text-right">
           <p className="text-xl font-semibold text-ink">{r ? rupees(r.amount) : '-'}</p>

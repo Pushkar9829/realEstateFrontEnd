@@ -2,6 +2,8 @@
 // agreement views it shares with admin. Keys are used as t('lister.<key>').
 export default {
   common: {
+    aBuyer: 'A buyer',
+    buyerN: 'Buyer {n}',
     postProperty: 'Post a property',
     open: 'Open',
     review: 'Review',

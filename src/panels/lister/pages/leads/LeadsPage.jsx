@@ -8,6 +8,7 @@ import { date, dateTime, rupees, timeAgo, titleCase } from '@/shared/lib/format'
 import { useListerActivity, useListerLeads, useListerVisits, useRespondUpdate, visitStatus } from '@/modules/leads/listerApi';
 import ListingPicker from '../../components/ListingPicker';
 import { useT } from '@/shared/i18n';
+import { buyerText } from '@/panels/lister/components/buyerLabel';
 
 const listingRef = (p) => (p ? `${p.listingNo || ''}${p.title ? ` · ${p.title}` : ''}` : '-');
 const shownCount = (c, t) => (c === '<3' ? t('lister.stats.fewerThan3') : c);
@@ -48,7 +49,7 @@ function LeadsTab({ propertyId }) {
         {isLoading ? <Skeleton className="h-16" /> : <Funnel funnel={exactFunnel(data.funnel, data.items)} />}
       </Card>
       <Table loading={isLoading} rows={(data && data.items) || []} empty={t('lister.leads.noLeads')} columns={[
-        { key: 'buyer', header: t('lister.leads.col.buyer'), render: (r) => <span className="whitespace-nowrap font-medium">{r.buyer}{r.property && r.property.listingNo ? <span className="font-normal text-ink-subtle"> · {r.property.listingNo}</span> : null}</span> },
+        { key: 'buyer', header: t('lister.leads.col.buyer'), render: (r) => <span className="whitespace-nowrap font-medium">{buyerText(t, r.buyer)}{r.property && r.property.listingNo ? <span className="font-normal text-ink-subtle"> · {r.property.listingNo}</span> : null}</span> },
         { key: 'property', header: t('lister.leads.col.listing'), render: (r) => <span className="block max-w-xs truncate">{listingRef(r.property)}</span> },
         { key: 'createdAt', header: t('lister.leads.col.received'), render: (r) => date(r.createdAt) },
         { key: 'status', header: t('lister.leads.col.stage'), render: (r) => <Badge tone="brand">{r.status}</Badge> },
@@ -87,7 +88,7 @@ function VisitsTab({ filters }) {
       )}
       <Table loading={isLoading} rows={rows} empty={upcoming ? t('lister.leads.noUpcoming') : t('lister.leads.noVisits')} columns={[
         { key: 'scheduledAt', header: t('lister.leads.col.when'), render: (r) => dateTime(r.scheduledAt) },
-        { key: 'buyer', header: t('lister.leads.col.buyer'), render: (r) => <span className="font-medium">{r.buyer}</span> },
+        { key: 'buyer', header: t('lister.leads.col.buyer'), render: (r) => <span className="font-medium">{buyerText(t, r.buyer)}</span> },
         { key: 'property', header: t('lister.leads.col.listing'), render: (r) => <span className="block max-w-xs truncate">{listingRef(r.property)}</span> },
         { key: 'status', header: t('lister.leads.col.status'), render: (r) => { const s = visitStatus(r.status); return <span className="inline-flex flex-wrap gap-1"><Badge tone={s.tone}>{s.label}</Badge>{r.outsideListerSlots && <Badge tone="warning">{t('lister.leads.outsideSlots')}</Badge>}{r.lastReschedule && r.lastReschedule.reason && <span className="block w-full text-xs text-ink-subtle">{t('lister.leads.moved', { reason: r.lastReschedule.reason })}</span>}</span>; } },
         { key: 'outcome', header: t('lister.leads.col.outcome'), render: (r) => (r.outcome
@@ -127,7 +128,7 @@ function ActivityTab({ filters }) {
           <li key={u.id} className="rounded-lg border bg-white p-4 shadow-sm">
             <div className="flex flex-wrap items-center gap-2 text-xs text-ink-subtle">
               {u.tag && <Badge tone="info">{titleCase(u.tag)}</Badge>}
-              <span>{u.buyer}</span><span>·</span><span className="truncate">{listingRef(u.property)}</span><span>·</span><span>{dateTime(u.createdAt)}</span>
+              <span>{buyerText(t, u.buyer)}</span><span>·</span><span className="truncate">{listingRef(u.property)}</span><span>·</span><span>{dateTime(u.createdAt)}</span>
             </div>
             <p className="mt-2 text-sm text-ink">{u.text}</p>
             {u.amount ? <p className="mt-1 text-sm font-semibold text-ink">{rupees(u.amount)}</p> : null}

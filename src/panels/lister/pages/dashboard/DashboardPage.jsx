@@ -18,6 +18,7 @@ import { useListerDashboard } from '@/modules/reports/listerApi';
 import PostPropertyButton from '../../components/PostPropertyButton';
 import { lastRound, timeLeft, useListerActivity, useListerOffers, useListerVisits, visitStatus } from '@/modules/leads/listerApi';
 import { useT } from '@/shared/i18n';
+import { buyerText } from '@/panels/lister/components/buyerLabel';
 
 const STATUS_ORDER = ['live', 'pending_approval', 'changes_requested', 'draft', 'paused', 'expired', 'inactive', 'rejected', 'suspended', 'sold', 'rented'];
 
@@ -72,7 +73,7 @@ function OffersCard() {
               <li key={o.id}>
                 <Link to={`/lister/offers/${o.id}`} className="flex items-center justify-between gap-3 py-2.5 hover:text-brand-700">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-ink">{rupees(r && r.amount)} · {o.buyer}</span>
+                    <span className="block truncate text-sm font-medium text-ink">{rupees(r && r.amount)} · {buyerText(t, o.buyer)}</span>
                     <span className="block truncate text-xs text-ink-subtle">{o.property && o.property.listingNo} · {o.offerNo}</span>
                   </span>
                   {left && <Badge tone={left === 'expired' ? 'danger' : 'warning'} icon={Clock}>{left === 'expired' ? t('lister.offers.expired') : left}</Badge>}
@@ -100,7 +101,7 @@ function VisitsCard() {
             const s = visitStatus(v.status);
             return (
               <li key={v.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <span className="min-w-0"><span className="block font-medium text-ink">{dateTime(v.scheduledAt)}</span><span className="block truncate text-xs text-ink-subtle">{v.buyer} · {v.property && v.property.listingNo}</span></span>
+                <span className="min-w-0"><span className="block font-medium text-ink">{dateTime(v.scheduledAt)}</span><span className="block truncate text-xs text-ink-subtle">{buyerText(t, v.buyer)} · {v.property && v.property.listingNo}</span></span>
                 <Badge tone={s.tone}>{s.label}</Badge>
               </li>
             );
@@ -125,7 +126,7 @@ function ActivityCard() {
               <Activity className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" aria-hidden />
               <span className="min-w-0">
                 <span className="block text-ink">{u.text}</span>
-                <span className="block text-xs text-ink-subtle">{u.buyer} · {u.property && u.property.listingNo} · {timeAgo(u.createdAt)}{!u.response && ` · ${t('lister.dashboard.awaitingReply')}`}</span>
+                <span className="block text-xs text-ink-subtle">{buyerText(t, u.buyer)} · {u.property && u.property.listingNo} · {timeAgo(u.createdAt)}{!u.response && ` · ${t('lister.dashboard.awaitingReply')}`}</span>
               </span>
             </li>
           ))}

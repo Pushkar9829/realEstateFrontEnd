@@ -8,6 +8,7 @@ import { cn } from '@/shared/lib/cn';
 import { date, dateTime, rupees, titleCase } from '@/shared/lib/format';
 import { lastRound, offerStatus, timeLeft, useListerOffer, useRespondOffer } from '@/modules/leads/listerApi';
 import { useT } from '@/shared/i18n';
+import { buyerText } from '@/panels/lister/components/buyerLabel';
 
 // The reason value is sent to the API as typed (English); only the label is translated.
 const DECLINE_REASONS = [['Price too low', 'priceLow'], ['Terms not acceptable', 'terms'], ['Property no longer available', 'unavailable'], ['other', 'other']];
@@ -146,7 +147,7 @@ export default function OfferDetailPage() {
   return (
     <>
       <PageHeader breadcrumb={<Link to="/lister/offers" className="inline-flex items-center gap-1 hover:text-ink"><ArrowLeft className="h-3 w-3" />{t('panel.nav.listerOffers')}</Link>}
-        title={`${o.offerNo} · ${o.buyer}`}
+        title={`${o.offerNo} · ${buyerText(t, o.buyer)}`}
         description={o.property ? `${o.property.listingNo} · ${o.property.title}` : undefined}
         actions={<span className="flex flex-wrap items-center gap-2"><Badge tone={s.tone}>{s.label}</Badge>{left && <Badge tone={expired ? 'danger' : 'warning'} icon={Clock}>{expired ? t('lister.offers.expired') : left}</Badge>}</span>} />
       <div className="grid gap-6 lg:grid-cols-3">

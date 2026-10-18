@@ -10,6 +10,7 @@ import { useAddBlackout, useAvailability, useListerVisits, useRemoveBlackout, us
 import { useOwnProjects } from '@/modules/projects/api';
 import { useListingOptions } from '../../components/ListingPicker';
 import { useT } from '@/shared/i18n';
+import { buyerText } from '@/panels/lister/components/buyerLabel';
 
 // Day names: lister.availability.days.<0-6> (Sunday = 0).
 const DAYS = [1, 2, 3, 4, 5, 6, 0];
@@ -205,7 +206,7 @@ export default function AvailabilityPage() {
             {error && <Alert tone="danger">{error}</Alert>}
             {conflicts.length > 0 && (
               <Alert tone="warning" title={t('lister.availability.conflicts', { count: conflicts.length })}>
-                <ul className="mt-1 list-disc pl-4">{conflicts.map((v) => <li key={v.id}>{dateTime(v.scheduledAt)} · {v.buyer} · {v.property && v.property.listingNo}</li>)}</ul>
+                <ul className="mt-1 list-disc pl-4">{conflicts.map((v) => <li key={v.id}>{dateTime(v.scheduledAt)} · {buyerText(t, v.buyer)} · {v.property && v.property.listingNo}</li>)}</ul>
                 <p className="mt-1">{t('lister.availability.conflictsText')}</p>
               </Alert>
             )}
@@ -233,7 +234,7 @@ export default function AvailabilityPage() {
                   return (
                     <li key={v.id} className="rounded-md border p-3 text-sm">
                       <p className="font-medium text-ink">{dateTime(v.scheduledAt)}</p>
-                      <p className="text-ink-subtle">{v.buyer} · {v.property && v.property.listingNo}</p>
+                      <p className="text-ink-subtle">{buyerText(t, v.buyer)} · {v.property && v.property.listingNo}</p>
                       {off && <Badge className="mt-1" tone="warning" icon={TriangleAlert}>{t('lister.availability.outside')}</Badge>}
                     </li>
                   );

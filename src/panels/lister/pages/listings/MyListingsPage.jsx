@@ -39,6 +39,12 @@ const extraActions = (status) => [
   ...(['live', 'paused'].includes(status) ? [['site', 'site', BadgeCheck]] : []),
 ];
 
+// Actions that only open another screen are real links (new tab, discoverable).
+const LINK_ACTIONS = {
+  stats: (l) => `/lister/listings/${l._id}/stats`,
+  view: (l) => `/lister/listings/${l._id}`,
+};
+
 function ActionMenu({ listing, onAction }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -47,7 +53,9 @@ function ActionMenu({ listing, onAction }) {
   const [primary, ...rest] = items;
   return (
     <div className="flex items-center gap-1">
-      <Button size="sm" variant="secondary" icon={primary[2]} onClick={() => onAction(primary[0], listing)}>{t(`lister.listings.actions.${primary[1]}`)}</Button>
+      {LINK_ACTIONS[primary[0]]
+        ? <Button size="sm" variant="secondary" icon={primary[2]} to={LINK_ACTIONS[primary[0]](listing)}>{t(`lister.listings.actions.${primary[1]}`)}</Button>
+        : <Button size="sm" variant="secondary" icon={primary[2]} onClick={() => onAction(primary[0], listing)}>{t(`lister.listings.actions.${primary[1]}`)}</Button>}
       {rest.length > 0 && (
         <div className="relative">
           <Button size="sm" variant="ghost" icon={MoreHorizontal} aria-label={t('lister.listings.moreActions')} aria-expanded={open} onClick={() => setOpen((o) => !o)} />
@@ -55,12 +63,17 @@ function ActionMenu({ listing, onAction }) {
             <>
               <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} aria-hidden />
               <div role="menu" className="absolute right-0 z-20 mt-1 w-52 rounded-lg border bg-white py-1 shadow-lg">
-                {rest.map(([key, label, Icon]) => (
+                {rest.map(([key, label, Icon]) => (LINK_ACTIONS[key] ? (
+                  <Link key={key} role="menuitem" to={LINK_ACTIONS[key](listing)} onClick={() => setOpen(false)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-surface-muted">
+                    <Icon className="h-4 w-4" aria-hidden />{t(`lister.listings.actions.${label}`)}
+                  </Link>
+                ) : (
                   <button key={key} role="menuitem" type="button" onClick={() => { setOpen(false); onAction(key, listing); }}
                     className={cn('flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-muted', key === 'delete' ? 'text-danger-700' : 'text-ink')}>
-                    <Icon className="h-4 w-4" />{t(`lister.listings.actions.${label}`)}
+                    <Icon className="h-4 w-4" aria-hidden />{t(`lister.listings.actions.${label}`)}
                   </button>
-                ))}
+                )))}
               </div>
             </>
           )}
@@ -94,6 +107,7 @@ function ListingCard({ l, onAction }) {
           <span className="font-semibold text-ink">{price ? `${shortRupees(price)}${l.purpose === 'rent' ? t('lister.common.perMonth') : ''}` : t('lister.listings.noPrice')}</span>
           <span className="inline-flex items-center gap-1"><Eye className="h-4 w-4" />{l.stats?.views || 0}</span>
           <span className="inline-flex items-center gap-1"><MessageSquare className="h-4 w-4" />{l.stats?.enquiries || 0}</span>
+          {STATS_STATUSES.includes(l.status) && <Link to={LINK_ACTIONS.stats(l)} className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline"><BarChart3 className="h-4 w-4" aria-hidden />{t('lister.listings.actions.stats')}</Link>}
           {l.status === 'draft' && <span>{t('lister.listings.complete', { pct: l.wizard?.completeness || 0 })}</span>}
           {l.expiresAt && ['live', 'paused'].includes(l.status) && <span className="inline-flex items-center gap-1"><CalendarClock className="h-4 w-4" />{t('lister.listings.expires', { date: date(l.expiresAt) })}</span>}
         </div>
