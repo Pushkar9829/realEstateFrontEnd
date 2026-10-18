@@ -36,7 +36,7 @@ const UNITS = [
   [/Seconds$/, 'seconds'],
 ];
 export function unitOf(key, description = '') {
-  if (/(INR|rupees)/i.test(description)) return '₹';
+  if (/\b(INR|rupees)\b/i.test(description)) return '₹';
   const last = String(key).split('.').slice(1).join('.') || key;
   const hit = UNITS.find(([re]) => re.test(last));
   return hit ? hit[1] : '';

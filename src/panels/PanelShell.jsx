@@ -1,8 +1,8 @@
 // Connects the module-agnostic PanelLayout to the signed-in user, shows the
 // notification bell with the unread count in every panel (RE-S-AGT-15) and
 // account banners (lister KYC, suspended account). Loaded lazily with the
-// panel, together with its menu (icons) and its dictionaries (panel + lister /
-// agent / admin), so none of that is in the public site's first download.
+// panel, together with its menu (icons) and the panel dictionaries, so none of
+// that is in the public site's first download.
 import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
@@ -11,6 +11,7 @@ import { PageSpinner, useToast } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
 import { useUnreadCount } from '@/modules/notifications/api';
 import { useNamespaces, useT } from '@/shared/i18n';
+import { PANEL_NAMESPACES } from '@/shared/i18n/locales';
 import { ADMIN_NAV, AGENT_NAV, LISTER_NAV, navKey, visibleNav } from './panelNav';
 
 const NAVS = { lister: LISTER_NAV, agent: AGENT_NAV, admin: ADMIN_NAV };
@@ -58,7 +59,9 @@ function Shell({ panel, base }) {
 }
 
 export default function PanelShell({ panel, base }) {
-  const ready = useNamespaces(['panel', panel]);
+  // All panel dictionaries: label helpers in modules/* are shared between panels
+  // (e.g. listing status on the lister and admin screens). One chunk each, per language.
+  const ready = useNamespaces(PANEL_NAMESPACES);
   if (!ready) return <PageSpinner />;
   return <Shell panel={panel} base={base} />;
 }
