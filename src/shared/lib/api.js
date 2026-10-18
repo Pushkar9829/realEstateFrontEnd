@@ -29,17 +29,49 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
+// Refresh coordination. Refresh tokens rotate on every use and the API keeps
+// a single usable token per session, so tabs must not race each other:
+// - one refresh per tab at a time (single-flight `refreshing`);
+// - across tabs a Web Lock serialises refreshes, and the stored token is read
+//   INSIDE the lock, so the second tab rotates the token the first one stored;
+// - without Web Locks, a failed refresh retries once with the stored token if
+//   another tab replaced it meanwhile, and never clears a newer token.
+const LOCK = 're.refresh';
+const postRefresh = (refreshToken) => axios.post(`${env.apiUrl}/auth/refresh`, { refreshToken }).then((res) => res.data.data);
+
+let lastTried = null;
+async function rotateStored() {
+  const sent = session.getRefresh();
+  lastTried = sent;
+  if (!sent) throw new Error('no refresh token');
+  try {
+    return await postRefresh(sent);
+  } catch (e) {
+    const now = session.getRefresh();
+    if (!now || now === sent) throw e;
+    lastTried = now; // another tab rotated meanwhile: use its token
+    return postRefresh(now);
+  }
+}
+
+function withLock(fn) {
+  const locks = typeof navigator !== 'undefined' ? navigator.locks : null;
+  return locks && typeof locks.request === 'function' ? locks.request(LOCK, fn) : fn();
+}
+
 let refreshing = null;
 export function refreshSession() {
   if (!refreshing) {
-    const refreshToken = session.getRefresh();
-    refreshing = (refreshToken ? axios.post(`${env.apiUrl}/auth/refresh`, { refreshToken }) : Promise.reject(new Error('no refresh token')))
-      .then((res) => {
-        session.set(res.data.data);
-        return res.data.data;
-      })
+    // The new token is stored before the lock is released.
+    refreshing = withLock(async () => {
+      const data = await rotateStored();
+      session.set(data);
+      return data;
+    })
       .catch((e) => {
-        session.clear('expired');
+        const now = session.getRefresh();
+        // Only end the session if no other tab has stored a newer token since.
+        if (!now || now === lastTried) session.clear('expired');
         throw e;
       })
       .finally(() => { refreshing = null; });
