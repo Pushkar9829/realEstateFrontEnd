@@ -16,7 +16,7 @@ import { useMasters } from '@/modules/listings/api';
 import { PUBLIC_DEFAULTS, recordView, useLocalitySummary, usePublicSettings, useProperty, useSimilar, whatsappClick } from '@/modules/search/api';
 import { typeForAction, ENQUIRY_TYPES } from '@/modules/leads/publicApi';
 import Gallery from '../../components/Gallery';
-import VerificationBadges from '../../components/VerificationBadges';
+import VerificationBadges, { listerBadgeText } from '../../components/VerificationBadges';
 import ShortlistButton from '../../components/ShortlistButton';
 import PropertyCard from '../../components/PropertyCard';
 import EnquiryModal from '../../components/EnquiryModal';
@@ -341,7 +341,7 @@ export default function PropertyPage() {
           <div className="sticky top-24 pb-8">
             <EnquiryCard title={t('property.interested')} contacts={CONTACTS} onAction={openAction} onWhatsapp={p.whatsapp ? whatsapp : null} hotline={hotline} listingNo={p.listingNo}
               top={<p className="mt-3 font-display text-3xl font-semibold tracking-tight">{shortRupees(main)}{isRent && <span className="font-sans text-sm font-normal text-navy-300">{t('property.perMonth')}</span>}</p>}
-              footnote={`${p.listerBadge}. ${t('property.privateNote')}`} />
+              footnote={`${listerBadgeText(t, p)}. ${t('property.privateNote')}`} />
           </div>
         </aside>
       </div>

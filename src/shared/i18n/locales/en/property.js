@@ -183,6 +183,21 @@ export default {
     site_verified: 'Our field team visited this property.',
     rera: 'This project is registered with RERA. Check the number on the official RERA website.',
   },
+  badgeLabel: {
+    verified_owner: 'Verified Owner',
+    verified_landlord: 'Verified Landlord',
+    verified_builder: 'Verified Builder',
+    verified_lister: 'Verified Lister',
+    photo_verified: 'Photo verified',
+    site_verified: 'Site verified',
+    rera: 'RERA registered',
+  },
+  badgeTip: {
+    verified_lister: "Our team checked the lister's ID and ownership documents before this listing went live on {date}.",
+    photo_verified: 'Photos taken at the property with a location check on {date} and reviewed by our team.',
+    site_verified: 'Our field team visited this property on {date}.',
+    rera: 'RERA number {numbers} - check it on the official RERA website.',
+  },
   rera: {
     title: 'RERA details',
     exempt: 'RERA registration not required under Section 3(2) of the RERA Act.',

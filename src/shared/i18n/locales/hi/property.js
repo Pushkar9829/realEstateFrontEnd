@@ -183,6 +183,21 @@ export default {
     site_verified: 'हमारी फ़ील्ड टीम ने इस प्रॉपर्टी का दौरा किया है।',
     rera: 'यह प्रोजेक्ट RERA में पंजीकृत है। नंबर को आधिकारिक RERA वेबसाइट पर जाँचें।',
   },
+  badgeLabel: {
+    verified_owner: 'सत्यापित मालिक',
+    verified_landlord: 'सत्यापित मकान मालिक',
+    verified_builder: 'सत्यापित बिल्डर',
+    verified_lister: 'सत्यापित लिस्टर',
+    photo_verified: 'फ़ोटो सत्यापित',
+    site_verified: 'साइट सत्यापित',
+    rera: 'RERA पंजीकृत',
+  },
+  badgeTip: {
+    verified_lister: 'यह लिस्टिंग {date} को लाइव होने से पहले हमारी टीम ने लिस्ट करने वाले का ID और मालिकाना दस्तावेज़ जाँचे।',
+    photo_verified: 'फ़ोटो {date} को प्रॉपर्टी पर लोकेशन जाँच के साथ ली गईं और हमारी टीम ने उनकी समीक्षा की।',
+    site_verified: 'हमारी फ़ील्ड टीम ने {date} को इस प्रॉपर्टी का दौरा किया।',
+    rera: 'RERA नंबर {numbers} - इसे आधिकारिक RERA वेबसाइट पर जाँचें।',
+  },
   rera: {
     title: 'RERA विवरण',
     exempt: 'RERA अधिनियम की धारा 3(2) के तहत RERA पंजीकरण ज़रूरी नहीं है।',

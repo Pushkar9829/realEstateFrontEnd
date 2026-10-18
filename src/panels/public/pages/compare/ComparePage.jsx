@@ -13,6 +13,7 @@ import { enumLabel } from '../../components/useSearchFilters';
 import EnquiryModal from '../../components/EnquiryModal';
 import { enquiryTarget } from '../../components/PropertyCard';
 import { ErrorState, PageBand, PublicEmpty, Shimmer } from '../../components/States';
+import { badgeLabel, listerBadgeText } from '@/panels/public/components/VerificationBadges';
 
 export default function ComparePage() {
   const t = useT();
@@ -46,8 +47,8 @@ export default function ComparePage() {
     ['floor', (p) => (p.details && p.details.floor != null ? (p.details.totalFloors ? t('search.compare.floorOf', { floor: p.details.floor, total: p.details.totalFloors }) : String(p.details.floor)) : '-')],
     ['furnishing', (p) => enumLabel(t, 'furnishing', p.furnishing, '-')],
     ['possession', (p) => (p.details && p.details.possession ? `${enumLabel(t, 'possession', p.details.possession.status, '-')}${p.details.possession.date && p.details.possession.status !== 'ready' ? ` (${date(p.details.possession.date)})` : ''}` : '-')],
-    ['postedBy', (p) => p.listerBadge],
-    ['verification', (p) => (p.badges || []).filter((b) => b.code !== 'verified_lister').map((b) => b.label).join(', ') || '-'],
+    ['postedBy', (p) => listerBadgeText(t, p)],
+    ['verification', (p) => (p.badges || []).filter((b) => b.code !== 'verified_lister').map((b) => badgeLabel(t, b.labelCode, b.brand, b.label)).join(', ') || '-'],
   ];
 
   const ROW_HEAD = 'sticky left-0 z-10 w-32 bg-sand-50 p-4 text-left align-top text-[11px] font-semibold uppercase tracking-[0.14em] text-navy-500 shadow-[1px_0_0_rgba(13,21,38,0.06)] sm:w-40';
