@@ -15,6 +15,7 @@ import { LISTING_STATUS } from '@/modules/listings/api';
 import { kycStatus, useOwnKyc } from '@/modules/kyc/api';
 import { useOwnProjectCount } from '@/modules/projects/api';
 import { useListerDashboard } from '@/modules/reports/listerApi';
+import PostPropertyButton from '../../components/PostPropertyButton';
 import { lastRound, timeLeft, useListerActivity, useListerOffers, useListerVisits, visitStatus } from '@/modules/leads/listerApi';
 
 const STATUS_ORDER = ['live', 'pending_approval', 'changes_requested', 'draft', 'paused', 'expired', 'inactive', 'rejected', 'suspended', 'sold', 'rented'];
@@ -35,7 +36,7 @@ function Counter({ label, value, icon: Icon, tone, to, hint, loading }) {
 function ListingsByStatus({ d }) {
   const by = d.listings.byStatus || {};
   const keys = STATUS_ORDER.filter((k) => by[k]).concat(Object.keys(by).filter((k) => !STATUS_ORDER.includes(k)));
-  if (!keys.length) return <EmptyState icon={Home} className="border-0 py-6" title="No listings yet" action={<Button icon={Plus} to="/lister/listings">Post a property</Button>} />;
+  if (!keys.length) return <EmptyState icon={Home} className="border-0 py-6" title="No listings yet" action={<PostPropertyButton />} />;
   const max = Math.max(...keys.map((k) => by[k]));
   return (
     <ul className="space-y-2">
@@ -157,7 +158,7 @@ export default function DashboardPage() {
         description={<span className="inline-flex flex-wrap items-center gap-2">{titleCase(user.listerType)} account <Badge tone={ks.tone}>KYC: {ks.label}</Badge>{user.brand && user.brand.name && <Badge tone="brand">{user.brand.name}</Badge>}</span>}
         actions={<>
           {isBuilder && <Button variant="secondary" icon={Building2} to="/lister/projects">New project</Button>}
-          <Button icon={Plus} to="/lister/listings">Post a property</Button>
+          <PostPropertyButton />
         </>}
       />
 

@@ -4,16 +4,17 @@ import { useEffect, useState } from 'react';
 import { AlarmClock, CheckCircle2, RefreshCw, Search, X } from 'lucide-react';
 import { Alert, Badge, Button, Input, Modal, Textarea } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
+import { date, time } from '@/shared/lib/format';
 import { firstName, priorityInfo, stageInfo, useAgentLeads } from '@/modules/leads/agentApi';
 
 // ---------------------------------------------------------------- time
 
 const IST = 330 * 60000;
 export const istKey = (d) => new Date(new Date(d).getTime() + IST).toISOString().slice(0, 10);
-const tf = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
-const df = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short' });
-export const timeOnly = (d) => (d ? tf.format(new Date(d)) : '-');
-export const dayLabel = (d) => (d ? df.format(new Date(d)) : '-');
+const wd = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short' });
+export const timeOnly = (d) => time(d);
+// "Fri, 17/10/2026"
+export const dayLabel = (d) => (d ? `${wd.format(new Date(d))}, ${date(d)}` : '-');
 // Midnight IST of the day containing d, as a Date.
 export const istMidnight = (d = new Date()) => new Date(Date.parse(`${istKey(d)}T00:00:00+05:30`));
 
@@ -144,10 +145,10 @@ export function ReasonModal({ open, onClose, title, description, label = 'Reason
 // Card section with a title row and an optional action.
 export function Section({ title, action, children, className }) {
   return (
-    <section className={cn('rounded-lg border bg-white p-4 shadow-sm sm:p-5', className)}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-ink">{title}</h2>
-        {action}
+    <section className={cn('min-w-0 rounded-lg border bg-white p-4 shadow-sm sm:p-5', className)}>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="min-w-0 text-base font-semibold text-ink">{title}</h2>
+        {action && <div className="flex max-w-full flex-wrap gap-2">{action}</div>}
       </div>
       {children}
     </section>

@@ -99,7 +99,7 @@ function Details({ kyc, builder, locked, onSaved }) {
           <Input label="PAN" required placeholder="ABCDE1234F" inputClassName="uppercase"
             hint={kyc.panLast4 ? `On file: ••••••${kyc.panLast4}. Re-enter the full PAN to save changes.` : 'Stored encrypted. Only the last 4 characters are ever shown.'}
             error={err('pan')} {...form.register('pan')} />
-          <Input label="Date of birth" type="date" error={err('dob')} {...form.register('dob')} />
+          <Input label="Date of birth" type="date" error={err('dob')} name="dob" value={form.watch('dob') || ''} onChange={(e) => form.setValue('dob', e.target.value, { shouldDirty: true, shouldValidate: true })} />
           <Input label="Aadhaar (last 4 digits only)" inputMode="numeric" maxLength={4} hint="Never enter the full Aadhaar number." error={err('aadhaarLast4')} {...form.register('aadhaarLast4')} />
         </div>
         <div>

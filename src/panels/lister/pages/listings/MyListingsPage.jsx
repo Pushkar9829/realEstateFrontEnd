@@ -19,7 +19,7 @@ const ACTIONS = {
   draft: [['edit', 'Continue editing', Pencil], ['delete', 'Delete draft', Trash2]],
   pending_approval: [['edit', 'View / correct', Pencil], ['withdraw', 'Withdraw from review', Undo2]],
   changes_requested: [['edit', 'Fix and resubmit', Pencil], ['delete', 'Delete', Trash2]],
-  live: [['edit', 'Edit (sent for review)', Pencil], ['view', 'Status and history', Eye], ['pause', 'Pause', Pause], ['deactivate', 'Take off market', XCircle], ['duplicate', 'Duplicate', Copy]],
+  live: [['edit', 'Edit', Pencil], ['view', 'Status and history', Eye], ['pause', 'Pause', Pause], ['deactivate', 'Take off market', XCircle], ['duplicate', 'Duplicate', Copy]],
   paused: [['resume', 'Resume', Play], ['edit', 'Edit', Pencil], ['deactivate', 'Take off market', XCircle]],
   expired: [['renew', 'Renew', RotateCcw], ['duplicate', 'Duplicate', Copy]],
   inactive: [['reactivate', 'Send back to review', RotateCcw], ['duplicate', 'Duplicate', Copy]],
@@ -74,7 +74,7 @@ function ListingCard({ l, onAction }) {
   const price = priceOf(l);
   return (
     <li className="flex flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm sm:flex-row">
-      <Link to={`/lister/listings/${l._id}/edit`} className="block h-28 w-full shrink-0 overflow-hidden rounded-md bg-surface-sunken sm:w-40">
+      <Link to={l.status === 'draft' ? `/lister/listings/${l._id}/edit` : `/lister/listings/${l._id}`} aria-label={l.title || 'Untitled draft'} tabIndex={-1} className="block h-28 w-full shrink-0 overflow-hidden rounded-md bg-surface-sunken sm:w-40">
         {cover ? <img src={cover.thumbUrl || cover.url} alt="" className="h-full w-full object-cover" loading="lazy" /> : <div className="flex h-full items-center justify-center text-ink-subtle"><Home className="h-8 w-8" /></div>}
       </Link>
       <div className="min-w-0 flex-1">

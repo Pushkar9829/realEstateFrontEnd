@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 
 const DAY = 86_400_000;
-const fmt = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+const fmt = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
 
 export function fillDays(points, from, to) {
   const map = Object.fromEntries((points || []).map((p) => [p.day, p.views]));

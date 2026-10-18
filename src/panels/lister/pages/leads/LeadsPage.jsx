@@ -12,7 +12,16 @@ const listingRef = (p) => (p ? `${p.listingNo || ''}${p.title ? ` · ${p.title}`
 const shownCount = (c) => (c === '<3' ? 'fewer than 3' : c);
 
 // One bucket per label: the server merges stages that share a simplified label
-// (and masks small counts after merging), so buckets are shown as they come.
+// and masks small counts. The table below already lists every lead (as
+// "Buyer N", no identity; SPEC RE-S-LIS-13), so on this tab the buckets are
+// counted from those rows and shown exactly; masking stays on the stats
+// charts (stats.smallCountMasking). Over 200 leads the server counts are used.
+const LIST_LIMIT = 200;
+function exactFunnel(funnel, items) {
+  if (!items || items.length >= LIST_LIMIT) return funnel || [];
+  return (funnel || []).map((f) => ({ ...f, count: items.filter((i) => i.status === f.label).length }));
+}
+
 function Funnel({ funnel }) {
   return (
     <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
@@ -32,11 +41,11 @@ function LeadsTab({ propertyId }) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader title="Enquiry funnel" description="Counts only. Small counts are shown as 'fewer than 3' so no single buyer can be identified." />
-        {isLoading ? <Skeleton className="h-16" /> : <Funnel funnel={data.funnel} />}
+        <CardHeader title="Enquiry funnel" description="How many enquiries are at each stage. Buyers are never named: each one is shown as Buyer N on its listing." />
+        {isLoading ? <Skeleton className="h-16" /> : <Funnel funnel={exactFunnel(data.funnel, data.items)} />}
       </Card>
       <Table loading={isLoading} rows={(data && data.items) || []} empty="No leads on your listings yet" columns={[
-        { key: 'buyer', header: 'Buyer', render: (r) => <span className="font-medium">{r.buyer}</span> },
+        { key: 'buyer', header: 'Buyer', render: (r) => <span className="whitespace-nowrap font-medium">{r.buyer}{r.property && r.property.listingNo ? <span className="font-normal text-ink-subtle"> · {r.property.listingNo}</span> : null}</span> },
         { key: 'property', header: 'Listing', render: (r) => <span className="block max-w-xs truncate">{listingRef(r.property)}</span> },
         { key: 'createdAt', header: 'Received', render: (r) => date(r.createdAt) },
         { key: 'status', header: 'Stage', render: (r) => <Badge tone="brand">{r.status}</Badge> },

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, PageHeader, Skeleton, Stat, useToast } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
-import { dateTime, shortRupees, timeAgo } from '@/shared/lib/format';
+import { date, dateTime, shortRupees, timeAgo } from '@/shared/lib/format';
 import { useAuth } from '@/modules/auth';
 import { errorText, firstName, leadApi, setAvailability, useAgentDashboard, useAgentMutation, visitStatus } from '@/modules/leads/agentApi';
 import { CallLogModal } from '../../components/LeadModals';
@@ -17,7 +17,7 @@ import { VisitOutcomeModal } from '../../components/VisitModals';
 import { ErrorState, Section, SlaTimer, timeOnly } from '../../components/common';
 
 const greet = () => { const h = Number(new Intl.DateTimeFormat('en-IN', { hour: 'numeric', hour12: false, timeZone: 'Asia/Kolkata' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
-const todayText = () => new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' }).format(new Date());
+const todayText = () => `${new Intl.DateTimeFormat('en-IN', { weekday: 'long', timeZone: 'Asia/Kolkata' }).format(new Date())}, ${date(new Date())}`;
 
 function AvailabilityToggle({ availability }) {
   const toast = useToast();

@@ -14,10 +14,11 @@ import ReassignRequest from '../leads/ReassignRequestCard';
 
 const idOf = (v) => (v && v._id) || v;
 
-function LeadLine({ l, extra, onAssign }) {
+// as: 'li' inside a list, 'div' when nested in another list item (valid HTML).
+function LeadLine({ l, extra, onAssign, as: Tag = 'li' }) {
   const s = leadStage(l.stage);
   return (
-    <li className="flex flex-wrap items-start justify-between gap-2 py-2.5">
+    <Tag className="flex flex-wrap items-start justify-between gap-2 py-2.5">
       <div className="min-w-0">
         <Link to={`/admin/leads/${l._id}`} className="text-sm font-medium text-brand-700 hover:underline">{l.leadNo}</Link>
         <span className="text-sm text-ink"> · {l.buyerName}</span>
@@ -28,7 +29,7 @@ function LeadLine({ l, extra, onAssign }) {
         {extra}
       </div>
       {onAssign && <Button size="sm" variant="secondary" icon={UserPlus} onClick={() => onAssign(l)}>{l.agent ? 'Reassign' : 'Assign'}</Button>}
-    </li>
+    </Tag>
   );
 }
 
@@ -75,7 +76,7 @@ export default function LeadQueuePage() {
           <ul className="divide-y">
             {q.reassignRequests.map((l) => (
               <li key={l._id} className="py-2.5">
-                <LeadLine l={l} />
+                <LeadLine l={l} as="div" />
                 <ul className="space-y-2">{(l.requests || []).map((r) => <ReassignRequest key={r._id} lead={l} r={r} agentOptions={options} />)}</ul>
               </li>
             ))}

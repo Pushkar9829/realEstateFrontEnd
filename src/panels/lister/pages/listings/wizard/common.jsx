@@ -3,7 +3,7 @@
 // body) to useStepSave is saved every 30 s while it differs from what was
 // last saved, and reports "dirty" to the wizard shell for the unsaved guard.
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { Alert, Button, useToast } from '@/shared/ui';
 import { useSaveStep, WARNING_LABELS } from '@/modules/listings/api';
 
@@ -106,7 +106,8 @@ export function Segmented({ options, value, onChange, disabled }) {
     <div className="inline-flex flex-wrap rounded-lg border bg-surface-muted p-1" role="radiogroup">
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} disabled={disabled} onClick={() => onChange(o.value)}
-          className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${value === o.value ? 'bg-white text-brand-700 shadow-sm' : 'text-ink-muted hover:text-ink'}`}>
+          className={`inline-flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${value === o.value ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-muted hover:bg-white hover:text-ink'}`}>
+          {value === o.value && <Check className="h-4 w-4" aria-hidden />}
           {o.label}
         </button>
       ))}

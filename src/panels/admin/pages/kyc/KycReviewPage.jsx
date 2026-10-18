@@ -80,11 +80,11 @@ export default function KycReviewPage() {
           <Card>
             <CardHeader title="Documents" description="Opening a document creates a 10-minute link and is recorded in the audit log." />
             <ul className="space-y-3">
-              {(kyc.documents || []).map((d) => {
+              {(kyc.documents || []).map((d, i) => {
                 const v = verdicts[d._id] || {};
                 const status = v.status || d.status;
                 return (
-                  <li key={d._id} className={cn('rounded-lg border p-4', status === 'rejected' && 'border-danger-100 bg-danger-50/40', status === 'accepted' && 'border-success-100 bg-success-50/40')}>
+                  <li key={d._id || `${d.docType}-${i}`} className={cn('rounded-lg border p-4', status === 'rejected' && 'border-danger-100 bg-danger-50/40', status === 'accepted' && 'border-success-100 bg-success-50/40')}>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-ink">{docLabel(d.docType)}</p>
@@ -116,8 +116,8 @@ export default function KycReviewPage() {
             <CardHeader title="Auto-checks" />
             {(kyc.autoChecks || []).length ? (
               <ul className="space-y-2">
-                {kyc.autoChecks.map((c) => (
-                  <li key={c.code} className={cn('flex gap-2 rounded-md p-3 text-sm', c.severity === 'high' ? 'bg-danger-50 text-danger-700' : 'bg-warning-50 text-warning-700')}>
+                {kyc.autoChecks.map((c, i) => (
+                  <li key={`${c.code}-${i}`} className={cn('flex gap-2 rounded-md p-3 text-sm', c.severity === 'high' ? 'bg-danger-50 text-danger-700' : 'bg-warning-50 text-warning-700')}>
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                     <span><strong className="block">{CHECK_LABELS[c.code] || c.code}</strong>{c.detail}</span>
                   </li>

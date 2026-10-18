@@ -52,8 +52,7 @@ export default function BuyerCard({ lead, onCall }) {
         <p className="text-xs text-ink-subtle">Every reveal is logged. Never share owner contacts with the buyer.</p>
       </div>
       <div className="mt-4 flex flex-wrap gap-2 border-t pt-3">
-        <Button size="sm" variant="secondary" icon={PhoneCall} onClick={onCall}>Log call</Button>
-        <Button size="sm" variant="ghost" icon={Phone} onClick={masked}>Masked call</Button>
+        {lead.maskedCallAvailable && <Button size="sm" variant="ghost" icon={Phone} onClick={masked}>Masked call</Button>}
         <Button size="sm" variant="ghost" icon={Flag} onClick={() => setFlagOpen(true)}>Flag seeker</Button>
       </div>
       <p className="mt-2 text-xs text-ink-subtle">{plural(lead.callAttempts || 0, 'call attempt')} logged</p>

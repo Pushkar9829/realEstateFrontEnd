@@ -30,5 +30,8 @@ export const SETTING_GROUPS = {
   rera: 'RERA', lead: 'Leads and SLA', sla: 'Leads and SLA', routing: 'Routing', visit: 'Visits', visits: 'Visits', offer: 'Offers', offers: 'Offers',
   search: 'Search and tools', tools: 'Search and tools', invoice: 'Invoices', deal: 'Deals', notifications: 'Notifications', whatsapp: 'WhatsApp and telephony',
   telephony: 'WhatsApp and telephony', partners: 'Partners', privacy: 'Privacy', retention: 'Privacy', audit: 'Privacy', mlm: 'MLM', home: 'Home page',
+  calendar: 'Leads and SLA', agent: 'Leads and SLA', review: 'Listings', buyer: 'Leads and SLA', alerts: 'Search and tools', notify: 'Notifications',
+  stats: 'Masking and public display', reports: 'Reports', trends: 'Search and tools', calc: 'Search and tools', nlsearch: 'Search and tools',
+  agreement: 'Commission', consent: 'Privacy', analytics: 'Privacy', auth: 'Sign-in and security', i18n: 'General', projects: 'Listings',
 };
 export const groupOf = (key) => SETTING_GROUPS[String(key).split('.')[0]] || 'Other';

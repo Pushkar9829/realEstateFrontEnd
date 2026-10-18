@@ -6,7 +6,7 @@
 // approvals come from their own modules.
 import { Link } from 'react-router-dom';
 import {
-  AlertTriangle, BadgeCheck, Building2, Camera, CalendarDays, CalendarRange, ClipboardCheck, FileWarning, Flag, Handshake, Hourglass, Inbox, IndianRupee, MessageSquareQuote, PauseCircle, Plug, RefreshCw, ShieldCheck, Timer, UserX, Wallet,
+  AlertTriangle, BadgeCheck, Building2, Camera, ChevronRight, CalendarDays, CalendarRange, ClipboardCheck, FileWarning, Flag, Handshake, Hourglass, Inbox, IndianRupee, MessageSquareQuote, PauseCircle, Plug, RefreshCw, ShieldCheck, Timer, UserX, Wallet,
 } from 'lucide-react';
 import { Alert, Badge, Button, Card, CardHeader, EmptyState, PageHeader, Skeleton, Table } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
@@ -19,19 +19,40 @@ import { Sparkline } from '../reports/charts';
 
 const SLA = { green: ['success', 'On time'], amber: ['warning', 'Due soon'], red: ['danger', 'Overdue'] };
 
-function Tile({ label, hint, value, loading, icon: Icon, tone, to, alert }) {
+// A tile that links to its queue says so in words ("Open queue"), not only on
+// hover, and an alert is marked with an icon and text, not only red.
+function Tile({ label, hint, value, loading, icon: Icon, tone, to, alert, cta = 'Open' }) {
   const body = (
     <>
       <span className={cn('rounded-md p-2.5', tone)}><Icon className="h-5 w-5" aria-hidden /></span>
-      <span className="flex-1">
+      <span className="min-w-0 flex-1">
         <span className="block text-sm text-ink-subtle">{label}</span>
-        {loading ? <Skeleton className="mt-1 h-8 w-12" /> : <span className={cn('mt-0.5 block text-3xl font-semibold', alert ? 'text-danger-700' : 'text-ink')}>{value == null ? '-' : value}</span>}
+        {loading ? <Skeleton className="mt-1 h-8 w-12" /> : (
+          <span className={cn('mt-0.5 flex items-center gap-1.5 text-3xl font-semibold', alert ? 'text-danger-700' : 'text-ink')}>
+            {value == null ? '-' : value}
+            {alert && <><AlertTriangle className="h-5 w-5" aria-hidden /><span className="sr-only">(needs attention)</span></>}
+          </span>
+        )}
         {hint && <span className="mt-0.5 block text-xs text-ink-subtle">{hint}</span>}
+        {to && <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-700 group-hover:underline">{cta}<ChevronRight className="h-4 w-4" aria-hidden /></span>}
       </span>
     </>
   );
   const cls = 'group flex items-start gap-4 rounded-lg border bg-white p-5 shadow-sm transition';
-  return to ? <Link to={to} className={cn(cls, 'hover:border-brand-300 hover:shadow-md')}>{body}</Link> : <div className={cls}>{body}</div>;
+  return to ? <Link to={to} className={cn(cls, 'hover:border-brand-300 hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand-500', alert && 'border-danger-100')}>{body}</Link> : <div className={cls}>{body}</div>;
+}
+
+function TileGroup({ title, description, tiles, isLoading }) {
+  if (!tiles.length) return null;
+  return (
+    <section className="mb-6" aria-label={title}>
+      <h2 className="text-base font-semibold text-ink">{title}</h2>
+      {description && <p className="text-sm text-ink-subtle">{description}</p>}
+      <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {tiles.map((t) => <Tile key={t.label} loading={t.loading ?? isLoading} {...t} />)}
+      </div>
+    </section>
+  );
 }
 
 function Trend({ label, values, format = (v) => v }) {
@@ -61,27 +82,34 @@ export default function DashboardPage() {
   const v = (x) => (d ? x : null);
 
   const tiles = [
-    { label: 'New leads today', value: v(d?.leads.today), icon: Inbox, tone: 'bg-brand-50 text-brand-700', to: can('leads.view_all') ? '/admin/leads' : undefined },
-    { label: 'Unassigned leads', value: v(d?.leads.unassigned), icon: UserX, tone: 'bg-warning-50 text-warning-700', to: can('leads.assign') ? '/admin/sla' : undefined, alert: d && d.leads.unassigned > 0 },
-    { label: 'SLA breaches (new leads)', value: v(d?.leads.slaBreached), icon: Timer, tone: 'bg-danger-50 text-danger-700', to: can('leads.assign') ? '/admin/sla' : undefined, alert: d && d.leads.slaBreached > 0 },
-    { label: 'Visits today', value: v(d?.visits.today), icon: CalendarDays, tone: 'bg-info-50 text-info-700', to: can('sitevisits.view') ? '/admin/visits' : undefined },
-    { label: 'Deals awaiting verification', value: v(d?.deals.awaitingVerification), hint: `Verify within ${(d && d.deals.slaHours) || 72} hours`, icon: BadgeCheck, tone: 'bg-success-50 text-success-700', to: '/admin/deals' },
-    { label: 'Deals past the verification SLA', value: v(d?.deals.beyondSla), hint: d ? `Submitted over ${d.deals.slaHours} hours ago` : undefined, icon: Hourglass, tone: 'bg-danger-50 text-danger-700', to: '/admin/deals', alert: d && d.deals.beyondSla > 0 },
-    { label: 'Offers awaiting the owner', value: v(d?.offers?.awaitingOwner), hint: 'Waiting for the lister to answer', icon: Handshake, tone: 'bg-warning-50 text-warning-700' },
-    { label: 'Commission verified this month', value: d && d.commission ? rupees(d.commission.month.commission) : null, hint: d && d.commission ? `${d.commission.month.deals} deals since ${date(d.commission.month.from)}` : undefined, icon: IndianRupee, tone: 'bg-success-50 text-success-700', to: can('reports.view') ? '/admin/reports/commission' : undefined },
-    { label: 'Commission verified this financial year', value: d && d.commission ? rupees(d.commission.financialYear.commission) : null, hint: d && d.commission ? `${d.commission.financialYear.deals} deals since ${date(d.commission.financialYear.from)}` : undefined, icon: CalendarRange, tone: 'bg-brand-50 text-brand-700', to: can('reports.view') ? '/admin/reports/commission' : undefined },
-    { label: 'Receivables outstanding', value: d ? rupees(d.receivables.outstanding) : null, hint: d ? `${d.receivables.open} open · ${d.receivables.overdue} overdue` : undefined, icon: Wallet, tone: 'bg-accent-50 text-accent-700', to: can('receivables.manage') ? '/admin/receivables' : undefined, alert: d && d.receivables.overdue > 0 },
-    { label: 'Invoices overdue', value: v(d?.receivables.invoicesOverdue?.count), hint: d && d.receivables.invoicesOverdue ? `${rupees(d.receivables.invoicesOverdue.amount)} past the due date` : undefined, icon: FileWarning, tone: 'bg-danger-50 text-danger-700', to: can('receivables.manage') ? '/admin/receivables' : undefined, alert: d && d.receivables.invoicesOverdue && d.receivables.invoicesOverdue.count > 0 },
+    { group: 'today', cta: 'Open leads', label: 'New leads today', value: v(d?.leads.today), icon: Inbox, tone: 'bg-brand-50 text-brand-700', to: can('leads.view_all') ? '/admin/leads' : undefined },
+    { group: 'action', cta: 'Assign leads', label: 'Unassigned leads', value: v(d?.leads.unassigned), icon: UserX, tone: 'bg-warning-50 text-warning-700', to: can('leads.assign') ? '/admin/sla' : undefined, alert: d && d.leads.unassigned > 0 },
+    { group: 'action', cta: 'Open lead queue', label: 'SLA breaches (new leads)', value: v(d?.leads.slaBreached), icon: Timer, tone: 'bg-danger-50 text-danger-700', to: can('leads.assign') ? '/admin/sla' : undefined, alert: d && d.leads.slaBreached > 0 },
+    { group: 'today', cta: 'Open visits', label: 'Visits today', value: v(d?.visits.today), icon: CalendarDays, tone: 'bg-info-50 text-info-700', to: can('sitevisits.view') ? '/admin/visits' : undefined },
+    { group: 'action', cta: 'Verify deals', label: 'Deals awaiting verification', value: v(d?.deals.awaitingVerification), hint: `Verify within ${(d && d.deals.slaHours) || 72} hours`, icon: BadgeCheck, tone: 'bg-success-50 text-success-700', to: '/admin/deals' },
+    { group: 'action', cta: 'Verify deals', label: 'Deals past the verification SLA', value: v(d?.deals.beyondSla), hint: d ? `Submitted over ${d.deals.slaHours} hours ago` : undefined, icon: Hourglass, tone: 'bg-danger-50 text-danger-700', to: '/admin/deals', alert: d && d.deals.beyondSla > 0 },
+    { group: 'today', label: 'Offers awaiting the owner', value: v(d?.offers?.awaitingOwner), hint: 'Waiting for the lister to answer', icon: Handshake, tone: 'bg-warning-50 text-warning-700' },
+    { group: 'business', cta: 'Commission report', label: 'Commission verified this month', value: d && d.commission ? rupees(d.commission.month.commission) : null, hint: d && d.commission ? `${d.commission.month.deals} deals since ${date(d.commission.month.from)}` : undefined, icon: IndianRupee, tone: 'bg-success-50 text-success-700', to: can('reports.view') ? '/admin/reports/commission' : undefined },
+    { group: 'business', cta: 'Commission report', label: 'Commission verified this financial year', value: d && d.commission ? rupees(d.commission.financialYear.commission) : null, hint: d && d.commission ? `${d.commission.financialYear.deals} deals since ${date(d.commission.financialYear.from)}` : undefined, icon: CalendarRange, tone: 'bg-brand-50 text-brand-700', to: can('reports.view') ? '/admin/reports/commission' : undefined },
+    { group: 'business', cta: 'Open receivables', label: 'Receivables outstanding', value: d ? rupees(d.receivables.outstanding) : null, hint: d ? `${d.receivables.open} open · ${d.receivables.overdue} overdue` : undefined, icon: Wallet, tone: 'bg-accent-50 text-accent-700', to: can('receivables.manage') ? '/admin/receivables' : undefined, alert: d && d.receivables.overdue > 0 },
+    { group: 'action', cta: 'Open receivables', label: 'Invoices overdue', value: v(d?.receivables.invoicesOverdue?.count), hint: d && d.receivables.invoicesOverdue ? `${rupees(d.receivables.invoicesOverdue.amount)} past the due date` : undefined, icon: FileWarning, tone: 'bg-danger-50 text-danger-700', to: can('receivables.manage') ? '/admin/receivables' : undefined, alert: d && d.receivables.invoicesOverdue && d.receivables.invoicesOverdue.count > 0 },
     ...(!team ? [
-      can('properties.approve') && { label: 'Listings to approve', value: v(q.listings), hint: 'Decide within 24 hours', icon: ClipboardCheck, tone: 'bg-brand-50 text-brand-700', to: '/admin/approvals' },
-      can('projects.approve') && { label: 'Projects to approve', value: v(q.projects), hint: 'RERA check required', icon: Building2, tone: 'bg-accent-50 text-accent-700', to: '/admin/projects' },
-      can('verification.review') && { label: 'Photo verifications', value: v(q.photoVerification), icon: Camera, tone: 'bg-info-50 text-info-700', to: '/admin/photo-verification' },
-      can('properties.manage') && { label: 'Paused listings', value: v(d?.listings?.paused), hint: 'Paused by the lister or an admin', icon: PauseCircle, tone: 'bg-surface-sunken text-ink-muted', to: '/admin/listings' },
-      can('properties.manage') && { label: 'Open reported listings', value: v(q.reportedListings), icon: MessageSquareQuote, tone: 'bg-warning-50 text-warning-700', to: '/admin/feedback' },
-      can('listers.verify') && { label: 'KYC waiting for review', value: kyc.isError ? null : kyc.data, loading: kyc.isLoading, hint: 'Decide within 48 hours', icon: ShieldCheck, tone: 'bg-info-50 text-info-700', to: '/admin/kyc' },
-      can('listers.manage') && { label: 'Open broker flags', value: flags.isError ? null : flags.data, loading: flags.isLoading, icon: Flag, tone: 'bg-danger-50 text-danger-700', to: '/admin/trust' },
+      can('properties.approve') && { group: 'action', cta: 'Open queue', label: 'Listings to approve', value: v(q.listings), hint: 'Decide within 24 hours', icon: ClipboardCheck, tone: 'bg-brand-50 text-brand-700', to: '/admin/approvals' },
+      can('projects.approve') && { group: 'action', cta: 'Open queue', label: 'Projects to approve', value: v(q.projects), hint: 'RERA check required', icon: Building2, tone: 'bg-accent-50 text-accent-700', to: '/admin/projects' },
+      can('verification.review') && { group: 'action', cta: 'Open queue', label: 'Photo verifications', value: v(q.photoVerification), icon: Camera, tone: 'bg-info-50 text-info-700', to: '/admin/photo-verification' },
+      can('properties.manage') && { group: 'business', cta: 'Open listings', label: 'Paused listings', value: v(d?.listings?.paused), hint: 'Paused by the lister or an admin', icon: PauseCircle, tone: 'bg-surface-sunken text-ink-muted', to: '/admin/listings' },
+      can('properties.manage') && { group: 'action', cta: 'Review reports', label: 'Open reported listings', value: v(q.reportedListings), icon: MessageSquareQuote, tone: 'bg-warning-50 text-warning-700', to: '/admin/feedback' },
+      can('listers.verify') && { group: 'action', cta: 'Open queue', label: 'KYC waiting for review', value: kyc.isError ? null : kyc.data, loading: kyc.isLoading, hint: 'Decide within 48 hours', icon: ShieldCheck, tone: 'bg-info-50 text-info-700', to: '/admin/kyc' },
+      can('listers.manage') && { group: 'action', cta: 'Review flags', label: 'Open broker flags', value: flags.isError ? null : flags.data, loading: flags.isLoading, icon: Flag, tone: 'bg-danger-50 text-danger-700', to: '/admin/trust' },
     ] : []),
-  ].filter(Boolean);
+  ].filter(Boolean)
+    // The financial-year tile repeats the month tile early in the year: show it only when it adds something.
+    .filter((t) => !(t.label === 'Commission verified this financial year' && d && d.commission && d.commission.financialYear.commission === d.commission.month.commission));
+  // "Needs action": alerts first, then the fullest queues; empty queues last.
+  const waiting = (t) => (typeof t.value === 'number' ? t.value : 0);
+  const action = tiles.filter((t) => t.group === 'action').sort((a, b) => Number(Boolean(b.alert)) - Number(Boolean(a.alert)) || waiting(b) - waiting(a));
+  const today = tiles.filter((t) => t.group === 'today');
+  const business = tiles.filter((t) => t.group === 'business');
 
   return (
     <>
@@ -92,11 +120,11 @@ export default function DashboardPage() {
         </>} />
       {error && <Alert tone="danger" className="mb-4" title="Some counters could not load" action={<Button size="sm" variant="ghost" onClick={() => refetch()}>Retry</Button>}>{error.message}</Alert>}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {tiles.map((t) => <Tile key={t.label} loading={t.loading ?? isLoading} {...t} />)}
-      </div>
+      <TileGroup title="Needs action" description="Queues waiting for a decision, the most urgent first." tiles={action} isLoading={isLoading} />
+      <TileGroup title="Today" tiles={today} isLoading={isLoading} />
+      <TileGroup title="Business" description="Commission and money owed." tiles={business} isLoading={isLoading} />
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader title="Last 30 days" description={trend.length ? `Nightly snapshot, ${date(trend[0].day)} to ${date(trend[trend.length - 1].day)}.` : 'From the nightly KPI snapshot.'} />
           {isLoading ? <Skeleton className="h-40 w-full" /> : trend.length < 2 ? (
@@ -130,8 +158,8 @@ export default function DashboardPage() {
             {queue.data && queue.data.items.length === 0 ? (
               <EmptyState icon={ClipboardCheck} title="Queue is clear" description="No listings are waiting for approval." className="border-0 py-8" />
             ) : (
-              <Table loading={queue.isLoading} rows={(queue.data && queue.data.items) || []} columns={[
-                { key: 'title', header: 'Listing', render: (r) => <Link to={`/admin/approvals/${r._id}`} className="hover:underline"><span className="block max-w-xs truncate font-medium text-ink">{r.title}</span><span className="text-xs text-ink-subtle">{r.listingNo} · {r.location && r.location.city}</span></Link> },
+              <Table loading={queue.isLoading} rows={(queue.data && queue.data.items) || []} rowHref={(r) => `/admin/approvals/${r._id}`} columns={[
+                { key: 'title', header: 'Listing', render: (r) => <span><span className="block max-w-xs truncate">{r.title}</span><span className="text-xs font-normal text-ink-subtle">{r.listingNo} · {r.location && r.location.city}</span></span> },
                 { key: 'lister', header: 'Lister', render: (r) => (r.listerId ? <span className="text-ink-muted">{r.listerId.name} <span className="text-xs">({titleCase(r.listerId.listerType)})</span></span> : '-') },
                 { key: 'submittedAt', header: 'Waiting', render: (r) => timeAgo(r.submittedAt) },
                 { key: 'sla', header: 'SLA', render: (r) => { const [tone, label] = SLA[(r.sla && r.sla.level) || 'green']; return <Badge tone={tone}>{label}</Badge>; } },

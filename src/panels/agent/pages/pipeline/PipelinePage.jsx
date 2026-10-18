@@ -2,10 +2,10 @@
 // drag and drop) or use its "Move to" menu. Moves that need data open a modal
 // first (lost reason, back-move note, visit scheduling, create deal); simple
 // moves are optimistic and roll back with the API's reason.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Ban, KanbanSquare, Trophy } from 'lucide-react';
+import { Ban, ChevronLeft, ChevronRight, KanbanSquare, Trophy } from 'lucide-react';
 import { Button, EmptyState, Modal, PageHeader, Select, Skeleton, useToast } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
 import { timeAgo } from '@/shared/lib/format';
@@ -47,7 +47,7 @@ function Column({ stage, rows, onDrop, children, tone, icon: Icon, hint }) {
   return (
     <section onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/plain'); if (id) onDrop(id, stage); }}
-      className={cn('flex w-72 shrink-0 flex-col rounded-lg border p-2 transition-colors', over ? 'border-brand-500 bg-brand-50' : tone || 'bg-surface-muted')} aria-label={s.label}>
+      id={`col-${stage}`} className={cn('flex w-64 shrink-0 scroll-ml-4 flex-col rounded-lg border p-2 transition-colors', over ? 'border-brand-500 bg-brand-50' : tone || 'bg-surface-muted')} aria-label={s.label}>
       <header className="mb-2 flex items-center justify-between px-1">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">{Icon && <Icon className="h-4 w-4" aria-hidden />}{s.label}</h2>
         {rows && <span className="rounded-full bg-white px-2 text-xs text-ink-muted">{rows.length}</span>}
@@ -64,6 +64,7 @@ export default function PipelinePage() {
   const qc = useQueryClient();
   const { data, isLoading, error, refetch } = useLeadBoard();
   const stage = useAgentMutation(leadApi.stage);
+  const board = useRef(null);
   const [priority, setPriority] = useState('');
   const [purpose, setPurpose] = useState('');
   const [city, setCity] = useState('');
@@ -103,6 +104,8 @@ export default function PipelinePage() {
     moveNow(lead, to);
   };
   const onDrop = (id, to) => onMove(all.find((l) => l._id === id), to);
+  const jump = (s) => { const el = document.getElementById(`col-${s}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }); };
+  const scrollBy = (dir) => { if (board.current) board.current.scrollBy({ left: dir * 280, behavior: 'smooth' }); };
 
   const header = <PageHeader title="Pipeline board" description="Drag a card to move the lead. Booking starts with a deal; a lead is won only when its deal is verified." />;
   if (isLoading) return <>{header}<div className="flex gap-3 overflow-hidden">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-96 w-72 shrink-0" />)}</div></>;
@@ -118,8 +121,23 @@ export default function PipelinePage() {
         <Select aria-label="Purpose" placeholder="Buy and rent" value={purpose} onChange={(e) => setPurpose(e.target.value)} options={[{ value: 'sale', label: 'Buy' }, { value: 'rent', label: 'Rent' }]} />
         <Select aria-label="City" placeholder="Any city" value={city} onChange={(e) => setCity(e.target.value)} options={cities.map((c) => ({ value: c, label: c }))} />
       </div>
-      {all.length === 0 ? <EmptyState icon={KanbanSquare} title="No open leads" description="Your open leads appear here by stage." /> : (
-        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
+      {all.length === 0 ? <EmptyState icon={KanbanSquare} title="No open leads" description="Your open leads appear here by stage." /> : (<>
+        {/* Every stage at a glance: the board scrolls sideways, so later stages are one tap away (audit A3). */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <nav aria-label="Stages" className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+            {OPEN_STAGES.concat(['closed_won', 'closed_lost']).map((s) => (
+              <button key={s} type="button" onClick={() => jump(s)} className="inline-flex items-center gap-1 rounded-full border bg-white px-2.5 py-1 text-xs text-ink-muted hover:border-brand-300 hover:text-ink">
+                {stageInfo(s).label}{data[s] ? <span className="rounded-full bg-surface-sunken px-1.5 font-medium text-ink">{(data[s] || []).filter(keep).length}</span> : null}
+              </button>
+            ))}
+          </nav>
+          <span className="flex gap-1">
+            <Button size="sm" variant="secondary" icon={ChevronLeft} aria-label="Scroll the board left" onClick={() => scrollBy(-1)} />
+            <Button size="sm" variant="secondary" icon={ChevronRight} aria-label="Scroll the board right" onClick={() => scrollBy(1)} />
+          </span>
+        </div>
+        <div className="relative">
+        <div ref={board} className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
           {OPEN_STAGES.map((s) => {
             const rows = (data[s] || []).filter(keep);
             const lim = limits[s] || PAGE;
@@ -138,7 +156,9 @@ export default function PipelinePage() {
             <Column stage="closed_lost" onDrop={onDrop} icon={Ban} tone="bg-danger-50" hint="Drop to close as lost (reason required)" />
           </div>
         </div>
-      )}
+        <span className="pointer-events-none absolute inset-y-0 right-0 hidden w-10 bg-gradient-to-l from-surface-muted to-transparent sm:block" aria-hidden />
+        </div>
+      </>)}
 
       <StageChangeModal open={Boolean(pending && pending.kind === 'stage')} onClose={() => setPending(null)} lead={pending && pending.kind === 'stage' ? pending.lead : null} to={pending && pending.to} />
       <ScheduleVisitModal open={Boolean(pending && pending.kind === 'visit' && visitProps.length)} onClose={() => setPending(null)} lead={p} properties={visitProps} />

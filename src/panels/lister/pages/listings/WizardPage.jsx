@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useParams, Link, useBlocker } from 'react-router-dom';
 import { ArrowLeft, Building2, Check, CloudOff, Save } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { time } from '@/shared/lib/format';
 import { Alert, Badge, Button, Card, Modal, PageHeader, PageSpinner } from '@/shared/ui';
 import { EDITABLE, listingStatus, REVISABLE, useListing, WIZARD_STEPS } from '@/modules/listings/api';
 import BasicStep from './wizard/BasicStep';
@@ -20,7 +21,7 @@ import ReviewStep from './wizard/ReviewStep';
 import { WizardContext } from './wizard/common';
 
 const STEP_COMPONENTS = { 1: BasicStep, 2: LocationStep, 3: DetailsStep, 4: PriceStep, 5: AmenitiesStep, 6: MediaStep, 7: CommissionStep, 8: ReviewStep };
-const hhmm = (d) => d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+const hhmm = (d) => time(d);
 
 // Dirty flag, last save time and autosave errors shared with the steps (wizard/common.jsx).
 function useWizardState(autosave) {

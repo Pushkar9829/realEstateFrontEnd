@@ -15,18 +15,20 @@ import ViewsChart from '../../components/ViewsChart';
 const IST = 330 * 60000;
 const istDay = (t) => new Date(t + IST).toISOString().slice(0, 10);
 const RANGES = [{ value: 7, label: '7 days' }, { value: 30, label: '30 days' }, { value: 90, label: '90 days' }, { value: 'custom', label: 'Custom' }];
-// Counts of 1 or 2 are not shown exactly, so no single buyer can be inferred.
-const masked = (n) => (n > 0 && n < 3 ? 'fewer than 3' : n);
+// With stats.smallCountMasking on, the API sends counts of 1 or 2 as '<3' so
+// no single buyer can be inferred; the bar then shows a small stub.
+const masked = (n) => (n === '<3' ? 'fewer than 3' : n);
+const num = (n) => (typeof n === 'number' ? n : 0);
 
 function Funnel({ funnel }) {
-  const max = Math.max(1, ...funnel.map((f) => f.count));
+  const max = Math.max(1, ...funnel.map((f) => num(f.count)));
   return (
     <ul className="space-y-2">
       {funnel.map((f) => (
         <li key={f.stage} className="grid grid-cols-[9rem_1fr_6rem] items-center gap-3 text-sm">
           <span className="text-ink-muted">{STAGE_LABELS[f.stage] || f.stage}</span>
           <span className="h-3 overflow-hidden rounded-full bg-surface-sunken">
-            <span className={cn('block h-full rounded-full', f.stage === 'closed_lost' ? 'bg-line-strong' : 'bg-brand-500')} style={{ width: `${f.count < 3 ? (f.count ? 4 : 0) : (f.count / max) * 100}%` }} />
+            <span className={cn('block h-full rounded-full', f.stage === 'closed_lost' ? 'bg-line-strong' : 'bg-brand-500')} style={{ width: `${f.count === '<3' ? 4 : (num(f.count) / max) * 100}%` }} />
           </span>
           <span className="text-right font-medium text-ink">{masked(f.count)}</span>
         </li>

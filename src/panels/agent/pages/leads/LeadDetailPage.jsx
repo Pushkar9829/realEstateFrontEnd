@@ -117,14 +117,14 @@ export default function LeadDetailPage() {
       {lead.stage === 'closed_lost' && <Alert tone="warning" className="mb-4" title="This lead is closed as lost">{lead.lostReason ? `Reason: ${lead.lostReason.replace(/_/g, ' ')}` : ''}{lead.lostNote ? ` · ${lead.lostNote}` : ''}</Alert>}
       {lead.stage === 'closed_won' && <Alert tone="success" className="mb-4" title="Won: the deal is verified" />}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <PropertiesPanel lead={lead} />
           <OffersPanel lead={lead} />
           <VisitsPanel lead={lead} />
           <Timeline lead={lead} />
         </div>
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <BuyerCard lead={lead} onCall={() => setModal('call')} />
           <RequirementCard lead={lead} />
           <FollowupsPanel lead={lead} />
