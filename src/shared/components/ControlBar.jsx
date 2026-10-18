@@ -34,7 +34,7 @@ export default function ControlBar({ current }) {
       <span className="h-4 w-px bg-white/15" aria-hidden />
       <div className="relative" ref={ref}>
         <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}
-          className="flex items-center gap-1.5 rounded px-2 py-1 font-medium text-white hover:bg-white/10">
+          className="flex items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 font-medium text-white hover:bg-white/10">
           <span className="h-2 w-2 rounded-full" style={{ background: COLORS[current] || '#94A3B8' }} aria-hidden />
           {(projects.find((p) => p.code === current) || { name: 'Projects' }).name}
           <ChevronDown className="h-3.5 w-3.5 text-white/60" aria-hidden />
@@ -57,7 +57,7 @@ export default function ControlBar({ current }) {
       <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${live ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>{live ? 'Live' : 'Demo'}</span>
       <span className="ml-auto flex min-w-0 items-center gap-1.5 truncate text-white/70">
         <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400" aria-hidden />
-        <span className="truncate">Acting via Control Center{name ? <> as <b className="font-semibold text-white">{name}</b></> : null}</span>
+        <span className="truncate"><span className="hidden md:inline">Acting via Control Center{name ? ' as ' : ''}</span>{name ? <b className="font-semibold text-white">{name}</b> : <span className="md:hidden">via Control Center</span>}</span>
       </span>
       <a href={ctx.ccUrl} className="hidden shrink-0 rounded px-2 py-1 font-medium text-white hover:bg-white/10 sm:inline">Back to Control Center</a>
     </div>
