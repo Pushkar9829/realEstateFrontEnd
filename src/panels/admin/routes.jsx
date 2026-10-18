@@ -4,7 +4,6 @@ import { RequireAuth, RequirePermission, RequireRole } from '@/app/guards';
 const PanelShell = lazy(() => import('../PanelShell'));
 import { adminSalesRoutes } from './routes.sales';
 import { adminFinanceRoutes } from './routes.finance';
-import ControlBar from '@/shared/components/ControlBar';
 
 const Dashboard = lazy(() => import('./pages/dashboard/DashboardPage'));
 const Account = lazy(() => import('../shared/AccountPage'));
@@ -26,7 +25,7 @@ const perm = (key, el) => <RequirePermission permission={key}>{el}</RequirePermi
 
 export const adminRoutes = {
   path: '/admin',
-  element: <RequireAuth><RequireRole roles={['admin', 'superadmin', 'manager']}><ControlBar current="realestate" /><PanelShell panel="admin" base="/admin" /></RequireRole></RequireAuth>,
+  element: <RequireAuth><RequireRole roles={['admin', 'superadmin', 'manager']}><PanelShell panel="admin" base="/admin" controlBar="realestate" /></RequireRole></RequireAuth>,
   children: [
     { index: true, element: <Dashboard /> },
     { path: 'account', element: <Account /> },

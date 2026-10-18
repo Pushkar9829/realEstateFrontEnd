@@ -148,14 +148,21 @@ function useCrumb(sections, base) {
   }, [sections, pathname, base]);
 }
 
-export default function PanelLayout({ panel = 'admin', panelLabel, base, sections, user, onLogout, accountTo, notificationsTo, notificationsCount, banner }) {
+// topBar: the Control Center bar (40 px, sticky) when the session came from the
+// Control Center. It follows the skip link in tab order, and --cc-bar takes its
+// height off the sticky sidebar and header so nothing sits below the screen.
+export default function PanelLayout({ panel = 'admin', panelLabel, base, sections, user, onLogout, accountTo, notificationsTo, notificationsCount, banner, topBar, crumbSections }) {
   const t = useT();
   const [drawer, setDrawer] = useState(false);
-  const crumb = useCrumb(sections, base);
+  // crumbSections: the full menu, so a blocked screen (no-access page) still
+  // shows its own name instead of falling back to the dashboard.
+  const crumb = useCrumb(crumbSections || sections, base);
   return (
-    <div className="flex min-h-screen bg-surface-muted">
+    <div className="flex min-h-screen flex-col bg-surface-muted" style={{ '--cc-bar': topBar ? '2.5rem' : '0px' }}>
       <SkipLink />
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r bg-white lg:flex">
+      {topBar}
+      <div className="flex min-w-0 flex-1">
+      <aside className="sticky top-[var(--cc-bar)] hidden h-[calc(100vh-var(--cc-bar))] w-64 shrink-0 flex-col border-r bg-white lg:flex" data-testid="panel-sidebar">
         <div className="flex h-16 items-center gap-2 border-b px-5">
           <Logo />
         </div>
@@ -178,7 +185,7 @@ export default function PanelLayout({ panel = 'admin', panelLabel, base, section
         <NavList sections={sections} panel={panel} onNavigate={() => setDrawer(false)} />
       </Drawer>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b bg-white/90 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-[var(--cc-bar)] z-20 flex h-16 items-center justify-between gap-4 border-b bg-white/90 px-4 backdrop-blur sm:px-6">
           <div className="flex min-w-0 items-center gap-2">
             <button type="button" className="rounded-md p-2 text-ink-muted hover:bg-surface-sunken lg:hidden" onClick={() => setDrawer(true)} aria-label={t('panel.layout.openMenu')}><Menu className="h-5 w-5" /></button>
             <span className="lg:hidden"><Logo compact /></span>
@@ -207,6 +214,7 @@ export default function PanelLayout({ panel = 'admin', panelLabel, base, section
         </header>
         {banner}
         <main id="main" tabIndex={-1} className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:py-8"><Outlet /></main>
+      </div>
       </div>
     </div>
   );

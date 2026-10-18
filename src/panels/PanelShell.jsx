@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 import PanelLayout from '@/shared/layouts/PanelLayout';
+import ControlBar, { useControlContext } from '@/shared/components/ControlBar';
 import { PageSpinner, useToast } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
 import { useUnreadCount } from '@/modules/notifications/api';
@@ -31,20 +32,24 @@ function ListerBanner({ user }) {
   );
 }
 
-function Shell({ panel, base }) {
+const labelled = (nav, t) => nav.map((s) => ({
+  ...s,
+  id: s.title || 'main',
+  title: s.title ? t(`panel.section.${navKey(s.title)}`) : undefined,
+  items: s.items.map((it) => ({ ...it, label: t(`panel.nav.${navKey(it.to)}`) })),
+}));
+
+function Shell({ panel, base, controlBar }) {
   const auth = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const t = useT();
   const unread = useUnreadCount({ poll: true });
   const raw = visibleNav(NAVS[panel], auth);
-  const sections = useMemo(() => raw.map((s) => ({
-    ...s,
-    id: s.title || 'main',
-    title: s.title ? t(`panel.section.${navKey(s.title)}`) : undefined,
-    items: s.items.map((it) => ({ ...it, label: t(`panel.nav.${navKey(it.to)}`) })),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  })), [JSON.stringify(raw.map((s) => s.items.map((i) => i.to))), t]);
+  const sections = useMemo(() => labelled(raw, t), [JSON.stringify(raw.map((s) => s.items.map((i) => i.to))), t]);
+  const allSections = useMemo(() => labelled(NAVS[panel], t), [panel, t]);
+  const cc = useControlContext();
   const label = t(`panel.label.${panel}`);
   const onLogout = async () => {
     await auth.logout();
@@ -54,14 +59,17 @@ function Shell({ panel, base }) {
   return (
     <PanelLayout panel={panel} panelLabel={label} base={base} sections={sections} user={auth.user} onLogout={onLogout}
       accountTo={`${base}/account`} notificationsTo={`${base}/notifications`} notificationsCount={unread.data || 0}
-      banner={panel === 'lister' ? <ListerBanner user={auth.user} /> : null} />
+      banner={panel === 'lister' ? <ListerBanner user={auth.user} /> : null} crumbSections={allSections}
+      topBar={controlBar && cc ? <ControlBar current={controlBar} ctx={cc} /> : null} />
   );
 }
 
-export default function PanelShell({ panel, base }) {
+// controlBar: this platform's code; the Control bar shows only for sessions
+// handed off by the Control Center.
+export default function PanelShell({ panel, base, controlBar }) {
   // All panel dictionaries: label helpers in modules/* are shared between panels
   // (e.g. listing status on the lister and admin screens). One chunk each, per language.
   const ready = useNamespaces(PANEL_NAMESPACES);
   if (!ready) return <PageSpinner />;
-  return <Shell panel={panel} base={base} />;
+  return <Shell panel={panel} base={base} controlBar={controlBar} />;
 }
