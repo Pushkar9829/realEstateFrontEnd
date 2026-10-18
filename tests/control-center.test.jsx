@@ -10,7 +10,10 @@ import { AuthProvider } from '@/modules/auth/AuthProvider';
 import SsoCc from '@/modules/auth/SsoCc';
 import ControlBar from '@/shared/components/ControlBar';
 
-const CTX = { ccUrl: 'http://localhost:5185', env: 'demo', ccRole: 'owner', projects: [{ code: 'realestate', name: 'Real Estate' }, { code: 'ecommerce', name: 'E-commerce' }], ccUser: { name: 'Demo Owner', email: 'owner@demo.local' } };
+const CURRENT = 'realestate'; // this platform
+const NAMES = { realestate: 'Real Estate', ecommerce: 'E-commerce', lms: 'LMS', hub: 'Growth Hub' };
+const OTHER = CURRENT === 'ecommerce' ? 'lms' : 'ecommerce';
+const CTX = { ccUrl: 'http://localhost:5185', env: 'demo', ccRole: 'owner', projects: [CURRENT, OTHER].map((code) => ({ code, name: NAMES[code] })), ccUser: { name: 'Demo Owner', email: 'owner@demo.local' } };
 const ME = { _id: 'u1', name: 'Demo Owner (Control Center)', email: 'cc-x@control-center.invalid', role: 'admin', status: 'active', permissions: [] };
 
 function renderAt(path, routes) {
@@ -55,15 +58,15 @@ describe('[CC] Control Center single sign-on', () => {
   });
 
   test('the Control bar shows only for Control Center sessions, with switch links', async () => {
-    const { unmount } = render(<ControlBar current="realestate" />);
+    const { unmount } = render(<ControlBar current={CURRENT} />);
     expect(screen.queryByTestId('control-bar')).toBeNull();
     unmount();
     controlCenter.set(CTX);
-    render(<ControlBar current="realestate" />);
+    render(<ControlBar current={CURRENT} />);
     expect(screen.getByTestId('control-bar')).toHaveTextContent('Acting via Control Center as Demo Owner');
     expect(screen.getByText('Demo')).toBeInTheDocument();
-    screen.getByRole('button', { name: /Real Estate/ }).click();
-    await waitFor(() => expect(screen.getByRole('menuitem', { name: /E-commerce/ })).toHaveAttribute('href', 'http://localhost:5185/go/ecommerce'));
+    screen.getByRole('button', { name: new RegExp(NAMES[CURRENT]) }).click();
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: new RegExp(NAMES[OTHER]) })).toHaveAttribute('href', `http://localhost:5185/go/${OTHER}`));
     session.clear('logout');
     expect(controlCenter.get()).toBeNull();
   });
