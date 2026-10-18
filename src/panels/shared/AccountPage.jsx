@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '@/shared/ui';
-import { AccountSettings, useAuth } from '@/modules/auth';
+import { useAuth } from '@/modules/auth';
+import AccountSettings from '@/modules/auth/components/AccountSettings';
 import AgentAvailability from './AgentAvailability';
 
 // Account and security page, mounted in every panel (and /account for buyers).

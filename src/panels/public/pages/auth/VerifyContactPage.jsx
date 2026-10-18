@@ -34,7 +34,7 @@ function Channel({ channel, label, target, done, token, onDone }) {
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-200"><Icon className="h-5 w-5" aria-hidden /></span>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-navy-900">{label}</p>
-            {target && <p className="truncate text-xs text-navy-400">{target}</p>}
+            {target && <p className="truncate text-xs text-navy-500">{target}</p>}
           </div>
         </div>
         {done && <Badge tone="success" icon={CheckCircle2}>{t('auth.verify.verified')}</Badge>}

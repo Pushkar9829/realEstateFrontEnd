@@ -4,7 +4,9 @@ import { lazy, Suspense, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { KeyRound, Mail, MessageSquare, Smartphone } from 'lucide-react';
 import { Alert, Button, Input, OtpInput, PasswordInput } from '@/shared/ui';
-import { authApi, loginSchema, useApiForm, useAuth } from '@/modules/auth';
+import { authApi, useAuth } from '@/modules/auth';
+import { loginSchema } from '@/modules/auth/schemas';
+import { useApiForm } from '@/modules/auth/useApiForm';
 import { useT } from '@/shared/i18n';
 import { AuthCard, AuthTitle, authLink } from './AuthCard';
 
@@ -105,7 +107,7 @@ function CodeStep({ challenge, setChallenge, onBack }) {
       <Button type="submit" variant="gold" block size="lg" className="!rounded-full font-semibold" loading={busy}>{t('auth.twoFa.verifySignIn')}</Button>
 
       <div className="space-y-3 border-t border-navy-900/10 pt-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-400">{t('auth.twoFa.otherWays')}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-500">{t('auth.twoFa.otherWays')}</p>
         <div className="flex flex-wrap gap-2">
           {(challenge.methods || []).filter((m) => m !== method).map((m) => {
             const M = METHOD[m];

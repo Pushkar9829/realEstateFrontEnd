@@ -1,9 +1,7 @@
 // Lister panel (/lister): owners, builders and landlords. API: /api/lister.
 import { lazy } from 'react';
 import { RequireAuth, RequireBuilder, RequireRole } from '@/app/guards';
-import PanelShell from '../PanelShell';
-import { LISTER_NAV } from '../panelNav';
-import { placeholderRoutes } from '../placeholderRoutes';
+const PanelShell = lazy(() => import('../PanelShell'));
 import { listerExtraRoutes } from './routes.extra';
 
 const Dashboard = lazy(() => import('./pages/dashboard/DashboardPage'));
@@ -17,7 +15,7 @@ const ProjectEditor = lazy(() => import('./pages/projects/ProjectEditorPage'));
 
 export const listerRoutes = {
   path: '/lister',
-  element: <RequireAuth><RequireRole roles={['lister']}><PanelShell panel="lister" nav={LISTER_NAV} label="Lister panel" base="/lister" /></RequireRole></RequireAuth>,
+  element: <RequireAuth><RequireRole roles={['lister']}><PanelShell panel="lister" base="/lister" /></RequireRole></RequireAuth>,
   children: [
     { index: true, element: <Dashboard /> },
     { path: 'account', element: <Account /> },
@@ -29,6 +27,5 @@ export const listerRoutes = {
     { path: 'agreements', element: <Agreements /> },
     { path: 'agreements/:id', element: <Agreements /> },
     ...listerExtraRoutes,
-    ...placeholderRoutes(LISTER_NAV, '/lister'),
   ],
 };

@@ -4,7 +4,10 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Building2, Home, KeyRound, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Alert, Button, Checkbox, Input, PasswordInput } from '@/shared/ui';
-import { authApi, PasswordStrength, registerSchema, useApiForm } from '@/modules/auth';
+import { authApi } from '@/modules/auth';
+import { registerSchema } from '@/modules/auth/schemas';
+import { useApiForm } from '@/modules/auth/useApiForm';
+import PasswordStrength from '@/modules/auth/components/PasswordStrength';
 import { usePublicSettings } from '@/modules/search/api';
 import { captureReferral, referralCode } from '@/modules/search/prefs';
 import { useT } from '@/shared/i18n';
@@ -23,9 +26,9 @@ function Choice({ active, onClick, icon: Icon, title, hint }) {
     <button type="button" onClick={onClick} aria-pressed={active}
       className={cn('flex min-w-0 flex-1 flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all',
         active ? 'border-navy-900 bg-navy-900/[0.03] ring-1 ring-navy-900' : 'border-navy-900/10 bg-white hover:border-navy-900/30')}>
-      <Icon className={cn('h-5 w-5', active ? 'text-gold-600' : 'text-navy-400')} aria-hidden />
+      <Icon className={cn('h-5 w-5', active ? 'text-gold-700' : 'text-navy-500')} aria-hidden />
       <span className="text-sm font-semibold text-navy-900">{title}</span>
-      {hint && <span className="text-xs leading-snug text-navy-400">{hint}</span>}
+      {hint && <span className="text-xs leading-snug text-navy-500">{hint}</span>}
     </button>
   );
 }

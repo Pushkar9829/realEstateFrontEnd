@@ -4,8 +4,9 @@
 // No provider is required (English by default). <I18nProvider languages={...}>
 // applies the `i18n.languages` setting from GET /api/settings/public.
 // Only fixed UI text is translated; listing titles and other data stay as typed.
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
-import { getAllowed, getLang, setAllowed, setLang, subscribe, LANG_LABELS, SUPPORTED, DEFAULT_LANG } from './store';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { getAllowed, getLang, getVersion, setAllowed, setLang, subscribe, requireNamespaces, LANG_LABELS, SUPPORTED, DEFAULT_LANG } from './store';
+import { isLoaded } from './locales';
 import { translate } from './translate';
 
 export { LANG_LABELS, SUPPORTED, DEFAULT_LANG, setLang, getLang, translate };
@@ -20,7 +21,23 @@ export function useLang() {
 
 export function useT() {
   const lang = useSyncExternalStore(subscribe, getLang, getLang);
-  return useCallback((key, vars) => translate(lang, key, vars), [lang]);
+  const version = useSyncExternalStore(subscribe, getVersion, getVersion);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useCallback((key, vars) => translate(lang, key, vars), [lang, version]);
+}
+
+// Loads extra namespaces (the panel dictionaries) for the current language and
+// keeps them loaded on language changes. Returns true once they are ready.
+export function useNamespaces(namespaces) {
+  const key = namespaces.join(',');
+  const ready = () => key.split(',').every((ns) => isLoaded(getLang(), ns) && isLoaded('en', ns));
+  const [ok, setOk] = useState(ready);
+  useEffect(() => {
+    let live = true;
+    requireNamespaces(key.split(',')).then(() => { if (live) setOk(true); }, () => { if (live) setOk(true); });
+    return () => { live = false; };
+  }, [key]);
+  return ok;
 }
 
 // Non-hook form for code outside components (e.g. zod messages built at call time).

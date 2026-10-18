@@ -33,10 +33,10 @@ export function AuthSteps({ steps, current }) {
         return (
           <li key={label} className="flex min-w-0 items-center gap-2" aria-current={active ? 'step' : undefined}>
             <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-semibold',
-              active ? 'bg-navy-900 text-gold-300' : done ? 'bg-gold-100 text-gold-800' : 'bg-sand-100 text-navy-400 ring-1 ring-inset ring-navy-900/10')}>
+              active ? 'bg-navy-900 text-gold-300' : done ? 'bg-gold-100 text-gold-800' : 'bg-sand-100 text-navy-500 ring-1 ring-inset ring-navy-900/10')}>
               {done ? <Check className="h-3.5 w-3.5" aria-hidden /> : i + 1}
             </span>
-            <span className={cn('truncate', active ? 'font-semibold text-navy-900' : 'text-navy-400')}>{label}</span>
+            <span className={cn('truncate', active ? 'font-semibold text-navy-900' : 'text-navy-500')}>{label}</span>
             {i < steps.length - 1 && <span className="h-px w-4 shrink-0 bg-navy-900/15 sm:w-6" aria-hidden />}
           </li>
         );

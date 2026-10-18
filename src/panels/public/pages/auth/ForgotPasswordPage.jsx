@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Alert, Button, Input, OtpInput, PasswordInput } from '@/shared/ui';
-import { authApi, forgotSchema, resetSchema, useApiForm } from '@/modules/auth';
+import { authApi } from '@/modules/auth';
+import { forgotSchema, resetSchema } from '@/modules/auth/schemas';
+import { useApiForm } from '@/modules/auth/useApiForm';
 import { useToast } from '@/shared/ui';
 import { useT } from '@/shared/i18n';
 import { AuthCard, AuthTitle, authLink } from './AuthCard';

@@ -1,43 +1,64 @@
 // Connects the module-agnostic PanelLayout to the signed-in user, shows the
 // notification bell with the unread count in every panel (RE-S-AGT-15) and
-// account banners (lister KYC, suspended account).
+// account banners (lister KYC, suspended account). Loaded lazily with the
+// panel, together with its menu (icons) and its dictionaries (panel + lister /
+// agent / admin), so none of that is in the public site's first download.
+import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 import PanelLayout from '@/shared/layouts/PanelLayout';
-import { useToast } from '@/shared/ui';
+import { PageSpinner, useToast } from '@/shared/ui';
 import { useAuth } from '@/modules/auth';
 import { useUnreadCount } from '@/modules/notifications/api';
-import { visibleNav } from './panelNav';
+import { useNamespaces, useT } from '@/shared/i18n';
+import { ADMIN_NAV, AGENT_NAV, LISTER_NAV, navKey, visibleNav } from './panelNav';
+
+const NAVS = { lister: LISTER_NAV, agent: AGENT_NAV, admin: ADMIN_NAV };
 
 function ListerBanner({ user }) {
+  const t = useT();
   const kyc = user.kyc && user.kyc.status;
   if (kyc === 'verified') return null;
-  const text = kyc === 'submitted' || kyc === 'under_review'
-    ? 'Your verification is under review (usually within 48 hours). You can prepare listings meanwhile.'
-    : kyc === 'resubmission_required' ? 'Your verification needs changes. Please update and resubmit it.'
-      : 'Complete your verification (KYC) so your listings can go live.';
+  const text = kyc === 'submitted' || kyc === 'under_review' ? t('panel.kycBanner.review')
+    : kyc === 'resubmission_required' ? t('panel.kycBanner.changes') : t('panel.kycBanner.start');
   return (
-    <div className="flex items-center gap-3 border-b border-warning-100 bg-warning-50 px-4 py-2.5 text-sm text-warning-700 sm:px-6">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-warning-100 bg-warning-50 px-4 py-2.5 text-sm text-warning-700 sm:px-6">
       <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden />
-      <span className="flex-1">{text}</span>
-      <Link to="/lister/verification" className="whitespace-nowrap font-semibold underline-offset-4 hover:underline">Open verification</Link>
+      <span className="min-w-0 flex-1">{text}</span>
+      <Link to="/lister/verification" className="whitespace-nowrap font-semibold underline underline-offset-4">{t('panel.kycBanner.open')}</Link>
     </div>
   );
 }
 
-export default function PanelShell({ nav, label, base, panel }) {
+function Shell({ panel, base }) {
   const auth = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const t = useT();
   const unread = useUnreadCount({ poll: true });
+  const raw = visibleNav(NAVS[panel], auth);
+  const sections = useMemo(() => raw.map((s) => ({
+    ...s,
+    id: s.title || 'main',
+    title: s.title ? t(`panel.section.${navKey(s.title)}`) : undefined,
+    items: s.items.map((it) => ({ ...it, label: t(`panel.nav.${navKey(it.to)}`) })),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [JSON.stringify(raw.map((s) => s.items.map((i) => i.to))), t]);
+  const label = t(`panel.label.${panel}`);
   const onLogout = async () => {
     await auth.logout();
-    toast.info('You have been logged out');
+    toast.info(t('panel.layout.loggedOut'));
     navigate('/login', { replace: true });
   };
   return (
-    <PanelLayout panel={panel} panelLabel={label} base={base} sections={visibleNav(nav, auth)} user={auth.user} onLogout={onLogout}
+    <PanelLayout panel={panel} panelLabel={label} base={base} sections={sections} user={auth.user} onLogout={onLogout}
       accountTo={`${base}/account`} notificationsTo={`${base}/notifications`} notificationsCount={unread.data || 0}
       banner={panel === 'lister' ? <ListerBanner user={auth.user} /> : null} />
   );
+}
+
+export default function PanelShell({ panel, base }) {
+  const ready = useNamespaces(['panel', panel]);
+  if (!ready) return <PageSpinner />;
+  return <Shell panel={panel} base={base} />;
 }

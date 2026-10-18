@@ -1,9 +1,7 @@
 // Admin panel (/admin): super admin, admin staff and managers. API: /api/admin.
 import { lazy } from 'react';
 import { RequireAuth, RequirePermission, RequireRole } from '@/app/guards';
-import PanelShell from '../PanelShell';
-import { ADMIN_NAV } from '../panelNav';
-import { placeholderRoutes } from '../placeholderRoutes';
+const PanelShell = lazy(() => import('../PanelShell'));
 import { adminSalesRoutes } from './routes.sales';
 import { adminFinanceRoutes } from './routes.finance';
 import ControlBar from '@/shared/components/ControlBar';
@@ -28,7 +26,7 @@ const perm = (key, el) => <RequirePermission permission={key}>{el}</RequirePermi
 
 export const adminRoutes = {
   path: '/admin',
-  element: <RequireAuth><RequireRole roles={['admin', 'superadmin', 'manager']}><ControlBar current="realestate" /><PanelShell panel="admin" nav={ADMIN_NAV} label="Admin panel" base="/admin" /></RequireRole></RequireAuth>,
+  element: <RequireAuth><RequireRole roles={['admin', 'superadmin', 'manager']}><ControlBar current="realestate" /><PanelShell panel="admin" base="/admin" /></RequireRole></RequireAuth>,
   children: [
     { index: true, element: <Dashboard /> },
     { path: 'account', element: <Account /> },
@@ -49,6 +47,5 @@ export const adminRoutes = {
     { path: 'agreements/:id', element: perm('agreements.view', <Registry />) },
     ...adminSalesRoutes,
     ...adminFinanceRoutes,
-    ...placeholderRoutes(ADMIN_NAV, '/admin'),
   ],
 };

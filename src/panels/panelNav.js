@@ -115,3 +115,7 @@ export function visibleNav(nav, { hasPermission, user }) {
 // Placeholder routes for every nav item that is not built yet.
 export const placeholders = (nav, base) => nav.flatMap((s) => s.items).filter((it) => it.phase && it.to !== base)
   .map((it) => ({ path: it.to.slice(base.length + 1), title: it.label, module: it.module, phase: it.phase, perm: it.perm, builder: it.builder }));
+
+// Dictionary key for a nav item path or a section title:
+// '/lister/listings' -> 'listerListings', 'Content and settings' -> 'contentAndSettings'.
+export const navKey = (s) => String(s).replace(/^\//, '').toLowerCase().replace(/[^a-z0-9]+(.)/g, (_, c) => c.toUpperCase()).replace(/[^a-zA-Z0-9]/g, '');

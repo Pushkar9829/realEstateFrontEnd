@@ -2,7 +2,9 @@
 // logout until the temporary password is replaced.
 import { useNavigate } from 'react-router-dom';
 import { Alert, Button, PasswordInput } from '@/shared/ui';
-import { authApi, changePasswordSchema, useApiForm, useAuth } from '@/modules/auth';
+import { authApi, useAuth } from '@/modules/auth';
+import { changePasswordSchema } from '@/modules/auth/schemas';
+import { useApiForm } from '@/modules/auth/useApiForm';
 import { useToast } from '@/shared/ui';
 import { useT } from '@/shared/i18n';
 import { AuthCard, AuthTitle } from './AuthCard';
