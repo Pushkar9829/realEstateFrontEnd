@@ -233,7 +233,7 @@ export default function HomePage() {
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-200"><s.icon className="h-5 w-5" aria-hidden /></span>
               <span>
                 <span className="block text-sm font-semibold text-navy-900">{t(`home.strip.${s.key}.title`)}</span>
-                <span className="block text-xs text-navy-400">{t(`home.strip.${s.key}.text`)}</span>
+                <span className="block text-xs text-navy-500">{t(`home.strip.${s.key}.text`)}</span>
               </span>
             </li>
           ))}
@@ -285,8 +285,8 @@ export default function HomePage() {
               <img src={IMG('kitchen-wood')} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
             </div>
             <div className="absolute left-4 top-4 rounded-2xl bg-white/95 px-4 py-3 shadow-card backdrop-blur sm:left-6 sm:top-6">
-              <p className="flex items-center gap-2 text-sm font-semibold text-navy-900"><ShieldCheck className="h-5 w-5 text-gold-600" aria-hidden />{t('home.strip.kyc.title')}</p>
-              <p className="text-xs text-navy-400">{t('home.strip.kyc.text')}</p>
+              <p className="flex items-center gap-2 text-sm font-semibold text-navy-900"><ShieldCheck className="h-5 w-5 text-gold-700" aria-hidden />{t('home.strip.kyc.title')}</p>
+              <p className="text-xs text-navy-500">{t('home.strip.kyc.text')}</p>
             </div>
           </div>
           <div>
@@ -334,7 +334,7 @@ export default function HomePage() {
                   <div className="mt-6 flex flex-wrap gap-2">
                     {cities.slice(0, 6).map((c) => (
                       <Link key={c.code} to={`/city/${c.code}`} className="rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-navy-900 transition hover:bg-gold-300">
-                        {c.name}{c.listings ? <span className="ml-2 font-normal text-navy-400">{c.listings}</span> : null}
+                        {c.name}{c.listings ? <span className="ml-2 font-normal text-navy-500">{c.listings}</span> : null}
                       </Link>
                     ))}
                   </div>
@@ -349,13 +349,13 @@ export default function HomePage() {
                     <Link to={cityCode(l.city) ? `/search?purpose=sale&city=${cityCode(l.city)}&localities=${l.id}` : `/search?q=${encodeURIComponent(l.name)}`}
                       className="group flex items-center justify-between gap-3 border-b border-navy-900/10 py-4 transition-colors hover:border-gold-500">
                       <span className="flex items-center gap-3">
-                        <MapPin className="h-4 w-4 text-gold-600" aria-hidden />
+                        <MapPin className="h-4 w-4 text-gold-700" aria-hidden />
                         <span>
                           <span className="block font-medium text-navy-900 group-hover:text-gold-700">{l.name}</span>
-                          <span className="block text-xs text-navy-400">{l.city} · {t('marketing.places.listings', { n: l.listings })}</span>
+                          <span className="block text-xs text-navy-500">{l.city} · {t('marketing.places.listings', { n: l.listings })}</span>
                         </span>
                       </span>
-                      <ArrowUpRight className="h-4 w-4 text-navy-300 transition group-hover:text-gold-600" aria-hidden />
+                      <ArrowUpRight className="h-4 w-4 text-navy-300 transition group-hover:text-gold-700" aria-hidden />
                     </Link>
                   </li>
                 ))}

@@ -17,6 +17,7 @@ import { CONFIG_AVAILABILITY, useProjectSearch, usePublicProject, usePublicSetti
 import { ENQUIRY_TYPES, typeForAction } from '@/modules/leads/publicApi';
 import Gallery from '../../components/Gallery';
 import EnquiryModal from '../../components/EnquiryModal';
+import BrochureButton from '../../components/BrochureButton';
 import { ApproxMap } from '../../components/PublicMap';
 import { DetailSkeleton, ErrorState, NotAvailable, hotlineHref } from '../../components/States';
 import { AmenityGrid, Block, EnquiryCard, Eyebrow, Landmarks, MobileActionBar, PlaceLine, ReraBlock, mobilePrimaryCls, shareLink, useShareCode } from '../../components/DetailBits';
@@ -83,7 +84,7 @@ export default function ProjectPage() {
   const radius = settings.data && settings.data.locationPrecision === 'exact' ? 0 : 500;
   const status = p.status === 'sold_out' ? t('property.availability.sold_out') : p.possession && p.possession.status === 'ready' ? t('property.possession.ready') : t('property.possession.under_construction');
   const similar = ((others.data && others.data.items) || []).filter((x) => x.slug !== p.slug).slice(0, 3);
-  const target = projectId && { kind: 'project', id: projectId, title: p.name, listingNo: p.projectNo, subtitle: [p.location.locality, p.location.city].filter(Boolean).join(', '), cover: p.media.photos[0] && p.media.photos[0].url, priceText: range ? `${shortRupees(range[0])} - ${shortRupees(range[1])}` : undefined, configurations: p.configurations, slug: p.slug || slug, city: p.location.city };
+  const target = projectId && { kind: 'project', id: projectId, title: p.name, listingNo: p.projectNo, subtitle: [p.location.locality, p.location.city].filter(Boolean).join(', '), cover: p.media.photos[0] && p.media.photos[0].url, priceText: range ? `${shortRupees(range[0])} - ${shortRupees(range[1])}` : undefined, configurations: p.configurations, slug: p.slug || slug, city: p.location.city, brochure: p.media.brochure ? { kind: 'project', slug: p.slug || slug } : null };
   const cover = p.media.photos[0];
   const reraNo = p.rera && p.rera.registrations && p.rera.registrations[0] && p.rera.registrations[0].number;
   const place = [p.location.locality, p.location.city];
@@ -138,17 +139,17 @@ export default function ProjectPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-display text-xl font-medium text-navy-900">{c.name || `${c.bhk} BHK`}</p>
-                        {c.type && <p className="text-xs text-navy-400">{titleCase(c.type)}</p>}
+                        {c.type && <p className="text-xs text-navy-500">{titleCase(c.type)}</p>}
                       </div>
                       <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset', BAND[aKey].pill)}>{t(`property.availability.${aKey}`)}</span>
                     </div>
                     <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-navy-900/5 pt-4">
                       <div>
-                        <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-400">{t('property.project.colCarpet')}</dt>
-                        <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-navy-800"><Maximize2 className="h-3.5 w-3.5 text-gold-600" aria-hidden />{t('property.project.sqft', { area: c.carpetMin === c.carpetMax ? c.carpetMin : `${c.carpetMin} - ${c.carpetMax}` })}</dd>
+                        <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-500">{t('property.project.colCarpet')}</dt>
+                        <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-navy-800"><Maximize2 className="h-3.5 w-3.5 text-gold-700" aria-hidden />{t('property.project.sqft', { area: c.carpetMin === c.carpetMax ? c.carpetMin : `${c.carpetMin} - ${c.carpetMax}` })}</dd>
                       </div>
                       <div>
-                        <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-400">{t('property.project.colPrice')}</dt>
+                        <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-500">{t('property.project.colPrice')}</dt>
                         <dd className="mt-0.5 font-display text-lg font-semibold text-navy-900">{shortRupees(c.priceMin)}{c.priceMax !== c.priceMin && ` - ${shortRupees(c.priceMax)}`}</dd>
                       </div>
                     </dl>
@@ -180,7 +181,7 @@ export default function ProjectPage() {
                   );
                 })}
               </ul>
-              <p className="mt-5 text-xs text-navy-400">{t('detail.project.availabilityNote')}</p>
+              <p className="mt-5 text-xs text-navy-500">{t('detail.project.availabilityNote')}</p>
             </Block>
           )}
 
@@ -213,7 +214,7 @@ export default function ProjectPage() {
                 <div className="flex flex-col gap-4 rounded-2xl bg-sand-50 p-5 ring-1 ring-inset ring-navy-900/5 sm:flex-row sm:items-center">
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-gold-700 ring-1 ring-gold-300"><FileText className="h-5 w-5" aria-hidden /></span>
                   <p className="flex-1 text-sm leading-relaxed text-navy-600">{t('property.project.brochure', { rera: reraNo ? t('property.project.brochureRera', { number: reraNo }) : '' })}</p>
-                  {projectId && <Button variant="gold" onClick={() => openAction('contact')} className="self-start rounded-full px-5 font-semibold sm:self-auto">{t('property.enquire')}</Button>}
+                  <BrochureButton kind="project" slug={p.slug || slug} onEnquire={projectId ? () => openAction('contact') : undefined} variant="gold" className="self-start rounded-full px-5 font-semibold sm:self-auto" />
                 </div>
               )}
               {floorPlans.length > 0 && (

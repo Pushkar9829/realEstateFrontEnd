@@ -35,10 +35,10 @@ export default function ProjectsPage() {
               <option value="">{t('common.allCities')}</option>
               {(cities.data || []).map((c) => <option key={c.code} value={c.name}>{c.name}</option>)}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" aria-hidden />
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-500" aria-hidden />
           </span>
           <form onSubmit={(e) => { e.preventDefault(); set('q', new FormData(e.currentTarget).get('q')); }} className="relative">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" aria-hidden />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-500" aria-hidden />
             <input name="q" defaultValue={q} key={q} placeholder={t('property.projects.projectName')} aria-label={t('property.projects.projectName')} className={`${FIELD} h-12 pl-10 pr-4`} />
           </form>
         </div>

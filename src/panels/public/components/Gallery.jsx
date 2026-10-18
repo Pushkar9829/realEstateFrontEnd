@@ -33,7 +33,7 @@ function Lightbox({ photos, index, onIndex, onClose }) {
         <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <span className="min-w-0 truncate text-sm text-navy-200">
             <span className="font-display text-lg font-medium text-white">{index + 1}</span>
-            <span className="mx-1 text-navy-400">/</span>{photos.length}
+            <span className="mx-1 text-navy-500">/</span>{photos.length}
             {p.caption ? <span className="ml-3 text-navy-200">{p.caption}</span> : null}
           </span>
           <button type="button" onClick={onClose} className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-400" aria-label={t('property.gallery.close')}><X className="h-5 w-5" /></button>

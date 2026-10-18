@@ -75,12 +75,12 @@ export default function SearchPage() {
               <h1 id="results-h" className="mt-3 font-display text-3xl font-medium leading-tight tracking-tight text-navy-900 sm:text-4xl">{heading}</h1>
               <p className="mt-2 text-sm text-navy-500" aria-live="polite">
                 {countText}
-                {meta.facets && meta.facets.verified > 0 && <span className="text-navy-400">{` · ${t('search.list.verifiedFacet', { n: meta.facets.verified })}`}</span>}
+                {meta.facets && meta.facets.verified > 0 && <span className="text-navy-500">{` · ${t('search.list.verifiedFacet', { n: meta.facets.verified })}`}</span>}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => setDrawer(true)} className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm font-medium text-navy-900 ring-1 ring-inset ring-navy-900/15 transition hover:ring-navy-900/40 lg:hidden">
-                <SlidersHorizontal className="h-4 w-4 text-gold-600" aria-hidden />{t('search.list.filters')}
+                <SlidersHorizontal className="h-4 w-4 text-gold-700" aria-hidden />{t('search.list.filters')}
               </button>
               <div className="inline-flex rounded-full bg-sand-100 p-1 ring-1 ring-navy-900/5" role="group" aria-label={t('search.list.view')}>
                 <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-navy-900 px-4 text-sm font-medium text-white shadow-sm"><List className="h-4 w-4" aria-hidden />{t('search.list.list')}</span>
@@ -95,7 +95,7 @@ export default function SearchPage() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 pt-8 sm:px-6 lg:grid-cols-[300px_1fr]">
         <aside className="hidden lg:block" aria-label={t('search.list.filters')}>
           <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl bg-white p-5 shadow-card ring-1 ring-navy-900/5">
-            <p className="mb-5 flex items-center gap-2 font-display text-lg font-medium text-navy-900"><SlidersHorizontal className="h-4 w-4 text-gold-600" aria-hidden />{t('discover.search.refine')}</p>
+            <p className="mb-5 flex items-center gap-2 font-display text-lg font-medium text-navy-900"><SlidersHorizontal className="h-4 w-4 text-gold-700" aria-hidden />{t('discover.search.refine')}</p>
             <FilterPanel filters={filters} onChange={update} />
           </div>
         </aside>
@@ -111,7 +111,7 @@ export default function SearchPage() {
                   className="h-10 max-w-full appearance-none rounded-full border-0 bg-white pl-4 pr-9 text-sm font-medium text-navy-900 ring-1 ring-inset ring-navy-900/15 transition hover:ring-navy-900/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
                   {SORTS.map((s) => <option key={s.value} value={s.value}>{t(`search.sort.${s.value}`)}</option>)}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" aria-hidden />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-500" aria-hidden />
               </span>
             </div>
           </div>

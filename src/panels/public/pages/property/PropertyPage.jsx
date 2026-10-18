@@ -20,6 +20,7 @@ import VerificationBadges from '../../components/VerificationBadges';
 import ShortlistButton from '../../components/ShortlistButton';
 import PropertyCard from '../../components/PropertyCard';
 import EnquiryModal from '../../components/EnquiryModal';
+import BrochureButton from '../../components/BrochureButton';
 import { ReportModal } from '../../components/SmallModals';
 import { ApproxMap } from '../../components/PublicMap';
 import { EmiMini } from '../../components/Calculators';
@@ -94,13 +95,13 @@ function LocalitySnapshot({ p }) {
     <Block title={t('property.locality.title', { name: q.data.locality.name })} eyebrow={t('detail.sections.market')}>
       <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-sand-50 p-5 ring-1 ring-inset ring-navy-900/5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-navy-400">{p.purpose === 'rent' ? t('property.locality.avgRent') : t('property.locality.avgPrice')}</p>
-          <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-navy-900">{rupees(value)}<span className="font-sans text-sm font-normal text-navy-400">{p.purpose === 'rent' ? '' : t('property.locality.perSqft')}</span></p>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-navy-500">{p.purpose === 'rent' ? t('property.locality.avgRent') : t('property.locality.avgPrice')}</p>
+          <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-navy-900">{rupees(value)}<span className="font-sans text-sm font-normal text-navy-500">{p.purpose === 'rent' ? '' : t('property.locality.perSqft')}</span></p>
           <p className="mt-1 text-xs text-navy-500">{t('property.locality.change')} <ChangePill pct={change} /></p>
         </div>
         <Button variant="outline" to={`/city/${q.data.city.code}/${q.data.locality.code}`} iconRight={ArrowRight} className="rounded-full">{t('property.locality.trends')}</Button>
       </div>
-      <p className="mt-3 text-xs text-navy-400">{t('property.locality.note')}</p>
+      <p className="mt-3 text-xs text-navy-500">{t('property.locality.note')}</p>
     </Block>
   );
 }
@@ -208,7 +209,7 @@ export default function PropertyPage() {
   const isRent = p.purpose === 'rent';
   const main = isRent ? price.monthlyRent : price.amount;
   const calc = { ...PUBLIC_DEFAULTS.calc, ...((settings.data && settings.data.calc) || {}) };
-  const target = { kind: 'property', id: p.id, title: p.title, listingNo: p.listingNo, subtitle: [p.locality, p.city].filter(Boolean).join(', '), cover: p.cover && p.cover.url, priceText: `${shortRupees(main)}${isRent ? t('property.perMonth') : ''}`, purpose: p.purpose, city: p.city };
+  const target = { kind: 'property', id: p.id, title: p.title, listingNo: p.listingNo, subtitle: [p.locality, p.city].filter(Boolean).join(', '), cover: p.cover && p.cover.url, priceText: `${shortRupees(main)}${isRent ? t('property.perMonth') : ''}`, purpose: p.purpose, city: p.city, brochure: p.media.hasBrochure ? { kind: 'property', slug } : null };
   const hotline = p.hotline || (settings.data && settings.data.hotline) || env.hotline;
   const floorName = d.floor === 0 ? t('property.facts.ground') : d.floor;
   const possessionName = d.possession ? enumLabel(t, 'possession', d.possession.status) : '';
@@ -236,11 +237,12 @@ export default function PropertyPage() {
   return (
     <div className="pb-28 lg:pb-0">
       <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:pt-8">
-        <nav className="mb-4 flex flex-wrap items-center gap-x-1.5 text-xs text-navy-400" aria-label={t('property.breadcrumb')}>
+        <nav className="mb-4 flex flex-wrap items-center gap-x-1.5 text-xs text-navy-500" aria-label={t('property.breadcrumb')}>
           <Link to="/" className="transition-colors hover:text-gold-700">{t('property.home')}</Link><span aria-hidden>/</span><Link to={browseHref} className="transition-colors hover:text-gold-700">{p.city}</Link>
           {p.locality && <><span aria-hidden>/</span><Link to={`/city/${slugify(p.city)}/${slugify(p.locality)}`} className="transition-colors hover:text-gold-700">{p.locality}</Link></>}<span aria-hidden>/</span><span className="font-medium text-navy-700">{p.listingNo}</span>
         </nav>
         <MediaTabs p={p} />
+        {p.media.hasBrochure && <div className="mt-3"><BrochureButton kind="property" slug={slug} onEnquire={() => openAction('contact')} /></div>}
       </div>
 
       <div className="mx-auto mt-8 grid max-w-7xl gap-8 px-4 sm:px-6 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10">
@@ -271,7 +273,7 @@ export default function PropertyPage() {
             <div className="mt-6 rounded-3xl bg-white p-5 shadow-card ring-1 ring-navy-900/5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-700">{isRent ? t('detail.price.rent') : t('detail.price.asking')}</p>
               <div className="mt-1 flex flex-wrap items-end gap-x-6 gap-y-2">
-                <p className="font-display text-4xl font-semibold tracking-tight text-navy-900 sm:text-5xl">{shortRupees(main)}{isRent && <span className="font-sans text-base font-normal text-navy-400">{t('property.perMonth')}</span>}</p>
+                <p className="font-display text-4xl font-semibold tracking-tight text-navy-900 sm:text-5xl">{shortRupees(main)}{isRent && <span className="font-sans text-base font-normal text-navy-500">{t('property.perMonth')}</span>}</p>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pb-1.5 text-sm text-navy-500">
                   {!isRent && price.pricePerSqft && <span>{t('property.price.perSqft', { price: rupees(price.pricePerSqft) })}</span>}
                   {isRent && price.deposit && <span>{t('property.price.deposit', { amount: rupees(price.deposit) })}</span>}
@@ -281,7 +283,7 @@ export default function PropertyPage() {
                 </div>
               </div>
               <VerificationBadges badges={p.badges} size="md" className="mt-5" />
-              <p className="mt-4 border-t border-navy-900/5 pt-4 text-xs text-navy-400">{t('property.info.listingId')} <span className="font-semibold text-navy-800">{p.listingNo}</span> · {t('property.info.posted', { date: date(p.postedAt) })} · {t('property.info.confirmed', { date: date(p.availabilityConfirmedAt) })}{p.stats && p.stats.views ? ` · ${t('property.info.views', { n: p.stats.views.toLocaleString('en-IN') })}` : ''}</p>
+              <p className="mt-4 border-t border-navy-900/5 pt-4 text-xs text-navy-500">{t('property.info.listingId')} <span className="font-semibold text-navy-800">{p.listingNo}</span> · {t('property.info.posted', { date: date(p.postedAt) })} · {t('property.info.confirmed', { date: date(p.availabilityConfirmedAt) })}{p.stats && p.stats.views ? ` · ${t('property.info.views', { n: p.stats.views.toLocaleString('en-IN') })}` : ''}</p>
             </div>
           </header>
 
@@ -311,7 +313,7 @@ export default function PropertyPage() {
 
           <Block title={t('property.location')} eyebrow={t('detail.sections.neighbourhood')}>
             <PlaceLine parts={place} className="mb-1 font-medium text-navy-800" />
-            {p.point && p.point.radiusM ? <p className="mb-4 pl-6 text-xs text-navy-400">{t('property.locationNote', { m: p.point.radiusM })}</p> : <div className="mb-4" />}
+            {p.point && p.point.radiusM ? <p className="mb-4 pl-6 text-xs text-navy-500">{t('property.locationNote', { m: p.point.radiusM })}</p> : <div className="mb-4" />}
             <div className="overflow-hidden rounded-2xl ring-1 ring-navy-900/10"><ApproxMap point={p.point} /></div>
             <Landmarks list={p.landmarks} className="mt-5" />
           </Block>
@@ -321,7 +323,7 @@ export default function PropertyPage() {
           {isRent ? <MoveInCost price={price} /> : main ? (
             <Block title={t('property.emi.title')} eyebrow={t('detail.sections.finance')}>
               <EmiMini pricePaise={main} defaults={calc} />
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-400">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-500">
                 <span>{t('property.emi.note')}</span>
                 <Link to={`/tools/calculators?tab=afford&price=${Math.round(main / 100)}`} className="inline-flex items-center gap-1 text-sm font-medium text-gold-700 underline-offset-4 hover:underline">{t('property.emi.afford')}<ArrowRight className="h-3.5 w-3.5" aria-hidden /></Link>
               </div>
@@ -331,7 +333,7 @@ export default function PropertyPage() {
           <LocalitySnapshot p={p} />
 
           <div className="flex justify-end">
-            <button type="button" onClick={() => setReport(true)} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-sm text-navy-400 transition-colors hover:bg-danger-50 hover:text-danger-700"><Flag className="h-4 w-4" aria-hidden />{t('property.report')}</button>
+            <button type="button" onClick={() => setReport(true)} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-sm text-navy-500 transition-colors hover:bg-danger-50 hover:text-danger-700"><Flag className="h-4 w-4" aria-hidden />{t('property.report')}</button>
           </div>
         </div>
 
@@ -353,7 +355,7 @@ export default function PropertyPage() {
             </div>
             <Button variant="outline" to={browseHref} iconRight={ArrowRight} className="self-start rounded-full sm:self-auto">{p.city ? t('property.gone.browseCity', { city: p.city }) : t('property.gone.browseAll')}</Button>
           </div>
-          {similar.isLoading ? <p className="text-sm text-navy-400">{t('common.loading')}</p>
+          {similar.isLoading ? <p className="text-sm text-navy-500">{t('common.loading')}</p>
             : (similar.data || []).length ? <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{similar.data.map((c) => <PropertyCard key={c.id} card={c} />)}</div>
             : <p className="rounded-3xl bg-sand-50 p-8 text-center text-sm text-navy-500 ring-1 ring-inset ring-navy-900/5">{t('property.noSimilar')} <Link to={browseHref} className="font-medium text-gold-700 underline-offset-4 hover:underline">{p.city ? t('property.gone.browseCity', { city: p.city }) : t('property.gone.browseAll')}</Link></p>}
         </div>

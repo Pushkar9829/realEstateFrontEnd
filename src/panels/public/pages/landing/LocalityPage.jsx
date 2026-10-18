@@ -65,10 +65,10 @@ export default function LocalityPage() {
               <Eyebrow>{t('discover.locality.chartEyebrow')}</Eyebrow>
               <h2 className="mt-3 font-display text-2xl font-medium text-navy-900">{purpose === 'rent' ? t('home.locality.trendRent') : t('home.locality.trendPrice')}</h2>
             </div>
-            {series.length > 0 && <p className="text-xs text-navy-400">{t('home.locality.basedOn', { n: points.toLocaleString('en-IN') })}</p>}
+            {series.length > 0 && <p className="text-xs text-navy-500">{t('home.locality.basedOn', { n: points.toLocaleString('en-IN') })}</p>}
           </div>
           {series.length >= 2 ? <TrendChart series={series} /> : <p className="rounded-2xl bg-sand-100 p-8 text-center text-sm text-navy-500">{t('home.locality.notEnough', { place: name })}</p>}
-          <p className="mt-4 text-xs text-navy-400">{t('home.locality.disclaimer')}</p>
+          <p className="mt-4 text-xs text-navy-500">{t('home.locality.disclaimer')}</p>
         </div>
       </section>
 

@@ -123,7 +123,7 @@ export default function RequestPropertyForm({ prefill, onDone, compact }) {
       </div>
       {city && (localities.data || []).length > 0 && (
         <fieldset>
-          <legend className="mb-2 text-sm font-medium text-navy-800">{t('account.request.localities')} <span className="font-normal text-navy-400">{t('account.request.upTo5')}</span></legend>
+          <legend className="mb-2 text-sm font-medium text-navy-800">{t('account.request.localities')} <span className="font-normal text-navy-500">{t('account.request.upTo5')}</span></legend>
           <div className={cn('flex flex-wrap gap-2 overflow-y-auto p-0.5', compact ? 'max-h-28' : 'max-h-40')}>
             {localities.data.map((l) => {
               const on = v.localities.includes(l.name);

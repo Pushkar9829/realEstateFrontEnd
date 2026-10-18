@@ -16,7 +16,7 @@ export function CitySelect({ cities, value, onChange, className }) {
   return (
     <label className={className ? `relative ${className}` : 'relative'}>
       <span className="sr-only">{t('common.city')}</span>
-      <MapPin className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gold-600" aria-hidden />
+      <MapPin className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gold-700" aria-hidden />
       <select value={value || ''} onChange={(e) => onChange(e.target.value)}
         className="h-10 w-full rounded-full border-0 bg-sand-100 pl-8 pr-7 text-sm font-medium text-navy-800 ring-1 ring-inset ring-navy-900/10 transition hover:ring-navy-900/20 focus:outline-none focus:ring-2 focus:ring-gold-500">
         <option value="">{t('common.allCities')}</option>

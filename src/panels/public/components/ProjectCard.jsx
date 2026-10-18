@@ -27,10 +27,10 @@ export default function ProjectCard({ p }) {
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="font-display text-xl font-semibold tracking-tight text-navy-900 transition-colors group-hover:text-gold-700">{p.name}</h3>
-        <p className="mt-1 flex items-center gap-1 text-xs text-navy-400"><MapPin className="h-3.5 w-3.5 text-gold-600" aria-hidden />{[p.location && p.location.locality, p.location && p.location.city].filter(Boolean).join(', ')}</p>
+        <p className="mt-1 flex items-center gap-1 text-xs text-navy-500"><MapPin className="h-3.5 w-3.5 text-gold-700" aria-hidden />{[p.location && p.location.locality, p.location && p.location.city].filter(Boolean).join(', ')}</p>
         {range && <p className="mt-3 font-display text-lg font-semibold text-navy-900">{shortRupees(range[0])}{range[1] !== range[0] && ` - ${shortRupees(range[1])}`}</p>}
         {bhks.length > 0 && <p className="text-xs font-medium text-navy-500">{t('search.project.bhk', { list: bhks.join(', ') })}</p>}
-        <div className="mt-auto flex items-center justify-between border-t border-navy-900/5 pt-3 text-xs text-navy-400">
+        <div className="mt-auto flex items-center justify-between border-t border-navy-900/5 pt-3 text-xs text-navy-500">
           <span className="inline-flex items-center gap-1 text-success-700">{t('search.project.verifiedBuilder')}</span>
           {p.possession && p.possession.date && <span className="inline-flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" aria-hidden />{date(p.possession.date)}</span>}
         </div>

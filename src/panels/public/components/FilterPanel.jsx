@@ -10,7 +10,7 @@ import { useT } from '@/shared/i18n';
 import { enumLabel } from './useSearchFilters';
 
 // Sand inputs, rounded-xl, gold focus ring (docs/PUBLIC_DESIGN.md).
-export const FIELD = 'w-full rounded-xl border-0 bg-sand-100 text-sm text-navy-900 ring-1 ring-inset ring-navy-900/10 placeholder:text-navy-400 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-gold-500';
+export const FIELD = 'w-full rounded-xl border-0 bg-sand-100 text-sm text-navy-900 ring-1 ring-inset ring-navy-900/10 placeholder:text-navy-500 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-gold-500';
 
 function Group({ title, children, className }) {
   return (
@@ -38,7 +38,7 @@ function Select({ options = [], placeholder, className, ...rest }) {
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" aria-hidden />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-500" aria-hidden />
     </div>
   );
 }
@@ -55,7 +55,7 @@ function Checkbox({ label, description, checked, disabled, onChange }) {
       </span>
       <span className="text-sm">
         <span className="text-navy-700 group-hover:text-navy-900">{label}</span>
-        {description && <span className="block text-xs leading-relaxed text-navy-400">{description}</span>}
+        {description && <span className="block text-xs leading-relaxed text-navy-500">{description}</span>}
       </span>
     </label>
   );
@@ -100,7 +100,7 @@ export default function FilterPanel({ filters: f, onChange }) {
             <input value={locQ} onChange={(e) => setLocQ(e.target.value)} placeholder={t('search.filters.filterLocalities')} aria-label={t('search.filters.filterLocalities')}
               className={cn(FIELD, 'h-10 px-3.5')} />
             <div className="mt-3 max-h-48 space-y-0.5 overflow-y-auto pr-1">
-              {localities.isLoading && <p className="text-xs text-navy-400">{t('search.filters.loadingLocalities')}</p>}
+              {localities.isLoading && <p className="text-xs text-navy-500">{t('search.filters.loadingLocalities')}</p>}
               {locs.map((l) => {
                 const on = selectedLocs.includes(l.code) || selectedLocs.includes(l._id);
                 const next = on ? selectedLocs.filter((x) => x !== l.code && x !== l._id) : [...selectedLocs, l.code];
@@ -109,9 +109,9 @@ export default function FilterPanel({ filters: f, onChange }) {
                     onChange={() => onChange({ localities: next.join(',') || undefined })} />
                 );
               })}
-              {!localities.isLoading && !locs.length && <p className="text-xs text-navy-400">{t('search.filters.noLocalities')}</p>}
+              {!localities.isLoading && !locs.length && <p className="text-xs text-navy-500">{t('search.filters.noLocalities')}</p>}
             </div>
-            {selectedLocs.length >= 10 && <p className="mt-1 text-xs text-navy-400">{t('search.filters.upTo10')}</p>}
+            {selectedLocs.length >= 10 && <p className="mt-1 text-xs text-navy-500">{t('search.filters.upTo10')}</p>}
           </div>
         )}
       </Group>
@@ -172,7 +172,7 @@ export default function FilterPanel({ filters: f, onChange }) {
         <div className="flex items-start gap-2">
           <Checkbox label={t('search.filters.verifiedOnly')} description={t('search.filters.verifiedDesc')} checked={Boolean(f.verified)} onChange={(e) => onChange({ verified: e.target.checked ? '1' : undefined })} />
           <span className="group relative mt-0.5">
-            <button type="button" className="text-navy-400 hover:text-navy-900" aria-label={t('search.filters.whatVerified')}><Info className="h-4 w-4" /></button>
+            <button type="button" className="text-navy-500 hover:text-navy-900" aria-label={t('search.filters.whatVerified')}><Info className="h-4 w-4" /></button>
             <span role="tooltip" className="absolute right-0 top-6 z-20 hidden w-64 rounded-xl bg-navy-900 px-3.5 py-2.5 text-xs leading-relaxed text-navy-100 shadow-lift group-focus-within:block group-hover:block">
               {t('search.filters.verifiedTip')}
             </span>

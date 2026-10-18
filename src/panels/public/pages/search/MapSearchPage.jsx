@@ -106,18 +106,18 @@ export default function MapSearchPage() {
       <div className="border-b border-navy-900/5 bg-white px-4 py-3 sm:px-6">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2">
           <h1 className="mr-2 hidden font-display text-xl font-medium text-navy-900 xl:block">{listTitle}</h1>
-          <button type="button" onClick={() => setDrawer(true)} className={PILL}><SlidersHorizontal className="h-4 w-4 text-gold-600" aria-hidden />{t('search.list.filters')}</button>
+          <button type="button" onClick={() => setDrawer(true)} className={PILL}><SlidersHorizontal className="h-4 w-4 text-gold-700" aria-hidden />{t('search.list.filters')}</button>
           {nearMode ? (
             <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t('search.map.radius')}>
-              <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-navy-700"><LocateFixed className="h-4 w-4 text-gold-600" aria-hidden />{t('search.map.nearMe')}</span>
+              <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-navy-700"><LocateFixed className="h-4 w-4 text-gold-700" aria-hidden />{t('search.map.nearMe')}</span>
               {RADII.map((r) => (
                 <button key={r} type="button" aria-pressed={point.radiusKm === r} onClick={() => update({ radius: r })}
                   className={cn('h-8 rounded-full px-3 text-xs font-medium transition', point.radiusKm === r ? 'bg-navy-900 text-white shadow-sm' : 'bg-white text-navy-600 ring-1 ring-inset ring-navy-900/10 hover:text-navy-900')}>{t('search.map.km', { n: r })}</button>
               ))}
-              <button type="button" onClick={() => update({ lat: undefined, lng: undefined, radius: undefined })} className="ml-1 rounded-full p-2 text-navy-400 hover:bg-sand-100 hover:text-navy-900" aria-label={t('search.map.stopNearMe')}><X className="h-4 w-4" /></button>
+              <button type="button" onClick={() => update({ lat: undefined, lng: undefined, radius: undefined })} className="ml-1 rounded-full p-2 text-navy-500 hover:bg-sand-100 hover:text-navy-900" aria-label={t('search.map.stopNearMe')}><X className="h-4 w-4" /></button>
             </div>
           ) : (
-            <button type="button" onClick={nearMe} className={PILL}><Crosshair className="h-4 w-4 text-gold-600" aria-hidden />{t('search.map.nearMe')}</button>
+            <button type="button" onClick={nearMe} className={PILL}><Crosshair className="h-4 w-4 text-gold-700" aria-hidden />{t('search.map.nearMe')}</button>
           )}
           {!nearMode && (
             <label className="ml-1 inline-flex cursor-pointer items-center gap-2 text-sm text-navy-700">

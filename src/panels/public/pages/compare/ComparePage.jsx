@@ -73,7 +73,7 @@ export default function ComparePage() {
                         <button type="button" onClick={() => remove(p.id)} className="absolute right-2 top-2 z-[1] rounded-full bg-white/95 p-1.5 text-navy-500 shadow-card transition hover:text-navy-900" aria-label={t('search.compare.removeAria', { title: p.title })}><X className="h-4 w-4" /></button>
                         {p.cover ? <img src={p.cover.url} alt="" className="aspect-[4/3] w-full rounded-xl object-cover" /> : <div className="aspect-[4/3] w-full rounded-xl bg-sand-200" />}
                         <Link to={`/property/${p.slug}`} className="mt-3 line-clamp-2 block font-display text-base font-medium leading-snug text-navy-900 transition-colors hover:text-gold-700">{p.title}</Link>
-                        <p className="mt-0.5 text-xs text-navy-400">{p.listingNo}</p>
+                        <p className="mt-0.5 text-xs text-navy-500">{p.listingNo}</p>
                       </div>
                     </th>
                   ))}

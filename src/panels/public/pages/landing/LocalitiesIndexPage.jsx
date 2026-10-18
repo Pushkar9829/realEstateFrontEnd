@@ -60,14 +60,14 @@ export default function LocalitiesIndexPage() {
         <div className="mb-6 flex flex-col gap-2 sm:flex-row">
           <label className="relative flex-1">
             <span className="sr-only">{t('home.localities.searchLabel')}</span>
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" aria-hidden />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-500" aria-hidden />
             <input value={term} onChange={(e) => setTerm(e.target.value)} placeholder={t('home.localities.searchLabel')} className={`${FIELD} h-12 pl-11 pr-4`} />
           </label>
           <span className="relative sm:w-60">
             <select aria-label={t('home.localities.sortAria')} value={sort} onChange={(e) => setSort(e.target.value)} className={`${FIELD} h-12 appearance-none pl-4 pr-9`}>
               {SORTS.map((v) => <option key={v} value={v}>{t(`home.localities.sorts.${v}`)}</option>)}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" aria-hidden />
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-500" aria-hidden />
           </span>
         </div>
         {q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : (
@@ -89,7 +89,7 @@ export default function LocalitiesIndexPage() {
                     ))}
                     {!q.isLoading && rows.map((r) => (
                       <tr key={r.id} className="transition-colors hover:bg-sand-50">
-                        <td className="px-5 py-4"><Link to={`/city/${code}/${r.code}`} className="group inline-flex items-center gap-2 font-display text-base font-medium text-navy-900 hover:text-gold-700"><MapPin className="h-4 w-4 text-gold-600" aria-hidden />{r.name}</Link></td>
+                        <td className="px-5 py-4"><Link to={`/city/${code}/${r.code}`} className="group inline-flex items-center gap-2 font-display text-base font-medium text-navy-900 hover:text-gold-700"><MapPin className="h-4 w-4 text-gold-700" aria-hidden />{r.name}</Link></td>
                         <td className="px-5 py-4 font-medium text-navy-700">{avgText(t, avgFor(r, purpose), purpose)}</td>
                         <td className="px-5 py-4 text-right font-display text-base font-semibold text-navy-900">{count(r)}</td>
                       </tr>

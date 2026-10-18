@@ -17,7 +17,7 @@ export function Fact({ label, value }) {
   if (value === undefined || value === null || value === '') return null;
   return (
     <div className="rounded-2xl bg-sand-50 px-4 py-3 ring-1 ring-inset ring-navy-900/5">
-      <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-400">{label}</dt>
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-500">{label}</dt>
       <dd className="mt-1 text-sm font-medium text-navy-900">{value}</dd>
     </div>
   );
@@ -52,7 +52,7 @@ export function AgentRegistrations({ list, state }) {
   const t = useT();
   const rows = (Array.isArray(list) ? list : []).filter((r) => r && (!state || !r.state || String(r.state).toLowerCase() === String(state).toLowerCase()));
   if (!rows.length) return null;
-  return <p className="mt-4 text-xs text-navy-400">{t('property.rera.agent', { list: rows.map((r) => [r.number, r.state].filter(Boolean).join(' (') + (r.state ? ')' : '')).join(', ') })}</p>;
+  return <p className="mt-4 text-xs text-navy-500">{t('property.rera.agent', { list: rows.map((r) => [r.number, r.state].filter(Boolean).join(' (') + (r.state ? ')' : '')).join(', ') })}</p>;
 }
 
 // QR code for the official RERA URL, drawn by GET /api/rera/qr (https on an allowed RERA host only).
@@ -73,14 +73,14 @@ export function ReraBlock({ numbers = [], state, url, exempt, registrations, age
   return (
     <Block title={t('property.rera.title')} eyebrow={t('detail.sections.compliance')}>
       {exempt ? (
-        <p className="flex items-start gap-3 text-sm leading-relaxed text-navy-600"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold-600" aria-hidden />{t('property.rera.exempt')}</p>
+        <p className="flex items-start gap-3 text-sm leading-relaxed text-navy-600"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-gold-700" aria-hidden />{t('property.rera.exempt')}</p>
       ) : (
         <ul className="space-y-3">
           {regs.map((r) => (
             <li key={r.number} className="flex items-center gap-4 rounded-2xl bg-sand-50 p-4 ring-1 ring-inset ring-gold-200/70">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-gold-700 ring-1 ring-gold-300"><FileCheck2 className="h-5 w-5" aria-hidden /></span>
               <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 break-all font-display text-lg font-semibold tracking-tight text-navy-900">{r.number}{r.phaseLabel && <span className="ml-1 font-sans text-sm font-normal text-navy-400">· {r.phaseLabel}</span>}</span>
+                <span className="min-w-0 break-all font-display text-lg font-semibold tracking-tight text-navy-900">{r.number}{r.phaseLabel && <span className="ml-1 font-sans text-sm font-normal text-navy-500">· {r.phaseLabel}</span>}</span>
                 <span className="text-xs text-navy-500">
                   {r.state && `${r.state} RERA`}
                   {r.url && <> · <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 break-all font-medium text-gold-700 underline-offset-4 hover:underline">{r.state ? t('property.rera.verifyOn', { state: r.state }) : t('property.rera.verifyGeneric')} <ExternalLink className="h-3 w-3" aria-hidden /></a></>}
@@ -104,7 +104,7 @@ export function HotlineQuote({ hotline, listingNo, className, dark = false }) {
       <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-1', dark ? 'bg-gold-500/10 text-gold-300 ring-gold-400/40' : 'bg-white text-gold-700 ring-gold-300')}><Phone className="h-4 w-4" aria-hidden /></span>
       <span className="min-w-0 text-sm">
         <span className={cn('block font-semibold tracking-wide', dark ? 'text-white' : 'text-navy-900')}>{n}</span>
-        {listingNo && <span className={cn('block text-xs', dark ? 'text-navy-300' : 'text-navy-400')}>{t('property.quoteListing')} <span className={cn('font-semibold', dark ? 'text-gold-300' : 'text-navy-900')}>{listingNo}</span></span>}
+        {listingNo && <span className={cn('block text-xs', dark ? 'text-navy-300' : 'text-navy-500')}>{t('property.quoteListing')} <span className={cn('font-semibold', dark ? 'text-gold-300' : 'text-navy-900')}>{listingNo}</span></span>}
       </span>
     </a>
   );
@@ -145,7 +145,7 @@ export function KeyFacts({ items, className }) {
         <div key={f.label} className="flex min-w-0 items-center gap-3 rounded-2xl bg-white px-3 py-3.5 shadow-card ring-1 ring-navy-900/5 sm:px-4">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-200"><f.icon className="h-[18px] w-[18px]" aria-hidden /></span>
           <div className="min-w-0">
-            <dt className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-400">{f.label}</dt>
+            <dt className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-500">{f.label}</dt>
             <dd className="truncate text-sm font-semibold text-navy-900">{f.value}</dd>
           </div>
         </div>
@@ -192,8 +192,8 @@ export function Landmarks({ list = [], className }) {
           const Icon = LANDMARK_ICONS[l.type] || Landmark;
           return (
             <li key={`${l.type}-${l.name}`} className="flex items-center justify-between gap-3 rounded-xl bg-sand-50 px-3 py-2.5 text-sm ring-1 ring-inset ring-navy-900/5">
-              <span className="flex min-w-0 items-center gap-2.5 text-navy-800"><Icon className="h-4 w-4 shrink-0 text-gold-600" aria-hidden /><span className="truncate">{l.name}</span></span>
-              {l.distanceKm != null && <span className="shrink-0 text-xs font-medium text-navy-400">{l.distanceKm} km</span>}
+              <span className="flex min-w-0 items-center gap-2.5 text-navy-800"><Icon className="h-4 w-4 shrink-0 text-gold-700" aria-hidden /><span className="truncate">{l.name}</span></span>
+              {l.distanceKm != null && <span className="shrink-0 text-xs font-medium text-navy-500">{l.distanceKm} km</span>}
             </li>
           );
         })}
@@ -208,7 +208,7 @@ export function PlaceLine({ parts, className, light = false }) {
   if (!text) return null;
   return (
     <p className={cn('flex items-start gap-1.5 text-sm', light ? 'text-navy-200' : 'text-navy-500', className)}>
-      <MapPin className={cn('mt-0.5 h-4 w-4 shrink-0', light ? 'text-gold-300' : 'text-gold-600')} aria-hidden />{text}
+      <MapPin className={cn('mt-0.5 h-4 w-4 shrink-0', light ? 'text-gold-300' : 'text-gold-700')} aria-hidden />{text}
     </p>
   );
 }
@@ -270,7 +270,7 @@ export function EnquiryCard({ title, top, contacts, onAction, onWhatsapp, hotlin
 export function MobileActionBar({ hotline, onWhatsapp, primary }) {
   const t = useT();
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-navy-900/10 bg-white/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_32px_-16px_rgba(13,21,38,0.35)] backdrop-blur-md lg:hidden">
+    <div style={{ bottom: 'var(--cookie-bar, 0px)' }} className="fixed inset-x-0 bottom-0 z-30 border-t border-navy-900/10 bg-white/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_32px_-16px_rgba(13,21,38,0.35)] backdrop-blur-md lg:hidden">
       <div className={cn('mx-auto grid max-w-xl gap-2', onWhatsapp ? 'grid-cols-[auto_auto_1fr]' : 'grid-cols-[auto_1fr]')}>
         <a href={hotlineHref(hotline)} className="inline-flex h-12 items-center justify-center gap-1.5 rounded-full border border-navy-900/15 bg-white px-4 text-sm font-medium text-navy-900"><Phone className="h-4 w-4 text-gold-700" aria-hidden />{t('property.call')}</a>
         {onWhatsapp && <button type="button" onClick={onWhatsapp} className="inline-flex h-12 items-center justify-center gap-1.5 rounded-full border border-success-600/40 bg-white px-4 text-sm font-medium text-success-700"><MessageCircle className="h-4 w-4" aria-hidden />{t('property.whatsapp')}</button>}

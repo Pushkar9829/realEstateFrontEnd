@@ -7,9 +7,9 @@ import { useT } from '@/shared/i18n';
 
 const META = {
   verified_lister: { icon: BadgeCheck, cls: 'bg-navy-900 text-white ring-navy-900 [&_svg]:text-gold-300', text: 'property.badge.verified_lister' },
-  photo_verified: { icon: Camera, cls: 'bg-gold-50 text-gold-800 ring-gold-200 [&_svg]:text-gold-600', text: 'property.badge.photo_verified' },
-  site_verified: { icon: MapPinned, cls: 'bg-gold-50 text-gold-800 ring-gold-200 [&_svg]:text-gold-600', text: 'property.badge.site_verified' },
-  rera: { icon: FileCheck2, cls: 'bg-white text-navy-800 ring-navy-900/15 [&_svg]:text-gold-600', text: 'property.badge.rera' },
+  photo_verified: { icon: Camera, cls: 'bg-gold-50 text-gold-800 ring-gold-200 [&_svg]:text-gold-700', text: 'property.badge.photo_verified' },
+  site_verified: { icon: MapPinned, cls: 'bg-gold-50 text-gold-800 ring-gold-200 [&_svg]:text-gold-700', text: 'property.badge.site_verified' },
+  rera: { icon: FileCheck2, cls: 'bg-white text-navy-800 ring-navy-900/15 [&_svg]:text-gold-700', text: 'property.badge.rera' },
 };
 
 export function VerificationBadge({ badge, size = 'sm' }) {

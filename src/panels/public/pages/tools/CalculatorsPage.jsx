@@ -125,7 +125,7 @@ export default function CalculatorsPage() {
         ]} />
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
         {tab === 'emi' ? <EmiTab initialAmount={price} /> : <AffordTab price={price} />}
-        <p className="mt-8 flex items-center gap-2 text-xs text-navy-400">{tab === 'emi' ? <Calculator className="h-4 w-4 text-gold-600" aria-hidden /> : <Wallet className="h-4 w-4 text-gold-600" aria-hidden />}{t('account.calc.disclaimer')}</p>
+        <p className="mt-8 flex items-center gap-2 text-xs text-navy-500">{tab === 'emi' ? <Calculator className="h-4 w-4 text-gold-700" aria-hidden /> : <Wallet className="h-4 w-4 text-gold-700" aria-hidden />}{t('account.calc.disclaimer')}</p>
       </div>
     </>
   );

@@ -12,7 +12,7 @@ import { api } from '@/shared/lib/api';
 import { useAuth } from '@/modules/auth';
 import { usePage } from '@/modules/cms/api';
 import { usePublicSettings } from '@/modules/search/api';
-import { useT } from '@/shared/i18n';
+import { useLang, useT } from '@/shared/i18n';
 import useDocumentMeta from '@/shared/hooks/useDocumentMeta';
 
 const STEPS = [
@@ -87,6 +87,7 @@ function BecomeLister({ open, onClose }) {
 
 export default function ListerLandingPage() {
   const t = useT();
+  const { lang } = useLang();
   useDocumentMeta({ title: t('home.listerPage.meta.title'), description: t('home.listerPage.meta.description'), path: '/list-your-property' });
   const { isAuthed, user } = useAuth();
   const settings = usePublicSettings();
@@ -98,7 +99,9 @@ export default function ListerLandingPage() {
   const cta = role === 'lister' ? <Button variant="gold" size="xl" className={ctaCls} iconRight={ArrowRight} to="/lister">{t('home.listerPage.goPanel')}</Button>
     : role === 'buyer' ? <Button variant="gold" size="xl" className={ctaCls} iconRight={ArrowRight} onClick={() => setConvert(true)}>{t('home.listerPage.start')}</Button>
     : role ? null : <Button variant="gold" size="xl" className={ctaCls} iconRight={ArrowRight} to="/register?as=lister">{t('home.listerPage.start')}</Button>;
-  const faq = faqFrom(faqPage.data) || DEFAULT_FAQ.map((k) => ({ q: t(`home.listerPage.faq.${k}.q`), a: t(`home.listerPage.faq.${k}.a`) }));
+  // CMS pages are single-language (English): the editable "lister-faq" page is
+  // used in English; Hindi readers get the translated default questions.
+  const faq = (lang === 'en' && faqFrom(faqPage.data)) || DEFAULT_FAQ.map((k) => ({ q: t(`home.listerPage.faq.${k}.q`), a: t(`home.listerPage.faq.${k}.a`) }));
   const stats = [['₹0', 'pages.lister.stats.fee'], ['100%', 'pages.lister.stats.verified'], ['0', 'pages.lister.stats.brokers']];
   const rates = [
     c.sale && c.sale.min != null && t('home.listerPage.saleFrom', { pct: c.sale.min }),

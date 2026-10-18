@@ -44,7 +44,7 @@ export default function TrendChart({ series = [], unit, height = 180 }) {
 }
 
 export function ChangePill({ pct }) {
-  if (pct == null) return <span className="text-navy-400">-</span>;
+  if (pct == null) return <span className="text-navy-500">-</span>;
   const up = pct >= 0;
   return <span className={up ? 'font-medium text-success-700' : 'font-medium text-danger-700'}>{up ? '▲' : '▼'} {Math.abs(pct)}%</span>;
 }

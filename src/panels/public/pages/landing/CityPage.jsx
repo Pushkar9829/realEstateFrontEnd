@@ -25,11 +25,11 @@ export function LocalityTile({ to, name, meta, value }) {
     <Link to={to} className="group flex flex-col justify-between rounded-2xl bg-white p-5 shadow-card ring-1 ring-navy-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-lift">
       <span className="flex items-start justify-between gap-2">
         <span className="font-display text-lg font-medium leading-snug text-navy-900 transition-colors group-hover:text-gold-700">{name}</span>
-        <ArrowUpRight className="h-4 w-4 shrink-0 text-navy-300 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-gold-600" aria-hidden />
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-navy-300 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-gold-700" aria-hidden />
       </span>
       <span className="mt-4 block">
         <span className="block text-sm font-semibold text-navy-700">{value}</span>
-        {meta && <span className="mt-0.5 block text-xs text-navy-400">{meta}</span>}
+        {meta && <span className="mt-0.5 block text-xs text-navy-500">{meta}</span>}
       </span>
     </Link>
   );

@@ -93,7 +93,7 @@ export function YearBars({ rows }) {
           </div>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-[10px] text-navy-400"><span>{t('account.calc.year', { n: 1 })}</span><span>{t('account.calc.year', { n: rows.length })}</span></div>
+      <div className="mt-1 flex justify-between text-[10px] text-navy-500"><span>{t('account.calc.year', { n: 1 })}</span><span>{t('account.calc.year', { n: rows.length })}</span></div>
     </div>
   );
 }

@@ -83,8 +83,8 @@ export default function FeedbackPage() {
             {f.property.cover ? <img src={f.property.cover} alt="" className="h-20 w-24 shrink-0 rounded-2xl object-cover" /> : <span className="h-20 w-24 shrink-0 rounded-2xl bg-sand-200" />}
             <div className="min-w-0">
               <h1 className="truncate font-display text-2xl font-medium text-navy-900">{f.property.title}</h1>
-              <p className="mt-0.5 flex items-center gap-1 text-xs text-navy-400"><MapPin className="h-3 w-3 text-gold-600" aria-hidden />{[f.property.locality, f.property.city].filter(Boolean).join(', ')}</p>
-              <p className="text-xs text-navy-400">{t('account.feedback.visited', { date: date(f.visitedAt), no: f.visitNo })}</p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-navy-500"><MapPin className="h-3 w-3 text-gold-700" aria-hidden />{[f.property.locality, f.property.city].filter(Boolean).join(', ')}</p>
+              <p className="text-xs text-navy-500">{t('account.feedback.visited', { date: date(f.visitedAt), no: f.visitNo })}</p>
             </div>
           </div>
         )}

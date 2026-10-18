@@ -21,7 +21,7 @@ export function PriceTag({ card, className }) {
   const v = cardPrice(card);
   return (
     <p className={cn('font-display font-semibold tracking-tight text-navy-900', className)}>
-      {shortRupees(v)}{card.purpose === 'rent' && <span className="font-sans text-sm font-normal text-navy-400">{t('search.card.perMonth')}</span>}
+      {shortRupees(v)}{card.purpose === 'rent' && <span className="font-sans text-sm font-normal text-navy-500">{t('search.card.perMonth')}</span>}
       {card.price && card.price.negotiable && <span className="ml-2 align-middle font-sans text-xs font-medium text-success-700">{t('search.card.negotiable')}</span>}
     </p>
   );
@@ -68,11 +68,11 @@ export default function PropertyCard({ card, compact = false, onEnquire, classNa
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-2">
           <PriceTag card={card} className="text-xl" />
-          {card.price && card.price.pricePerSqft && card.purpose !== 'rent' && <span className="whitespace-nowrap pt-1.5 text-xs text-navy-400">{t('search.card.perSqft', { price: rupees(card.price.pricePerSqft) })}</span>}
+          {card.price && card.price.pricePerSqft && card.purpose !== 'rent' && <span className="whitespace-nowrap pt-1.5 text-xs text-navy-500">{t('search.card.perSqft', { price: rupees(card.price.pricePerSqft) })}</span>}
         </div>
         <h3 className="mt-1.5 line-clamp-2 text-[15px] font-medium leading-snug text-navy-800"><Link to={href} className="transition-colors hover:text-gold-700">{card.title}</Link></h3>
-        <p className="mt-1.5 flex items-center gap-1 truncate text-xs text-navy-400">
-          <MapPin className="h-3.5 w-3.5 shrink-0 text-gold-600" aria-hidden />
+        <p className="mt-1.5 flex items-center gap-1 truncate text-xs text-navy-500">
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-gold-700" aria-hidden />
           {[card.societyName, card.locality, card.city].filter(Boolean).join(', ')}
           {distanceKm != null && <span className="ml-1 text-gold-700">· {t('search.card.kmAway', { n: distanceKm })}</span>}
         </p>
@@ -82,7 +82,7 @@ export default function PropertyCard({ card, compact = false, onEnquire, classNa
           </ul>
         )}
         {!compact && <VerificationBadges badges={card.badges} className="mt-3" />}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-3 text-[11px] text-navy-400">
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3 text-[11px] text-navy-500">
           <span>{card.listingNo} · {timeAgo(card.postedAt)}</span>
           {!compact && <CompareToggle id={card.id} />}
         </div>

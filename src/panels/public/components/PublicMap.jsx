@@ -79,7 +79,7 @@ export function SearchMap({ pins = [], clusters = [], center, zoom = 12, onBound
               {c.cover && <img src={c.cover.url} alt="" className="mb-2 h-24 w-full rounded-lg object-cover" />}
               <span className="block font-display text-base font-semibold">{pinPrice(c)}{c.purpose === 'rent' ? t('search.card.perMonth') : ''}</span>
               <span className="block text-xs leading-snug">{c.title}</span>
-              <span className="mt-0.5 block text-xs text-navy-400">{[c.locality, c.city].filter(Boolean).join(', ')}</span>
+              <span className="mt-0.5 block text-xs text-navy-500">{[c.locality, c.city].filter(Boolean).join(', ')}</span>
             </Link>
           </Popup>
         </Marker>

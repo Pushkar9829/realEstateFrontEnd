@@ -75,7 +75,7 @@ export default function CmsPage() {
                 <li key={x}>
                   <Link to={`/p/${x}`} className="group flex items-center justify-between gap-3 border-b border-navy-900/10 py-3.5 font-medium text-navy-900 transition-colors hover:border-gold-500 hover:text-gold-700">
                     {t(`account.cms.titles.${x}`)}
-                    <ArrowRight className="h-4 w-4 text-navy-300 transition group-hover:translate-x-0.5 group-hover:text-gold-600" aria-hidden />
+                    <ArrowRight className="h-4 w-4 text-navy-300 transition group-hover:translate-x-0.5 group-hover:text-gold-700" aria-hidden />
                   </Link>
                 </li>
               ))}
@@ -91,12 +91,12 @@ export default function CmsPage() {
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-900 text-gold-300"><Phone className="h-4 w-4" aria-hidden /></span>
               <span className="min-w-0">
                 <span className="block font-display text-lg font-medium text-navy-900">{hotline}</span>
-                <span className="block text-xs text-navy-400">{t('account.contact.hours')}</span>
+                <span className="block text-xs text-navy-500">{t('account.contact.hours')}</span>
               </span>
             </a>
             {s.supportEmail && (
               <a href={`mailto:${s.supportEmail}`} className="mt-3 flex items-center gap-2 break-all px-1 text-sm text-navy-600 transition-colors hover:text-gold-700">
-                <Mail className="h-4 w-4 shrink-0 text-gold-600" aria-hidden />{s.supportEmail}
+                <Mail className="h-4 w-4 shrink-0 text-gold-700" aria-hidden />{s.supportEmail}
               </a>
             )}
             <Button variant="gold" block size="lg" to="/contact" iconRight={ArrowRight} className="mt-5 !rounded-full font-semibold">{t('account.contact.title')}</Button>

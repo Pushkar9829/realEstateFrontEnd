@@ -71,8 +71,8 @@ export default function ContactPage() {
       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy-900 text-gold-300"><m.icon className="h-5 w-5" aria-hidden /></span>
       <span className="mt-5 block text-xs font-semibold uppercase tracking-[0.18em] text-gold-700">{m.title}</span>
       <span className="mt-1.5 block break-words font-display text-xl font-medium text-navy-900">{m.value}</span>
-      <span className="mt-1 block text-sm text-navy-400">{m.text}</span>
-      {(m.href || m.onClick) && <ArrowUpRight className="absolute right-5 top-6 h-5 w-5 text-navy-300 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-gold-600" aria-hidden />}
+      <span className="mt-1 block text-sm text-navy-500">{m.text}</span>
+      {(m.href || m.onClick) && <ArrowUpRight className="absolute right-5 top-6 h-5 w-5 text-navy-300 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-gold-700" aria-hidden />}
     </>
   );
 
@@ -126,7 +126,7 @@ export default function ContactPage() {
               <form onSubmit={onContinue} className="space-y-5" noValidate>
                 <ContactFields value={contact} onChange={setContact} errors={errors} isGuest={isGuest} />
                 <Select label={t('account.contact.topic')} value={topic} onChange={(e) => setTopic(e.target.value)} options={TOPICS.map((o) => ({ value: o.value, label: t(`account.contact.topics.${o.value}`) }))} />
-                {topic === 'complaint' && <p className="text-xs text-navy-400">{t('account.contact.complaintNote')}</p>}
+                {topic === 'complaint' && <p className="text-xs text-navy-500">{t('account.contact.complaintNote')}</p>}
                 <Textarea label={t('account.contact.message')} required rows={5} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)} error={errors.message} hint={`${message.length}/1000`} />
                 <div className="rounded-2xl bg-sand-100 p-4 ring-1 ring-inset ring-navy-900/5"><ConsentFields consent={consent} onConsent={setConsent} error={errors.consent} /></div>
                 {form.error && <Alert tone="danger">{leadErrorText(form.error)}</Alert>}
@@ -146,7 +146,7 @@ export default function ContactPage() {
             </div>
             {officer && (officer.name || officer.email) && (
               <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-900/5">
-                <p className="flex items-center gap-2 text-sm font-semibold text-navy-900"><ShieldCheck className="h-4 w-4 text-gold-600" aria-hidden />{t('account.contact.grievance')}</p>
+                <p className="flex items-center gap-2 text-sm font-semibold text-navy-900"><ShieldCheck className="h-4 w-4 text-gold-700" aria-hidden />{t('account.contact.grievance')}</p>
                 <p className="mt-2 text-sm text-navy-600">{officer.name}</p>
                 {officer.email && <a href={`mailto:${officer.email}`} className="break-all text-sm font-medium text-navy-900 underline decoration-gold-400 underline-offset-4 hover:text-gold-700">{officer.email}</a>}
               </div>

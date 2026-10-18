@@ -6,7 +6,8 @@ import { CheckCircle2, Phone, ShieldCheck } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { dateTime } from '@/shared/lib/format';
 import { Alert, Button, Checkbox, Input, Select, Skeleton, Textarea } from '@/shared/ui';
-import { CALLBACK_WINDOWS, ENQUIRY_TYPES, TIMELINES, useCreateEnquiry, useVisitSlots } from '@/modules/leads/publicApi';
+import { CALLBACK_WINDOWS, ENQUIRY_TYPES, TIMELINES, rememberGuestToken, useCreateEnquiry, useVisitSlots } from '@/modules/leads/publicApi';
+import BrochureButton from './BrochureButton';
 import { ConsentFields, ContactFields, OtpStep, contactBody, emptyContact, leadErrorText, useBuyerIdentity, validateContact } from './GuestVerify';
 import { currentHotline, hotlineHref } from './States';
 import { PublicModal } from './SmallModals';
@@ -68,6 +69,7 @@ export default function EnquiryModal({ open, onClose, target, initialType = 'enq
   const [type, setType] = useState(initialType);
   const [v, setV] = useState(() => initial(user, presetLoan));
   const [consent, setConsent] = useState(false);
+  const [waOptIn, setWaOptIn] = useState(false); // RE-K-08: WhatsApp updates only with this tick
   const [errors, setErrors] = useState({});
   const [stage, setStage] = useState('form');
   const [result, setResult] = useState(null);
@@ -109,10 +111,12 @@ export default function EnquiryModal({ open, onClose, target, initialType = 'enq
       ...extras(),
       ...(type === 'site_visit' && v.slot ? { preferredSlot: v.slot } : {}),
       consent: true,
+      whatsappOptIn: waOptIn,
       ...(isGuest ? referralField() : {}), // RE-N-01: signed-in buyers carry their own referredBy
     };
     try {
       const r = await create.mutateAsync(body);
+      if (otpToken) rememberGuestToken(otpToken); // lets this guest download the brochure next
       setResult(r); setStage('done');
       track('enquiry_submit', { type, ...ids, ...where });
       if (type === 'site_visit') track('visit_booked', { ...ids, ...where });
@@ -139,7 +143,7 @@ export default function EnquiryModal({ open, onClose, target, initialType = 'enq
       {target.cover ? <img src={target.cover} alt="" className="h-16 w-20 shrink-0 rounded-xl object-cover" /> : <span className="h-16 w-20 shrink-0 rounded-xl bg-gradient-to-br from-sand-200 to-sand-300" />}
       <div className="min-w-0 text-sm">
         <p className="truncate font-medium text-navy-900">{target.title}</p>
-        <p className="truncate text-xs text-navy-400">{[target.listingNo, target.subtitle].filter(Boolean).join(' · ')}</p>
+        <p className="truncate text-xs text-navy-500">{[target.listingNo, target.subtitle].filter(Boolean).join(' · ')}</p>
         {target.priceText && <p className="mt-0.5 font-display text-base font-semibold text-navy-900">{target.priceText}</p>}
       </div>
     </div>
@@ -157,6 +161,7 @@ export default function EnquiryModal({ open, onClose, target, initialType = 'enq
           </p>
           <p className="mt-5 rounded-2xl bg-sand-50 p-4 text-sm leading-relaxed text-navy-600 ring-1 ring-inset ring-navy-900/5">{t('property.enquiry.soonerBefore')}<a href={hotlineHref()} className="font-semibold text-gold-700 underline-offset-4 hover:underline">{currentHotline()}</a>{t('property.enquiry.soonerAfterHotline')}{target.listingNo && <>{t('property.enquiry.soonerQuoteBefore')}<span className="font-semibold text-navy-900">{target.listingNo}</span>{t('property.enquiry.soonerQuoteAfter')}</>}{t('property.enquiry.soonerEnd')}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {target.brochure && <BrochureButton kind={target.brochure.kind} slug={target.brochure.slug} variant="outline" className="h-12 rounded-full" />}
             {!isGuest && <Button variant="outline" size="lg" to="/my-enquiries" onClick={onClose} className="rounded-full">{t('property.enquiry.myEnquiries')}</Button>}
             <Button variant="gold" size="lg" onClick={onClose} className="rounded-full px-8 font-semibold">{t('property.enquiry.done')}</Button>
           </div>
@@ -203,12 +208,13 @@ export default function EnquiryModal({ open, onClose, target, initialType = 'enq
           </div>
           <Textarea label={t('property.enquiry.message')} rows={3} maxLength={500} value={v.message} onChange={set('message')} error={errors.message} hint={`${v.message.length}/500`} />
           <ConsentFields consent={consent} onConsent={setConsent} error={errors.consent} />
+          <Checkbox checked={waOptIn} onChange={(e) => setWaOptIn(e.target.checked)} label={t('property.enquiry.whatsappOptIn')} description={t('property.enquiry.whatsappOptInDesc')} />
           {create.error && <Alert tone="danger">{leadErrorText(create.error)}</Alert>}
           <div className="flex flex-col-reverse gap-3 border-t border-sand-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <a href={hotlineHref()} className="inline-flex items-center gap-2 text-sm text-navy-500 transition-colors hover:text-gold-700"><Phone className="h-4 w-4 text-gold-600" aria-hidden />{currentHotline()}{target.listingNo && t('property.enquiry.quoteNo', { no: target.listingNo })}</a>
+            <a href={hotlineHref()} className="inline-flex items-center gap-2 text-sm text-navy-500 transition-colors hover:text-gold-700"><Phone className="h-4 w-4 text-gold-700" aria-hidden />{currentHotline()}{target.listingNo && t('property.enquiry.quoteNo', { no: target.listingNo })}</a>
             <Button variant="gold" size="lg" type="submit" loading={create.isPending} className="rounded-full px-8 font-semibold">{isGuest ? t('property.enquiry.continue') : t('property.enquiry.submit')}</Button>
           </div>
-          <p className="flex items-center gap-2 text-xs text-navy-400"><ShieldCheck className="h-4 w-4 shrink-0 text-gold-600" aria-hidden />{t('property.freePrivate')}</p>
+          <p className="flex items-center gap-2 text-xs text-navy-500"><ShieldCheck className="h-4 w-4 shrink-0 text-gold-700" aria-hidden />{t('property.freePrivate')}</p>
         </form>
       )}
     </PublicModal>

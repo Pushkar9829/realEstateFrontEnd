@@ -44,7 +44,7 @@ function BulkEnquiry({ open, onClose, items, onDone }) {
           {results.map((r) => (
             <li key={r.c.id} className="flex items-start gap-2">
               {r.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-600" aria-hidden /> : <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-danger-600" aria-hidden />}
-              <span><span className="font-medium text-navy-900">{r.c.title}</span><span className="block text-xs text-navy-400">{r.ok ? t('account.shortlist.reference', { no: r.leadNo }) : r.error}</span></span>
+              <span><span className="font-medium text-navy-900">{r.c.title}</span><span className="block text-xs text-navy-500">{r.ok ? t('account.shortlist.reference', { no: r.leadNo }) : r.error}</span></span>
             </li>
           ))}
         </ul>
@@ -100,7 +100,7 @@ function ShortlistTab() {
                 <Checkbox label={t('account.shortlist.select')} checked={selected.includes(r.id)} disabled={!selected.includes(r.id) && selected.length >= MAX_BULK} onChange={() => select(r.id)} />
                 <div className="flex items-center gap-2">
                   {drop > 0 && <span className={`${PILL} bg-success-50 text-success-700`}><TrendingDown className="h-3.5 w-3.5" aria-hidden />{t('account.shortlist.priceDown', { pct: drop })}</span>}
-                  <button type="button" onClick={() => remove(r.id)} className="rounded-full p-1.5 text-navy-400 transition-colors hover:bg-danger-50 hover:text-danger-700" aria-label={t('account.shortlist.removeItem', { title: r.title })}><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => remove(r.id)} className="rounded-full p-1.5 text-navy-500 transition-colors hover:bg-danger-50 hover:text-danger-700" aria-label={t('account.shortlist.removeItem', { title: r.title })}><Trash2 className="h-4 w-4" /></button>
                 </div>
               </div>
             </div>
@@ -146,7 +146,7 @@ function SavedTab() {
                   <span className={`${PILL} font-sans ${s.frequency === 'off' ? 'bg-sand-200 text-navy-600' : 'bg-navy-900 text-white'}`}>{freq(s.frequency)}</span>
                   {s.matchCountSinceVisit > 0 && <span className={`${PILL} bg-gold-100 font-sans text-gold-800`}>{t('account.saved.newCount', { count: s.matchCountSinceVisit })}</span>}
                 </p>
-                <p className="mt-1 truncate text-xs text-navy-400">{describeFilters(s.filters).join(' · ') || t('account.saved.all')} · {t('account.saved.created', { date: date(s.createdAt) })}</p>
+                <p className="mt-1 truncate text-xs text-navy-500">{describeFilters(s.filters).join(' · ') || t('account.saved.all')} · {t('account.saved.created', { date: date(s.createdAt) })}</p>
                 </div>
               </div>
               <div className="flex shrink-0 gap-2">

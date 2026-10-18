@@ -47,15 +47,15 @@ export default function VisitResponsePage() {
           <div className="min-w-0">
             <TokenEyebrow>{t('account.visit.eyebrow', { no: v.visitNo })}</TokenEyebrow>
             {v.property && <h1 className="mt-3 font-display text-2xl font-medium leading-tight text-navy-900 sm:text-3xl">{v.property.title}</h1>}
-            {v.property && <p className="mt-1 flex items-center gap-1 text-sm text-navy-500"><MapPin className="h-4 w-4 text-gold-600" aria-hidden />{[v.property.locality, v.property.city].filter(Boolean).join(', ')} · {v.property.listingNo}</p>}
+            {v.property && <p className="mt-1 flex items-center gap-1 text-sm text-navy-500"><MapPin className="h-4 w-4 text-gold-700" aria-hidden />{[v.property.locality, v.property.city].filter(Boolean).join(', ')} · {v.property.listingNo}</p>}
           </div>
           <Pill tone={s.tone}>{statusLabel(t, v.status)}</Pill>
         </div>
         <dl className="mt-6 space-y-3 rounded-2xl bg-sand-100 p-4 text-sm text-navy-700 ring-1 ring-inset ring-navy-900/5 sm:p-5">
-          <div className="flex items-center gap-2"><CalendarClock className="h-4 w-4 shrink-0 text-gold-600" aria-hidden /><dt className="sr-only">{t('account.visit.when')}</dt><dd className="font-display text-lg font-medium text-navy-900">{dateTime(v.scheduledAt)}</dd></div>
-          {v.meetingPoint && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-gold-600" aria-hidden /><dt className="sr-only">{t('account.visit.meetingPoint')}</dt><dd>{v.meetingPoint}</dd></div>}
-          {v.buyerNote && <div className="flex items-center gap-2"><Info className="h-4 w-4 shrink-0 text-gold-600" aria-hidden /><dt className="sr-only">{t('account.visit.agentNote')}</dt><dd>{v.buyerNote}</dd></div>}
-          {v.agent && <div className="flex items-center gap-2"><UserRound className="h-4 w-4 shrink-0 text-gold-600" aria-hidden /><dt className="sr-only">{t('account.visit.agent')}</dt><dd>{t('account.visit.yourAgent', { name: v.agent })}</dd></div>}
+          <div className="flex items-center gap-2"><CalendarClock className="h-4 w-4 shrink-0 text-gold-700" aria-hidden /><dt className="sr-only">{t('account.visit.when')}</dt><dd className="font-display text-lg font-medium text-navy-900">{dateTime(v.scheduledAt)}</dd></div>
+          {v.meetingPoint && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-gold-700" aria-hidden /><dt className="sr-only">{t('account.visit.meetingPoint')}</dt><dd>{v.meetingPoint}</dd></div>}
+          {v.buyerNote && <div className="flex items-center gap-2"><Info className="h-4 w-4 shrink-0 text-gold-700" aria-hidden /><dt className="sr-only">{t('account.visit.agentNote')}</dt><dd>{v.buyerNote}</dd></div>}
+          {v.agent && <div className="flex items-center gap-2"><UserRound className="h-4 w-4 shrink-0 text-gold-700" aria-hidden /><dt className="sr-only">{t('account.visit.agent')}</dt><dd>{t('account.visit.yourAgent', { name: v.agent })}</dd></div>}
         </dl>
 
         {done && <Alert tone="success" className="mt-4" title={t('account.visit.done')}>{t(DONE[done])}</Alert>}

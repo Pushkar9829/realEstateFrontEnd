@@ -40,12 +40,12 @@ export function Journey({ steps = JOURNEY, step = 0, closed, status }) {
           <li key={s} className="flex min-w-[76px] flex-1 flex-col items-center text-center">
             <div className="flex w-full items-center">
               <span className={cn('h-px flex-1', i === 0 ? 'bg-transparent' : i <= step ? 'bg-gold-500' : 'bg-navy-900/15')} />
-              <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold', done ? 'bg-navy-900 text-gold-300' : current ? 'bg-gold-50 text-gold-800 ring-2 ring-gold-500' : 'bg-sand-100 text-navy-400 ring-1 ring-inset ring-navy-900/10')}>
+              <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold', done ? 'bg-navy-900 text-gold-300' : current ? 'bg-gold-50 text-gold-800 ring-2 ring-gold-500' : 'bg-sand-100 text-navy-500 ring-1 ring-inset ring-navy-900/10')}>
                 {done ? <Check className="h-4 w-4" /> : i + 1}
               </span>
               <span className={cn('h-px flex-1', i === steps.length - 1 ? 'bg-transparent' : i < step ? 'bg-gold-500' : 'bg-navy-900/15')} />
             </div>
-            <span className={cn('mt-1.5 text-[11px] leading-tight', current || done ? 'font-semibold text-navy-900' : 'text-navy-400')}>{stageLabel(t, s)}</span>
+            <span className={cn('mt-1.5 text-[11px] leading-tight', current || done ? 'font-semibold text-navy-900' : 'text-navy-500')}>{stageLabel(t, s)}</span>
           </li>
         );
       })}
@@ -60,7 +60,7 @@ function PropertyMini({ property, requirement }) {
     return (
       <div className="flex items-center gap-3">
         <span className="flex h-14 w-16 shrink-0 items-center justify-center rounded-xl bg-gold-50 text-gold-700 ring-1 ring-gold-200"><ClipboardList className="h-5 w-5" aria-hidden /></span>
-        <div className="min-w-0 text-sm"><p className="font-semibold text-navy-900">{t('account.enquiries.propertyRequest')}</p><p className="text-xs text-navy-400">{requirement ? t(requirement.purpose === 'rent' ? 'account.enquiries.requestRent' : 'account.enquiries.requestBuy', { city }) : t('account.enquiries.general')}</p></div>
+        <div className="min-w-0 text-sm"><p className="font-semibold text-navy-900">{t('account.enquiries.propertyRequest')}</p><p className="text-xs text-navy-500">{requirement ? t(requirement.purpose === 'rent' ? 'account.enquiries.requestRent' : 'account.enquiries.requestBuy', { city }) : t('account.enquiries.general')}</p></div>
       </div>
     );
   }
@@ -69,7 +69,7 @@ function PropertyMini({ property, requirement }) {
       {property.cover ? <img src={property.cover} alt="" className="h-14 w-16 shrink-0 rounded-xl object-cover" /> : <span className="h-14 w-16 shrink-0 rounded-xl bg-sand-200" />}
       <div className="min-w-0 text-sm">
         <p className="truncate font-semibold text-navy-900">{property.title}</p>
-        <p className="flex items-center gap-1 truncate text-xs text-navy-400"><MapPin className="h-3 w-3 shrink-0 text-gold-600" aria-hidden />{[property.locality, property.city].filter(Boolean).join(', ')} · {property.listingNo}</p>
+        <p className="flex items-center gap-1 truncate text-xs text-navy-500"><MapPin className="h-3 w-3 shrink-0 text-gold-700" aria-hidden />{[property.locality, property.city].filter(Boolean).join(', ')} · {property.listingNo}</p>
         {!property.available && <Pill className="mt-1">{t('account.enquiries.noLongerListed')}</Pill>}
       </div>
     </div>
@@ -103,7 +103,7 @@ function RescheduleModal({ visit, onClose, onSubmit, busy }) {
         </div>
         <Textarea label={t('account.enquiries.reasonOptional')} rows={3} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} hint={`${reason.length}/200`} />
         {error && <Alert tone="danger">{error}</Alert>}
-        <p className="text-xs text-navy-400">{t('account.enquiries.agentWillCall')}</p>
+        <p className="text-xs text-navy-500">{t('account.enquiries.agentWillCall')}</p>
       </form>
     </Modal>
   );
@@ -126,8 +126,8 @@ function VisitCard({ v, leadId }) {
     <div className={`${CARD} p-5`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="flex items-center gap-2 font-display text-lg font-medium text-navy-900"><CalendarClock className="h-4 w-4 text-gold-600" aria-hidden />{dateTime(v.scheduledAt)}</p>
-          <p className="mt-0.5 text-xs text-navy-400">{t('account.enquiries.visitNo', { no: v.visitNo })}{v.meetingPoint ? ` · ${v.meetingPoint}` : ''}{v.buyerNote ? ` · ${v.buyerNote}` : ''}</p>
+          <p className="flex items-center gap-2 font-display text-lg font-medium text-navy-900"><CalendarClock className="h-4 w-4 text-gold-700" aria-hidden />{dateTime(v.scheduledAt)}</p>
+          <p className="mt-0.5 text-xs text-navy-500">{t('account.enquiries.visitNo', { no: v.visitNo })}{v.meetingPoint ? ` · ${v.meetingPoint}` : ''}{v.buyerNote ? ` · ${v.buyerNote}` : ''}</p>
         </div>
         <Pill tone={s.tone}>{visitLabel(t, v.status)}</Pill>
       </div>
@@ -161,13 +161,13 @@ function EnquiryDetail({ id }) {
       <div className={`${CARD} p-5 sm:p-6`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <PropertyMini property={l.property} />
-          <div className="text-right text-xs text-navy-400"><p className="font-display text-base font-medium text-navy-900">{t('account.enquiries.reference', { no: l.leadNo })}</p><p>{t('account.enquiries.sent', { date: date(l.createdAt) })}</p></div>
+          <div className="text-right text-xs text-navy-500"><p className="font-display text-base font-medium text-navy-900">{t('account.enquiries.reference', { no: l.leadNo })}</p><p>{t('account.enquiries.sent', { date: date(l.createdAt) })}</p></div>
         </div>
         <div className="mt-6"><Journey steps={l.journey} step={l.step} closed={l.closed} status={l.status} /></div>
         {l.status === 'Closed' && <Alert tone="info" className="mt-4">{t('account.enquiries.closedNote')}</Alert>}
         <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-navy-900/10 pt-4 text-sm text-navy-500">
-          {l.agent && <span className="inline-flex items-center gap-1.5"><UserRound className="h-4 w-4 text-gold-600" aria-hidden />{t('account.enquiries.yourAgent')} <span className="font-semibold text-navy-900">{l.agent}</span></span>}
-          <a href={hotlineHref()} className="inline-flex items-center gap-1.5 transition-colors hover:text-gold-700"><Phone className="h-4 w-4 text-gold-600" aria-hidden />{t('account.enquiries.quote', { hotline: env.hotline, no: l.leadNo })}</a>
+          {l.agent && <span className="inline-flex items-center gap-1.5"><UserRound className="h-4 w-4 text-gold-700" aria-hidden />{t('account.enquiries.yourAgent')} <span className="font-semibold text-navy-900">{l.agent}</span></span>}
+          <a href={hotlineHref()} className="inline-flex items-center gap-1.5 transition-colors hover:text-gold-700"><Phone className="h-4 w-4 text-gold-700" aria-hidden />{t('account.enquiries.quote', { hotline: env.hotline, no: l.leadNo })}</a>
         </div>
       </div>
 
@@ -185,13 +185,13 @@ function EnquiryDetail({ id }) {
               <div key={o.offerNo} className={`${CARD} flex flex-wrap items-center justify-between gap-2 p-5`}>
                 <div className="flex items-center gap-3">
                   <span className="rounded-full bg-gold-50 p-2.5 text-gold-700 ring-1 ring-gold-200"><HandCoins className="h-4 w-4" aria-hidden /></span>
-                  <div className="text-sm"><p className="font-semibold text-navy-900">{o.status}</p><p className="text-xs text-navy-400">{t('account.enquiries.offerNo', { no: o.offerNo })}{o.rounds > 1 ? ` · ${t('account.enquiries.rounds', { count: o.rounds })}` : ''}</p></div>
+                  <div className="text-sm"><p className="font-semibold text-navy-900">{o.status}</p><p className="text-xs text-navy-500">{t('account.enquiries.offerNo', { no: o.offerNo })}{o.rounds > 1 ? ` · ${t('account.enquiries.rounds', { count: o.rounds })}` : ''}</p></div>
                 </div>
                 {o.lastAmount != null && <p className="font-display text-lg font-semibold text-navy-900">{rupees(o.lastAmount)}</p>}
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-navy-400">{t('account.enquiries.offersNote')}</p>
+          <p className="mt-3 text-xs text-navy-500">{t('account.enquiries.offersNote')}</p>
         </section>
       )}
     </div>
@@ -245,7 +245,7 @@ export default function MyEnquiriesPage() {
                       className={cn('w-full rounded-2xl bg-white p-4 text-left shadow-card ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-lift', id === String(l.id) ? 'ring-2 ring-gold-500' : 'ring-navy-900/5')}>
                       <PropertyMini property={l.property} requirement={l.requirement} />
                       <div className="mt-3 flex items-center justify-between gap-2 border-t border-navy-900/5 pt-3 text-xs">
-                        <span className="text-navy-400">{l.leadNo} · {date(l.createdAt)}</span>
+                        <span className="text-navy-500">{l.leadNo} · {date(l.createdAt)}</span>
                         <Pill tone={STATUS_TONE[l.status] || 'neutral'}>{stageLabel(t, l.status)}</Pill>
                       </div>
                     </button>
@@ -261,7 +261,7 @@ export default function MyEnquiriesPage() {
               <EnquiryDetail id={id} />
             </>
           ) : rows.length > 0 ? (
-            <div className="flex h-full min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-navy-900/15 bg-white/60 p-6 text-center font-display text-lg text-navy-400">{t('account.enquiries.choose')}</div>
+            <div className="flex h-full min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-navy-900/15 bg-white/60 p-6 text-center font-display text-lg text-navy-500">{t('account.enquiries.choose')}</div>
           ) : null}
         </div>
       </div>

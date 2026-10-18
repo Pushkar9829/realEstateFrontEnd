@@ -81,7 +81,7 @@ export function CompareTray() {
   const { ids, clear } = useCompareIds();
   if (!ids.length) return null;
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 bg-navy-950/95 px-4 py-3 text-white shadow-lift ring-1 ring-white/10 backdrop-blur-md sm:bottom-5 sm:left-auto sm:right-6 sm:rounded-full sm:py-2 sm:pl-5 sm:pr-2">
+    <div style={{ bottom: 'var(--cookie-bar, 0px)' }} className="fixed inset-x-0 bottom-0 z-30 bg-navy-950/95 px-4 py-3 text-white shadow-lift ring-1 ring-white/10 backdrop-blur-md sm:mb-5 sm:left-auto sm:right-6 sm:rounded-full sm:py-2 sm:pl-5 sm:pr-2">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <span className="flex items-center gap-2 text-sm text-navy-100"><GitCompareArrows className="h-4 w-4 text-gold-300" aria-hidden />{t('search.tray.before')}<span className="font-display text-base font-semibold text-white">{ids.length}</span>{t('search.tray.after')}</span>
         <div className="flex gap-2">

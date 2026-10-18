@@ -35,7 +35,7 @@ function Step({ n, title, done, active, children }) {
   return (
     <li className={cn('rounded-2xl border p-4 transition-colors sm:p-5', active ? 'border-gold-300 bg-white shadow-card' : 'border-navy-900/10 bg-sand-50')}>
       <p className="flex items-center gap-3 text-sm font-semibold text-navy-900">
-        <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold', done ? 'bg-success-600 text-white' : active ? 'bg-navy-900 text-gold-300' : 'bg-sand-200 text-navy-400')}>{done ? <CheckCircle2 className="h-4 w-4" /> : n}</span>
+        <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold', done ? 'bg-success-600 text-white' : active ? 'bg-navy-900 text-gold-300' : 'bg-sand-200 text-navy-500')}>{done ? <CheckCircle2 className="h-4 w-4" /> : n}</span>
         {title}
       </p>
       {(active || done) && children && <div className="mt-3">{children}</div>}
@@ -109,8 +109,8 @@ export default function VerifyPhotosPage() {
       <TokenCard>
         <TokenEyebrow>{t('account.verify.eyebrow')}</TokenEyebrow>
         <h1 className="mt-3 font-display text-2xl font-medium leading-tight text-navy-900 sm:text-3xl">{s.listing.title}</h1>
-        <p className="mt-1 flex items-center gap-1 text-sm text-navy-500"><MapPin className="h-4 w-4 text-gold-600" aria-hidden />{[s.listing.locality, s.listing.city].filter(Boolean).join(', ')} · {s.listing.listingNo}</p>
-        <p className="mt-3 text-xs leading-relaxed text-navy-400">{t('account.verify.intro', { date: dateTime(s.expiresAt) })}</p>
+        <p className="mt-1 flex items-center gap-1 text-sm text-navy-500"><MapPin className="h-4 w-4 text-gold-700" aria-hidden />{[s.listing.locality, s.listing.city].filter(Boolean).join(', ')} · {s.listing.listingNo}</p>
+        <p className="mt-3 text-xs leading-relaxed text-navy-500">{t('account.verify.intro', { date: dateTime(s.expiresAt) })}</p>
 
         <ol className="mt-7 space-y-3">
           <Step n={1} title={t('account.verify.step1')} done={located} active={!located}>

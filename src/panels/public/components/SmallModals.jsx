@@ -21,8 +21,8 @@ export const FORM_SKIN = cn(
   '[&_input[id]:not([type=checkbox]):focus]:border-gold-500 [&_input[id]:not([type=checkbox]):focus]:bg-white [&_input[id]:not([type=checkbox]):focus]:ring-gold-500/30',
   '[&_select:focus]:border-gold-500 [&_select:focus]:bg-white [&_select:focus]:ring-gold-500/30 [&_textarea:focus]:border-gold-500 [&_textarea:focus]:bg-white [&_textarea:focus]:ring-gold-500/30',
   '[&_input[id][aria-invalid=true]:not([type=checkbox])]:border-danger-600 [&_select[aria-invalid=true]]:border-danger-600 [&_textarea[aria-invalid=true]]:border-danger-600',
-  '[&_input[id]:not([type=checkbox]):disabled]:bg-sand-200 [&_input[id]:not([type=checkbox]):disabled]:text-navy-400',
-  '[&_input[type=checkbox]]:border-navy-900/25 [&_input[type=checkbox]]:text-gold-600 [&_input[type=checkbox]:focus]:ring-gold-500',
+  '[&_input[id]:not([type=checkbox]):disabled]:bg-sand-200 [&_input[id]:not([type=checkbox]):disabled]:text-navy-500',
+  '[&_input[type=checkbox]]:border-navy-900/25 [&_input[type=checkbox]]:text-gold-700 [&_input[type=checkbox]:focus]:ring-gold-500',
   '[&_[role=group]_input]:rounded-xl [&_[role=group]_input]:border-sand-300 [&_[role=group]_input]:bg-sand-100 [&_[role=group]_input]:font-display [&_[role=group]_input]:text-navy-900 [&_[role=group]_input:focus]:border-gold-500 [&_[role=group]_input:focus]:bg-white [&_[role=group]_input:focus]:ring-gold-500/30',
 );
 

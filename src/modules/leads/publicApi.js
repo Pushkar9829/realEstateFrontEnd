@@ -5,7 +5,7 @@
 // search/routes/public.routes.js (POST /leads/requirement).
 // Budgets in request bodies are rupees.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/shared/lib/api';
+import { api, http } from '@/shared/lib/api';
 import { referralField } from '@/modules/search/prefs';
 
 // ---------------------------------------------------------------- phone rules (RE-M-01)
@@ -109,3 +109,22 @@ export const FEEDBACK_CHIPS = ['price', 'location', 'size', 'condition', 'amenit
 export const useFeedbackForm = (token) => useQuery({ queryKey: ['public', 'feedback', token], queryFn: () => api.get(`/site-visits/feedback/${token}`), enabled: Boolean(token), retry: false });
 // body: { interest 1-5, likes[], dislikes[], comments?, secondVisit, callBack }
 export const useSubmitFeedback = (token) => useMutation({ mutationFn: (body) => api.post(`/site-visits/feedback/${token}`, body) });
+
+// ---------------------------------------------------------------- brochure (RE-A-07)
+
+// The phone-verified guest token from the last guest enquiry, kept for 10 minutes
+// in this tab only, so a guest can download the brochure right after enquiring.
+const GUEST_KEY = 'pd.guestToken';
+export function rememberGuestToken(token) {
+  try { if (token) sessionStorage.setItem(GUEST_KEY, JSON.stringify({ token, until: Date.now() + 9 * 60000 })); } catch { /* storage blocked */ }
+}
+function guestToken() {
+  try { const r = JSON.parse(sessionStorage.getItem(GUEST_KEY) || 'null'); return r && r.until > Date.now() ? r.token : null; } catch { return null; }
+}
+
+// kind: 'property' | 'project'. Resolves { url, name }; ENQUIRE_FIRST (403) when
+// the brochure is gated and this visitor has not enquired yet.
+export function fetchBrochure(kind, slug) {
+  const t = guestToken();
+  return http.get(`/${kind === 'project' ? 'projects' : 'properties'}/${encodeURIComponent(slug)}/brochure`, { headers: t ? { 'X-Guest-Token': t } : {} }).then((r) => r.data.data);
+}
