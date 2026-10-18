@@ -5,8 +5,10 @@ import { Building2, Plus } from 'lucide-react';
 import { Badge, Button, EmptyState, Input, Modal, PageHeader, Pagination, Table, useToast } from '@/shared/ui';
 import { date } from '@/shared/lib/format';
 import { projectStatus, useCreateProject, useOwnProjects } from '@/modules/projects/api';
+import { useT } from '@/shared/i18n';
 
 export default function ProjectsPage() {
+  const t = useT();
   const navigate = useNavigate();
   const toast = useToast();
   const [page, setPage] = useState(1);
@@ -22,25 +24,25 @@ export default function ProjectsPage() {
 
   return (
     <>
-      <PageHeader title="Builder projects" description="Projects show configurations, RERA details and live availability. Unit numbers and exact counts stay private."
-        actions={<Button icon={Plus} onClick={() => setOpen(true)}>New project</Button>} />
+      <PageHeader title={t('panel.nav.listerProjects')} description={t('lister.projects.desc')}
+        actions={<Button icon={Plus} onClick={() => setOpen(true)}>{t('lister.dashboard.newProject')}</Button>} />
       {!isLoading && rows.length === 0 ? (
-        <EmptyState icon={Building2} title="No projects yet" description="Create a project, add configurations and RERA details, then submit it for approval." action={<Button icon={Plus} onClick={() => setOpen(true)}>New project</Button>} />
+        <EmptyState icon={Building2} title={t('lister.projects.none')} description={t('lister.projects.noneDesc')} action={<Button icon={Plus} onClick={() => setOpen(true)}>{t('lister.dashboard.newProject')}</Button>} />
       ) : (
         <Table loading={isLoading} rows={rows} rowHref={(r) => `/lister/projects/${r._id}`}
           columns={[
-            { key: 'name', header: 'Project', render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.projectNo}</span></span> },
-            { key: 'loc', header: 'Location', render: (r) => [r.location?.locality, r.location?.city].filter(Boolean).join(', ') || '-' },
-            { key: 'configs', header: 'Configurations', render: (r) => (r.configurations || []).length },
-            { key: 'avail', header: 'Available units', render: (r) => (r.configurations || []).reduce((n, c) => n + (c.availableUnits || 0), 0) },
-            { key: 'status', header: 'Status', render: (r) => { const s = projectStatus(r.status); return <Badge tone={s.tone}>{s.label}</Badge>; } },
-            { key: 'updatedAt', header: 'Updated', render: (r) => date(r.updatedAt) },
+            { key: 'name', header: t('lister.wizard.basic.project'), render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.projectNo}</span></span> },
+            { key: 'loc', header: t('lister.projects.tabs.location'), render: (r) => [r.location?.locality, r.location?.city].filter(Boolean).join(', ') || '-' },
+            { key: 'configs', header: t('lister.projects.tabs.configurations'), render: (r) => (r.configurations || []).length },
+            { key: 'avail', header: t('lister.projects.availableUnits'), render: (r) => (r.configurations || []).reduce((n, c) => n + (c.availableUnits || 0), 0) },
+            { key: 'status', header: t('lister.leads.col.status'), render: (r) => { const s = projectStatus(r.status); return <Badge tone={s.tone}>{s.label}</Badge>; } },
+            { key: 'updatedAt', header: t('lister.projects.updated'), render: (r) => date(r.updatedAt) },
           ]} />
       )}
       {data && <Pagination page={data.meta.page} pages={data.meta.pages} onChange={setPage} />}
-      <Modal open={open} onClose={() => setOpen(false)} title="New project" size="sm"
-        footer={<><Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button loading={create.isPending} disabled={name.trim().length < 3} onClick={onCreate}>Create</Button></>}>
-        <Input label="Project name" placeholder="e.g. Skyline Heights" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+      <Modal open={open} onClose={() => setOpen(false)} title={t('lister.dashboard.newProject')} size="sm"
+        footer={<><Button variant="ghost" onClick={() => setOpen(false)}>{t('common.cancel')}</Button><Button loading={create.isPending} disabled={name.trim().length < 3} onClick={onCreate}>{t('lister.projects.create')}</Button></>}>
+        <Input label={t('lister.projects.name')} placeholder={t('lister.projects.namePh')} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
       </Modal>
     </>
   );

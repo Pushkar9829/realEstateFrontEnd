@@ -5,8 +5,10 @@ import { cn } from '@/shared/lib/cn';
 import { Alert, Skeleton } from '@/shared/ui';
 import { useMasters } from '@/modules/listings/api';
 import { StepFooter, StepMessages, useStepSave } from './common';
+import { useT } from '@/shared/i18n';
 
 export default function AmenitiesStep({ listing, next, back }) {
+  const t = useT();
   const masters = useMasters();
   const [sel, setSel] = useState(new Set(listing.amenities || []));
   const [q, setQ] = useState('');
@@ -19,9 +21,9 @@ export default function AmenitiesStep({ listing, next, back }) {
     const names = new Map(((masters.data && masters.data.amenities) || []).map((a) => [a.code, a.name]));
     return (
       <div className="space-y-5">
-        <Alert tone="info">Amenities come from the project{listing.project ? ` ${listing.project.name}` : ''} and are updated there.</Alert>
+        <Alert tone="info">{t('lister.wizard.amen.fromProject', { name: listing.project ? listing.project.name : '' })}</Alert>
         <div className="flex flex-wrap gap-2">{(listing.amenities || []).map((c) => <span key={c} className="rounded-full border bg-surface-muted px-3.5 py-1.5 text-sm text-ink-muted">{names.get(c) || c}</span>)}</div>
-        <StepFooter onBack={back} onSave={next} saveLabel="Continue" />
+        <StepFooter onBack={back} onSave={next} saveLabel={t('lister.wizard.continue')} />
       </div>
     );
   }
@@ -30,8 +32,8 @@ export default function AmenitiesStep({ listing, next, back }) {
     <div className="space-y-5">
       <StepMessages formError={s.formError} />
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-ink-muted">{sel.size} selected</p>
-        <input className="h-9 w-56 rounded-md border border-line-strong px-3 text-sm" placeholder="Filter amenities" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Filter amenities" />
+        <p className="text-sm text-ink-muted">{t('lister.wizard.amen.selected', { n: sel.size })}</p>
+        <input className="h-9 w-56 rounded-md border border-line-strong px-3 text-sm" placeholder={t('lister.wizard.amen.filter')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('lister.wizard.amen.filter')} />
       </div>
       {masters.isLoading ? <Skeleton className="h-32" /> : (
         <div className="flex flex-wrap gap-2">

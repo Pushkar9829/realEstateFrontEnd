@@ -3,39 +3,35 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
 import { useCount } from '@/shared/hooks/useCount';
+import { t } from '@/shared/i18n';
 
-export const KYC_STATUS = {
-  not_started: { label: 'Not started', tone: 'neutral' },
-  submitted: { label: 'Submitted', tone: 'info' },
-  under_review: { label: 'Under review', tone: 'info' },
-  resubmission_required: { label: 'Resubmission needed', tone: 'warning' },
-  verified: { label: 'Verified', tone: 'success' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-  suspended: { label: 'Suspended', tone: 'danger' },
-  banned: { label: 'Banned', tone: 'danger' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const texts = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
 
-export const kycStatus = (s) => KYC_STATUS[s] || { label: String(s || 'Not started').replace(/_/g, ' '), tone: 'neutral' };
+export const KYC_STATUS = toned('lister.kyc.status', {
+  not_started: 'neutral',
+  submitted: 'info',
+  under_review: 'info',
+  resubmission_required: 'warning',
+  verified: 'success',
+  rejected: 'danger',
+  suspended: 'danger',
+  banned: 'danger',
+});
+
+export const kycStatus = (s) => KYC_STATUS[s] || { label: s ? String(s).replace(/_/g, ' ') : t('lister.kyc.status.not_started'), tone: 'neutral' };
 
 // Labels for the doc_type master codes (backend cms/baseMasters.js).
-export const DOC_LABELS = {
-  id_proof: 'Identity proof (masked Aadhaar, passport or voter ID)',
-  pan_card: 'PAN card',
-  address_proof: 'Address proof',
-  incorporation_certificate: 'Company incorporation / registration',
-  signatory_id: 'Authorised signatory ID',
-  authorisation_letter: 'Board resolution / authorisation letter',
-  rera_registration: 'RERA registration (promoter)',
-  company_pan: 'Company PAN',
-};
+export const DOC_LABELS = texts('lister.kyc.docs', [
+  'id_proof', 'pan_card', 'address_proof', 'incorporation_certificate', 'signatory_id', 'authorisation_letter', 'rera_registration', 'company_pan',
+]);
 export const docLabel = (code) => DOC_LABELS[code] || String(code).replace(/_/g, ' ');
 
-export const CHECK_LABELS = {
-  name_mismatch: 'Name does not match the profile',
-  pan_reused: 'PAN used by another account',
-  document_reused: 'Same document on another account',
-  blocklisted: 'Matches a banned account',
-};
+export const CHECK_LABELS = texts('lister.kyc.checks', [
+  'name_mismatch', 'pan_reused', 'document_reused', 'blocklisted',
+]);
 
 export const kycKeys = {
   own: ['lister', 'kyc'],
@@ -87,16 +83,9 @@ export const useDecideKyc = (userId) => useAdminMutation(userId, (body) => api.p
 
 // ---------------------------------------------------------------- admin: listers and broker flags (RE-F-06/07/08)
 
-export const FLAG_RULES = {
-  R1: 'Ownership proofs name many different owners (90 days)',
-  R2: 'More active listings than the account type allows',
-  R3: "Same photos on another lister's listing",
-  R4: 'PAN or documents shared with another account',
-  R5: 'Many properties across many localities',
-  R6: 'Contact details typed into listings 3+ times in 24 h',
-  reports: '3+ buyers reported the listing as a broker in 30 days',
-  manual: 'Raised manually by staff',
-};
+export const FLAG_RULES = texts('lister.kyc.flagRules', [
+  'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'reports', 'manual',
+]);
 
 export const useListers = (params) => useQuery({ queryKey: ['admin', 'listers', params], queryFn: () => api.page('/admin/listers', params) });
 export const useListerDetail = (id) => useQuery({ queryKey: ['admin', 'lister', id], queryFn: () => api.get(`/admin/listers/${id}`), enabled: Boolean(id) });

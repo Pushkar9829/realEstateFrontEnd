@@ -8,12 +8,14 @@ import { cn } from '@/shared/lib/cn';
 import { dateTime, timeAgo } from '@/shared/lib/format';
 import { panelLink } from '../../../shared/NotificationsPage';
 import { NOTIFICATION_CATEGORIES, useMarkAllRead, useMarkRead, useNotifications, useUnreadCount } from '@/modules/notifications/api';
+import { useT } from '@/shared/i18n';
 
 const categoryLabel = (c) => (NOTIFICATION_CATEGORIES.find((x) => x.value === c) || { label: c }).label;
 // Only in-app paths are followed; anything else is shown as text.
 const internal = (link) => typeof link === 'string' && link.startsWith('/') && !link.startsWith('//');
 
 export default function NotificationsPage() {
+  const t = useT();
   const navigate = useNavigate();
   const toast = useToast();
   const [tab, setTab] = useState('all');
@@ -30,29 +32,29 @@ export default function NotificationsPage() {
     if (internal(n.link)) navigate(panelLink(n.link, '/lister')); // /account?tab=... -> the lister's own account page
   };
   const readAll = async () => {
-    try { const r = await markAll.mutateAsync(); toast.success(r.updated ? `${r.updated} marked as read` : 'Nothing unread'); } catch (e) { toast.error(e.message); }
+    try { const r = await markAll.mutateAsync(); toast.success(r.updated ? t('lister.notifications.marked', { n: r.updated }) : t('lister.notifications.nothingUnread')); } catch (e) { toast.error(e.message); }
   };
 
   return (
     <>
-      <PageHeader title="Notifications" description="Updates on your listings, buyers, offers and invoices. Kept for 180 days."
-        actions={<Button variant="secondary" icon={CheckCheck} loading={markAll.isPending} disabled={!unread.data} onClick={readAll}>Mark all read</Button>} />
+      <PageHeader title={t('panel.nav.listerNotifications')} description={t('lister.notifications.desc')}
+        actions={<Button variant="secondary" icon={CheckCheck} loading={markAll.isPending} disabled={!unread.data} onClick={readAll}>{t('lister.notifications.markAll')}</Button>} />
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <Tabs value={tab} onChange={(v) => { setTab(v); setPage(1); }} tabs={[{ value: 'all', label: 'All' }, { value: 'unread', label: 'Unread', count: unread.data || undefined }]} />
-        <Select className="sm:w-56" label="Category" placeholder="All categories" options={NOTIFICATION_CATEGORIES} value={category} onChange={(e) => setCategory(e.target.value)} />
+        <Tabs value={tab} onChange={(v) => { setTab(v); setPage(1); }} tabs={[{ value: 'all', label: t('lister.listings.tabs.all') }, { value: 'unread', label: t('lister.notifications.unread'), count: unread.data || undefined }]} />
+        <Select className="sm:w-56" label={t('lister.wizard.basic.category')} placeholder={t('lister.notifications.allCategories')} options={NOTIFICATION_CATEGORIES} value={category} onChange={(e) => setCategory(e.target.value)} />
       </div>
-      {isError ? <Alert tone="danger" title="Could not load notifications" action={<Button size="sm" variant="secondary" onClick={() => refetch()}>Retry</Button>} />
+      {isError ? <Alert tone="danger" title={t('lister.notifications.loadError')} action={<Button size="sm" variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>} />
         : isLoading ? <div className="space-y-2">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16" />)}</div>
-          : rows.length === 0 ? <EmptyState icon={Bell} title="You are all caught up" description={category ? 'Nothing in this category on this page.' : undefined} />
+          : rows.length === 0 ? <EmptyState icon={Bell} title={t('lister.notifications.caughtUp')} description={category ? t('lister.notifications.emptyCategory') : undefined} />
             : (
               <ul className="divide-y overflow-hidden rounded-lg border bg-white shadow-sm">
                 {rows.map((n) => (
                   <li key={n._id}>
                     <button type="button" onClick={() => open(n)} className={cn('flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-surface-muted', !n.readAt && 'bg-brand-50/40')}>
-                      <span className={cn('mt-1.5 h-2 w-2 shrink-0 rounded-full', n.readAt ? 'bg-transparent' : 'bg-brand-600')} aria-label={n.readAt ? undefined : 'Unread'} />
+                      <span className={cn('mt-1.5 h-2 w-2 shrink-0 rounded-full', n.readAt ? 'bg-transparent' : 'bg-brand-600')} aria-label={n.readAt ? undefined : t('lister.notifications.unread')} />
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-center gap-2">
-                          <span className={cn('text-sm text-ink', !n.readAt && 'font-semibold')}>{n.title || 'Notification'}</span>
+                          <span className={cn('text-sm text-ink', !n.readAt && 'font-semibold')}>{n.title || t('lister.notifications.notification')}</span>
                           <Badge>{categoryLabel(n.category)}</Badge>
                         </span>
                         {n.body && <span className="mt-0.5 block text-sm text-ink-muted">{n.body}</span>}

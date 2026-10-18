@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { Alert, Button, useToast } from '@/shared/ui';
 import { useSaveStep, WARNING_LABELS } from '@/modules/listings/api';
+import { useT } from '@/shared/i18n';
 
 export const num = (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Number(v));
 export const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== '' && !(typeof v === 'number' && Number.isNaN(v))));
@@ -17,6 +18,7 @@ export const WizardContext = createContext({ setDirty: () => {}, saved: () => {}
 
 // Saves one wizard step; maps 422 field errors and reports draft vs revision.
 export function useStepSave(listing, step, { onSaved, value, build } = {}) {
+  const t = useT();
   const save = useSaveStep(listing._id);
   const toast = useToast();
   const wizard = useContext(WizardContext);
@@ -43,15 +45,15 @@ export function useStepSave(listing, step, { onSaved, value, build } = {}) {
       await save.mutateAsync({ step, body });
       markSaved(snapshot);
     } catch (e) {
-      wizard.autosaveFailed(Object.keys(e.fieldErrors || {}).length ? 'Some fields need attention; save the step to see them' : e.message);
+      wizard.autosaveFailed(Object.keys(e.fieldErrors || {}).length ? t('lister.wizard.autoFieldErrors') : e.message);
     }
   };
   const latest = useRef(null);
   latest.current = { dirty, autoRun, pending: save.isPending };
   useEffect(() => {
     if (!build || !wizard.autosave) return undefined;
-    const t = setInterval(() => { const l = latest.current; if (l.dirty && !l.pending) l.autoRun(); }, AUTOSAVE_MS);
-    return () => clearInterval(t);
+    const timer = setInterval(() => { const l = latest.current; if (l.dirty && !l.pending) l.autoRun(); }, AUTOSAVE_MS);
+    return () => clearInterval(timer);
   }, [Boolean(build), wizard.autosave]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const run = async (body) => {
@@ -62,38 +64,40 @@ export function useStepSave(listing, step, { onSaved, value, build } = {}) {
       if (snapshot !== null) markSaved(snapshot);
       else wizard.saved(new Date());
       setWarnings(res.warnings || []);
-      if (res.applied === 'revision') toast.info('Saved as a change for review. The live listing stays as it is until approved.');
-      else if (res.applied === 'live') toast.success('Price updated on the live listing');
-      else if ((res.warnings || []).length) toast.info(res.warnings.map((w) => WARNING_LABELS[w] || w).join('. '), { title: 'Saved, please check', duration: 8000 });
-      else toast.success('Saved');
+      if (res.applied === 'revision') toast.info(t('lister.wizard.savedRevision'));
+      else if (res.applied === 'live') toast.success(t('lister.wizard.savedLive'));
+      else if ((res.warnings || []).length) toast.info(res.warnings.map((w) => WARNING_LABELS[w] || w).join('. '), { title: t('lister.wizard.savedCheck'), duration: 8000 });
+      else toast.success(t('lister.wizard.saved'));
       onSaved && onSaved(res);
       return res;
     } catch (e) {
       const fe = e.fieldErrors || {};
       setErrors(fe);
       if (!Object.keys(fe).length) setFormError(e.message);
-      else setFormError('Please fix the highlighted fields.');
+      else setFormError(t('lister.wizard.fixFields'));
       return null;
     }
   };
   return { run, saving: save.isPending, errors, formError, warnings, dirty };
 }
 
-export function StepFooter({ onBack, onSave, saving, saveLabel = 'Save and continue', disabled }) {
+export function StepFooter({ onBack, onSave, saving, saveLabel, disabled }) {
+  const t = useT();
   return (
     <div className="mt-8 flex items-center justify-between gap-3 border-t pt-5">
-      {onBack ? <Button variant="ghost" icon={ArrowLeft} onClick={onBack}>Back</Button> : <span />}
-      <Button iconRight={ArrowRight} loading={saving} onClick={onSave} disabled={disabled}>{saveLabel}</Button>
+      {onBack ? <Button variant="ghost" icon={ArrowLeft} onClick={onBack}>{t('common.back')}</Button> : <span />}
+      <Button iconRight={ArrowRight} loading={saving} onClick={onSave} disabled={disabled}>{saveLabel || t('lister.wizard.saveContinue')}</Button>
     </div>
   );
 }
 
 export function StepMessages({ formError, warnings }) {
+  const t = useT();
   return (
     <>
       {formError && <Alert tone="danger" className="mb-4">{formError}</Alert>}
       {(warnings || []).length > 0 && (
-        <Alert tone="warning" className="mb-4" title="Please check">
+        <Alert tone="warning" className="mb-4" title={t('lister.wizard.pleaseCheck')}>
           <ul className="list-disc pl-4">{warnings.map((w) => <li key={w}>{WARNING_LABELS[w] || w}</li>)}</ul>
         </Alert>
       )}

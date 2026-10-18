@@ -3,22 +3,22 @@
 // Endpoints: backend/src/modules/listings/routes/admin.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const PHOTO_REJECT_REASONS = [
-  { value: 'photos_do_not_match', label: 'Photos do not match the listing' },
-  { value: 'location_mismatch', label: 'Location mismatch' },
-  { value: 'poor_quality', label: 'Poor quality' },
-  { value: 'staged_or_screen', label: 'Staged or photo of a screen' },
-  { value: 'other', label: 'Other' },
-];
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
 
-export const SESSION_STATUS = {
-  open: { label: 'Capturing', tone: 'neutral' },
-  pending_review: { label: 'Pending review', tone: 'info' },
-  approved: { label: 'Verified', tone: 'success' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-  expired: { label: 'Expired', tone: 'neutral' },
-};
+export const PHOTO_REJECT_REASONS = ['photos_do_not_match', 'location_mismatch', 'poor_quality', 'staged_or_screen', 'other']
+  .map((value) => ({ value, get label() { return t(`lister.photoQa.reasons.${value}`); } }));
+
+export const SESSION_STATUS = toned('lister.photoQa.status', {
+  open: 'neutral',
+  pending_review: 'info',
+  approved: 'success',
+  rejected: 'danger',
+  expired: 'neutral',
+});
 export const sessionStatus = (s) => SESSION_STATUS[s] || { label: s, tone: 'neutral' };
 
 export const photoQaKeys = {

@@ -5,15 +5,18 @@ import { Clock, Handshake } from 'lucide-react';
 import { Alert, Badge, Button, EmptyState, PageHeader, Skeleton, Tabs } from '@/shared/ui';
 import { dateTime, rupees } from '@/shared/lib/format';
 import { lastRound, offerStatus, timeLeft, useListerOffers } from '@/modules/leads/listerApi';
+import { useT } from '@/shared/i18n';
 
+// Tab labels: lister.offers.tabs.<key>.
 const TABS = [
-  { value: 'awaiting_lister', label: 'Awaiting my response' },
-  { value: 'awaiting_buyer', label: 'Awaiting buyer' },
-  { value: 'accepted', label: 'Accepted' },
-  { value: 'declined,expired,withdrawn', label: 'Declined / expired' },
+  { value: 'awaiting_lister', key: 'mine' },
+  { value: 'awaiting_buyer', key: 'buyer' },
+  { value: 'accepted', key: 'accepted' },
+  { value: 'declined,expired,withdrawn', key: 'closed' },
 ];
 
 function OfferCard({ o }) {
+  const t = useT();
   const s = offerStatus(o.status);
   const r = lastRound(o);
   const left = o.canRespond ? timeLeft(o.validUntil) : null;
@@ -24,14 +27,14 @@ function OfferCard({ o }) {
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={s.tone}>{s.label}</Badge>
             <span className="text-xs text-ink-subtle">{o.offerNo}</span>
-            {left && <Badge tone={left === 'expired' ? 'danger' : 'warning'} icon={Clock}>{left}</Badge>}
+            {left && <Badge tone={left === 'expired' ? 'danger' : 'warning'} icon={Clock}>{left === 'expired' ? t('lister.offers.expired') : left}</Badge>}
           </div>
-          <p className="mt-1 truncate text-base font-semibold text-ink">{o.property ? `${o.property.listingNo} · ${o.property.title}` : 'Listing'}</p>
-          <p className="text-sm text-ink-subtle">{o.buyer} · round {o.rounds.length}{r ? ` · ${r.by} · ${dateTime(r.at)}` : ''}</p>
+          <p className="mt-1 truncate text-base font-semibold text-ink">{o.property ? `${o.property.listingNo} · ${o.property.title}` : t('lister.leads.col.listing')}</p>
+          <p className="text-sm text-ink-subtle">{o.buyer} · {t('lister.offers.round', { n: o.rounds.length })}{r ? ` · ${r.by === 'You' ? t('lister.offers.you') : r.by} · ${dateTime(r.at)}` : ''}</p>
         </div>
         <div className="text-left sm:text-right">
           <p className="text-xl font-semibold text-ink">{r ? rupees(r.amount) : '-'}</p>
-          {r && r.terms && r.terms.token ? <p className="text-xs text-ink-subtle">Token {rupees(r.terms.token)}</p> : null}
+          {r && r.terms && r.terms.token ? <p className="text-xs text-ink-subtle">{t('lister.offers.token', { amount: rupees(r.terms.token) })}</p> : null}
         </div>
       </Link>
     </li>
@@ -39,19 +42,20 @@ function OfferCard({ o }) {
 }
 
 export default function OffersPage() {
+  const t = useT();
   const [status, setStatus] = useState('awaiting_lister');
   const { data, isLoading, isError, refetch } = useListerOffers({ status });
   const rows = data || [];
   return (
     <>
-      <PageHeader title="Offers" description="Offers from buyers, relayed by our agents. Every round is logged. Accepting tells the agent to prepare the booking; the deal is final only after our team verifies it." />
-      <Tabs className="mb-4" value={status} onChange={setStatus} tabs={TABS.map((t) => (t.value === status && data ? { ...t, count: rows.length } : t))} />
+      <PageHeader title={t('panel.nav.listerOffers')} description={t('lister.offers.desc')} />
+      <Tabs className="mb-4" value={status} onChange={setStatus} tabs={TABS.map(({ key, ...tab }) => ({ ...tab, label: t(`lister.offers.tabs.${key}`), ...(tab.value === status && data ? { count: rows.length } : {}) }))} />
       {isError ? (
-        <Alert tone="danger" title="Could not load offers" action={<Button size="sm" variant="secondary" onClick={() => refetch()}>Retry</Button>} />
+        <Alert tone="danger" title={t('lister.offers.loadError')} action={<Button size="sm" variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>} />
       ) : isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-24" />)}</div>
       ) : rows.length === 0 ? (
-        <EmptyState icon={Handshake} title="No offers yet" description={status === 'awaiting_lister' ? 'Nothing is waiting for your answer.' : 'Nothing in this tab.'} />
+        <EmptyState icon={Handshake} title={t('lister.offers.noOffers')} description={status === 'awaiting_lister' ? t('lister.offers.nothingWaiting') : t('lister.offers.nothingTab')} />
       ) : (
         <ul className="space-y-3">{rows.map((o) => <OfferCard key={o.id} o={o} />)}</ul>
       )}

@@ -4,30 +4,28 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, http } from '@/shared/lib/api';
 import { useCount } from '@/shared/hooks/useCount';
+import { t } from '@/shared/i18n';
 
-export const PROJECT_STATUS = {
-  draft: { label: 'Draft', tone: 'neutral' },
-  pending_approval: { label: 'Pending approval', tone: 'info' },
-  changes_requested: { label: 'Changes requested', tone: 'warning' },
-  live: { label: 'Live', tone: 'success' },
-  sold_out: { label: 'Sold out', tone: 'brand' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-  inactive: { label: 'Inactive', tone: 'neutral' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const texts = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+
+export const PROJECT_STATUS = toned('lister.projects.status', {
+  draft: 'neutral',
+  pending_approval: 'info',
+  changes_requested: 'warning',
+  live: 'success',
+  sold_out: 'brand',
+  rejected: 'danger',
+  inactive: 'neutral',
+});
 export const projectStatus = (s) => PROJECT_STATUS[s] || { label: s, tone: 'neutral' };
 
-export const PROJECT_TABS = [
-  { key: 'details', label: 'Details' },
-  { key: 'location', label: 'Location' },
-  { key: 'configurations', label: 'Configurations' },
-  { key: 'amenities', label: 'Amenities' },
-  { key: 'rera', label: 'RERA' },
-  { key: 'media', label: 'Photos' },
-  { key: 'commission', label: 'Commission' },
-  { key: 'units', label: 'Units and inventory' },
-];
+export const PROJECT_TABS = ['details', 'location', 'configurations', 'amenities', 'rera', 'media', 'commission', 'units']
+  .map((key) => ({ key, get label() { return t(`lister.projects.tabs.${key}`); } }));
 
-export const RERA_WARNINGS = { rera_number_format: 'Number does not match the state format', rera_url_host: 'Link is not on the official RERA site', rera_url_invalid: 'Link is not a valid URL', rera_number_reused: 'Number is used by another builder' };
+export const RERA_WARNINGS = texts('lister.projects.reraWarnings', ['rera_number_format', 'rera_url_host', 'rera_url_invalid', 'rera_number_reused']);
 export const reraWarning = (w) => { const [code, num] = String(w).split(':'); return `${RERA_WARNINGS[code] || code}${num ? ` (${num})` : ''}`; };
 
 export const useOwnProjectCount = (enabled) => useCount('/lister/projects', {}, { enabled });
@@ -74,12 +72,12 @@ export async function downloadUnitsTemplate(id) {
 export function projectMissing(p) {
   if (!p) return [];
   const out = [];
-  if (!p.description) out.push(['details', 'Project details']);
-  if (!p.location || !p.location.geo) out.push(['location', 'Location and map pin']);
-  if (!(p.configurations || []).length) out.push(['configurations', 'At least one configuration']);
+  if (!p.description) out.push(['details', t('lister.projects.missing.details')]);
+  if (!p.location || !p.location.geo) out.push(['location', t('lister.projects.missing.location')]);
+  if (!(p.configurations || []).length) out.push(['configurations', t('lister.projects.missing.configurations')]);
   const r = p.rera || {};
-  if (!((r.registrations || []).length || (r.exempt && r.exempt.reason))) out.push(['rera', 'RERA registration or exemption']);
-  if (!p.activeAgreementId) out.push(['commission', 'Project commission agreement']);
+  if (!((r.registrations || []).length || (r.exempt && r.exempt.reason))) out.push(['rera', t('lister.projects.missing.rera')]);
+  if (!p.activeAgreementId) out.push(['commission', t('lister.projects.missing.commission')]);
   return out;
 }
 

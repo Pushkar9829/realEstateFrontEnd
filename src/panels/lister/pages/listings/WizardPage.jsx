@@ -19,6 +19,7 @@ import MediaStep from './wizard/MediaStep';
 import CommissionStep from './wizard/CommissionStep';
 import ReviewStep from './wizard/ReviewStep';
 import { WizardContext } from './wizard/common';
+import { useT } from '@/shared/i18n';
 
 const STEP_COMPONENTS = { 1: BasicStep, 2: LocationStep, 3: DetailsStep, 4: PriceStep, 5: AmenitiesStep, 6: MediaStep, 7: CommissionStep, 8: ReviewStep };
 const hhmm = (d) => time(d);
@@ -50,13 +51,15 @@ function useWizardState(autosave) {
 }
 
 function SaveState({ dirty, savedAt, autoError, autosave }) {
-  if (autoError) return <span className="inline-flex items-center gap-1 text-xs text-warning-700"><CloudOff className="h-3.5 w-3.5" aria-hidden /> Not autosaved: {autoError}</span>;
-  if (dirty) return <span className="text-xs text-ink-subtle">Unsaved changes{autosave ? ' · autosaves every 30 s' : ''}</span>;
-  if (savedAt) return <span className="inline-flex items-center gap-1 text-xs text-success-700"><Save className="h-3.5 w-3.5" aria-hidden /> Saved at {hhmm(savedAt)}</span>;
+  const t = useT();
+  if (autoError) return <span className="inline-flex items-center gap-1 text-xs text-warning-700"><CloudOff className="h-3.5 w-3.5" aria-hidden /> {t('lister.wizard.notAutosaved', { error: autoError })}</span>;
+  if (dirty) return <span className="text-xs text-ink-subtle">{t('lister.wizard.unsaved')}{autosave ? ` · ${t('lister.wizard.autosaves')}` : ''}</span>;
+  if (savedAt) return <span className="inline-flex items-center gap-1 text-xs text-success-700"><Save className="h-3.5 w-3.5" aria-hidden /> {t('lister.wizard.savedAt', { time: hhmm(savedAt) })}</span>;
   return null;
 }
 
 export default function WizardPage() {
+  const t = useT();
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
   const { data: listing, isLoading, error } = useListing(id);
@@ -77,17 +80,17 @@ export default function WizardPage() {
 
   return (
     <>
-      <Link to="/lister/listings" className="mb-3 inline-flex items-center gap-1 text-sm text-brand-700 hover:underline"><ArrowLeft className="h-4 w-4" /> My listings</Link>
-      <PageHeader title={listing.title || 'New listing'} breadcrumb={listing.listingNo}
-        actions={<><SaveState dirty={w.dirty} savedAt={w.savedAt} autoError={w.autoError} autosave={w.ctx.autosave} /><Badge tone={s.tone}>{s.label}</Badge><Badge>{listing.wizard?.completeness || 0}% complete</Badge>
-          <Link to={`/lister/listings/${listing._id}`} className="text-sm font-medium text-brand-700 hover:underline">Status and history</Link></>} />
-      {listing.project && <p className="-mt-3 mb-4 inline-flex items-center gap-1.5 text-sm text-ink-muted"><Building2 className="h-4 w-4 text-brand-600" aria-hidden /> Part of {listing.project.name}{listing.project.config ? ` · ${listing.project.config.name}` : ''}</p>}
-      {REVISABLE.includes(listing.status) && <Alert tone="info" className="mb-4">This listing is {s.label.toLowerCase()}. Your edits are saved as changes for review; buyers keep seeing the current version until they are approved.</Alert>}
-      {listing.status === 'pending_approval' && <Alert tone="info" className="mb-4">Submitted for approval. You can still correct details; withdraw from My listings to stop the review.</Alert>}
-      {!editable && <Alert tone="warning" className="mb-4">A {s.label.toLowerCase()} listing cannot be edited.</Alert>}
+      <Link to="/lister/listings" className="mb-3 inline-flex items-center gap-1 text-sm text-brand-700 hover:underline"><ArrowLeft className="h-4 w-4" /> {t('panel.nav.listerListings')}</Link>
+      <PageHeader title={listing.title || t('lister.wizard.newListing')} breadcrumb={listing.listingNo}
+        actions={<><SaveState dirty={w.dirty} savedAt={w.savedAt} autoError={w.autoError} autosave={w.ctx.autosave} /><Badge tone={s.tone}>{s.label}</Badge><Badge>{t('lister.listings.complete', { pct: listing.wizard?.completeness || 0 })}</Badge>
+          <Link to={`/lister/listings/${listing._id}`} className="text-sm font-medium text-brand-700 hover:underline">{t('lister.listings.actions.view')}</Link></>} />
+      {listing.project && <p className="-mt-3 mb-4 inline-flex items-center gap-1.5 text-sm text-ink-muted"><Building2 className="h-4 w-4 text-brand-600" aria-hidden /> {t('lister.listingStatus.partOf', { name: listing.project.name })}{listing.project.config ? ` · ${listing.project.config.name}` : ''}</p>}
+      {REVISABLE.includes(listing.status) && <Alert tone="info" className="mb-4">{t('lister.wizard.revisable', { status: s.label.toLowerCase() })}</Alert>}
+      {listing.status === 'pending_approval' && <Alert tone="info" className="mb-4">{t('lister.wizard.pending')}</Alert>}
+      {!editable && <Alert tone="warning" className="mb-4">{t('lister.wizard.notEditable', { status: s.label.toLowerCase() })}</Alert>}
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <nav aria-label="Wizard steps">
+        <nav aria-label={t('lister.wizard.stepsLabel')}>
           <ol className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1 lg:overflow-visible">
             {WIZARD_STEPS.map((w) => {
               const isDone = done.includes(w.n) || (w.n === 7 && listing.activeAgreementId);
@@ -117,9 +120,9 @@ export default function WizardPage() {
           </fieldset>
         </Card>
       </div>
-      <Modal open={w.blocker.state === 'blocked'} onClose={() => w.blocker.reset && w.blocker.reset()} size="sm" title="Leave without saving?"
-        description="This step has changes that are not saved yet."
-        footer={<><Button variant="secondary" onClick={() => w.blocker.reset && w.blocker.reset()}>Stay</Button><Button variant="danger" onClick={() => w.blocker.proceed && w.blocker.proceed()}>Discard changes</Button></>} />
+      <Modal open={w.blocker.state === 'blocked'} onClose={() => w.blocker.reset && w.blocker.reset()} size="sm" title={t('lister.wizard.leaveTitle')}
+        description={t('lister.wizard.leaveDesc')}
+        footer={<><Button variant="secondary" onClick={() => w.blocker.reset && w.blocker.reset()}>{t('lister.wizard.stay')}</Button><Button variant="danger" onClick={() => w.blocker.proceed && w.blocker.proceed()}>{t('lister.wizard.discard')}</Button></>} />
     </>
   );
 }

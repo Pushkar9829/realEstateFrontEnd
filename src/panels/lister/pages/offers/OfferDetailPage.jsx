@@ -7,16 +7,14 @@ import { Alert, Badge, Button, Card, CardHeader, EmptyState, Input, Modal, PageH
 import { cn } from '@/shared/lib/cn';
 import { date, dateTime, rupees, titleCase } from '@/shared/lib/format';
 import { lastRound, offerStatus, timeLeft, useListerOffer, useRespondOffer } from '@/modules/leads/listerApi';
+import { useT } from '@/shared/i18n';
 
-const DECLINE_REASONS = [
-  { value: 'Price too low', label: 'Price too low' },
-  { value: 'Terms not acceptable', label: 'Terms not acceptable' },
-  { value: 'Property no longer available', label: 'Property no longer available' },
-  { value: 'other', label: 'Other' },
-];
-const KIND = { offer: 'Offer', counter: 'Counter offer', accept: 'Accepted', decline: 'Declined', withdraw: 'Withdrawn' };
+// The reason value is sent to the API as typed (English); only the label is translated.
+const DECLINE_REASONS = [['Price too low', 'priceLow'], ['Terms not acceptable', 'terms'], ['Property no longer available', 'unavailable'], ['other', 'other']];
+const KIND = ['offer', 'counter', 'accept', 'decline', 'withdraw'];
 
 function Rounds({ rounds }) {
+  const t = useT();
   return (
     <ol className="relative space-y-4 border-l border-line pl-5">
       {rounds.map((r) => {
@@ -25,14 +23,14 @@ function Rounds({ rounds }) {
           <li key={r.n} className="relative">
             <span className={cn('absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-white', mine ? 'bg-brand-600' : 'bg-accent-500')} aria-hidden />
             <div className="flex flex-wrap items-center gap-2 text-xs text-ink-subtle">
-              <span className="font-semibold text-ink">Round {r.n}</span><span>·</span><span>{r.by}</span><span>·</span><span>{dateTime(r.at)}</span>
+              <span className="font-semibold text-ink">{t('lister.offers.roundN', { n: r.n })}</span><span>·</span><span>{mine ? t('lister.offers.you') : r.by}</span><span>·</span><span>{dateTime(r.at)}</span>
             </div>
-            <p className="mt-1 text-sm text-ink"><span className="font-medium">{KIND[r.kind] || titleCase(r.kind)}</span>{r.amount ? <> · <span className="font-semibold">{rupees(r.amount)}</span></> : null}</p>
+            <p className="mt-1 text-sm text-ink"><span className="font-medium">{KIND.includes(r.kind) ? t(`lister.offers.kind.${r.kind}`) : titleCase(r.kind)}</span>{r.amount ? <> · <span className="font-semibold">{rupees(r.amount)}</span></> : null}</p>
             {r.terms && (r.terms.token || r.terms.possessionDate || r.terms.inclusions) && (
               <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
-                {r.terms.token ? <div><dt className="inline">Token: </dt><dd className="inline">{rupees(r.terms.token)}</dd></div> : null}
-                {r.terms.possessionDate ? <div><dt className="inline">Possession / move-in: </dt><dd className="inline">{date(r.terms.possessionDate)}</dd></div> : null}
-                {r.terms.inclusions ? <div><dt className="inline">Inclusions: </dt><dd className="inline">{r.terms.inclusions}</dd></div> : null}
+                {r.terms.token ? <div><dt className="inline">{t('lister.offers.tokenLabel')} </dt><dd className="inline">{rupees(r.terms.token)}</dd></div> : null}
+                {r.terms.possessionDate ? <div><dt className="inline">{t('lister.offers.possessionLabel')} </dt><dd className="inline">{date(r.terms.possessionDate)}</dd></div> : null}
+                {r.terms.inclusions ? <div><dt className="inline">{t('lister.offers.inclusionsLabel')} </dt><dd className="inline">{r.terms.inclusions}</dd></div> : null}
               </dl>
             )}
             {r.note && <p className="mt-1 rounded-md bg-surface-muted px-3 py-2 text-sm text-ink-muted">{r.note}</p>}
@@ -44,6 +42,7 @@ function Rounds({ rounds }) {
 }
 
 function RespondCard({ offer }) {
+  const t = useT();
   const toast = useToast();
   const respond = useRespondOffer(offer.id);
   const [action, setAction] = useState('counter');
@@ -58,7 +57,7 @@ function RespondCard({ offer }) {
     const body = { action };
     if (action === 'counter') {
       const amount = Number(form.amount);
-      if (!amount || amount <= 0) { setErrors({ amount: 'Enter your counter amount' }); return; }
+      if (!amount || amount <= 0) { setErrors({ amount: t('lister.offers.errAmount') }); return; }
       body.amount = amount;
       if (form.note.trim()) body.note = form.note.trim();
       const terms = {};
@@ -70,26 +69,26 @@ function RespondCard({ offer }) {
     if (action === 'accept' && form.note.trim()) body.note = form.note.trim();
     if (action === 'decline') {
       const reason = form.reason === 'other' ? form.reasonText.trim() : form.reason;
-      if (!reason) { setErrors({ reason: 'Give a short reason' }); return; }
+      if (!reason) { setErrors({ reason: t('lister.offers.errReason') }); return; }
       body.reason = reason;
     }
     try {
       await respond.mutateAsync(body);
       setConfirm(false);
-      toast.success({ accept: 'Offer accepted. Our agent will prepare the booking.', counter: 'Counter offer sent', decline: 'Offer declined' }[action]);
+      toast.success(t(`lister.offers.done.${action}`));
     } catch (e) {
       setConfirm(false);
-      if (e.status === 409) setStale(e.code === 'INVALID_TRANSITION' ? 'This offer has changed, refresh to see the latest round.' : e.message);
+      if (e.status === 409) setStale(e.code === 'INVALID_TRANSITION' ? t('lister.offers.stale') : e.message);
       else { setErrors(e.fieldErrors); toast.error(e.message); }
     }
   };
 
-  const choices = [['accept', 'Accept', Check], ['counter', 'Counter', CornerUpLeft], ['decline', 'Decline', X]];
+  const choices = [['accept', t('lister.offers.accept'), Check], ['counter', t('lister.offers.counter'), CornerUpLeft], ['decline', t('lister.offers.decline'), X]];
   return (
     <Card>
-      <CardHeader title="Your answer" description={offer.validUntil ? `Respond by ${dateTime(offer.validUntil)}` : undefined} />
+      <CardHeader title={t('lister.offers.yourAnswer')} description={offer.validUntil ? t('lister.offers.respondBy', { date: dateTime(offer.validUntil) }) : undefined} />
       {stale && <Alert tone="warning" className="mb-4">{stale}</Alert>}
-      <div className="mb-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Action">
+      <div className="mb-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('lister.offers.action')}>
         {choices.map(([v, label, Icon]) => (
           <button key={v} type="button" role="radio" aria-checked={action === v} onClick={() => setAction(v)}
             className={cn('flex items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium', action === v ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-line-strong bg-white text-ink-muted hover:bg-surface-muted')}>
@@ -100,44 +99,45 @@ function RespondCard({ offer }) {
       <div className="space-y-4">
         {action === 'counter' && (
           <>
-            <Input label="Counter amount" required leading="₹" type="number" min={1} value={form.amount} onChange={set('amount')} error={errors.amount} />
+            <Input label={t('lister.offers.counterAmount')} required leading="₹" type="number" min={1} value={form.amount} onChange={set('amount')} error={errors.amount} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Token amount (optional)" leading="₹" type="number" min={0} value={form.token} onChange={set('token')} />
-              <Input label="Possession / move-in date (optional)" type="date" value={form.possessionDate} onChange={set('possessionDate')} />
+              <Input label={t('lister.offers.tokenOptional')} leading="₹" type="number" min={0} value={form.token} onChange={set('token')} />
+              <Input label={t('lister.offers.possessionOptional')} type="date" value={form.possessionDate} onChange={set('possessionDate')} />
             </div>
-            <Input label="Inclusions (optional)" maxLength={200} placeholder="e.g. Modular kitchen, 2 ACs" value={form.inclusions} onChange={set('inclusions')} />
+            <Input label={t('lister.offers.inclusionsOptional')} maxLength={200} placeholder={t('lister.offers.inclusionsPh')} value={form.inclusions} onChange={set('inclusions')} />
           </>
         )}
         {action === 'decline' && (
           <>
-            <Select label="Reason" required placeholder="Choose a reason" options={DECLINE_REASONS} value={form.reason} onChange={set('reason')} error={!form.reason || form.reason !== 'other' ? errors.reason : undefined} />
-            {form.reason === 'other' && <Input label="Reason" maxLength={300} value={form.reasonText} onChange={set('reasonText')} error={errors.reason} />}
+            <Select label={t('lister.listings.reason')} required placeholder={t('lister.offers.chooseReason')} options={DECLINE_REASONS.map(([value, key]) => ({ value, label: t(`lister.offers.declineReasons.${key}`) }))} value={form.reason} onChange={set('reason')} error={!form.reason || form.reason !== 'other' ? errors.reason : undefined} />
+            {form.reason === 'other' && <Input label={t('lister.listings.reason')} maxLength={300} value={form.reasonText} onChange={set('reasonText')} error={errors.reason} />}
             {form.reason === 'Property no longer available' && (
-              <Alert tone="info">If it was sold or rented, also take it off the market from <Link className="font-semibold underline" to="/lister/listings">My listings</Link>.</Alert>
+              <Alert tone="info">{t('lister.offers.alsoTakeOff')} <Link className="font-semibold underline" to="/lister/listings">{t('panel.nav.listerListings')}</Link>.</Alert>
             )}
           </>
         )}
-        {action !== 'decline' && <Textarea label="Note to the agent (optional)" rows={3} maxLength={500} value={form.note} onChange={set('note')} error={errors.note} hint="Do not share phone numbers or emails." />}
+        {action !== 'decline' && <Textarea label={t('lister.offers.noteOptional')} rows={3} maxLength={500} value={form.note} onChange={set('note')} error={errors.note} hint={t('lister.offers.noteHint')} />}
         <Button block variant={action === 'decline' ? 'danger' : 'primary'} loading={respond.isPending && !confirm} onClick={() => (action === 'accept' ? setConfirm(true) : send())}>
-          {{ accept: 'Accept offer', counter: 'Send counter offer', decline: 'Decline offer' }[action]}
+          {t(`lister.offers.submit.${action}`)}
         </Button>
       </div>
-      <Modal open={confirm} onClose={() => setConfirm(false)} title="Accept this offer?" size="sm"
-        footer={<><Button variant="ghost" onClick={() => setConfirm(false)}>Cancel</Button><Button loading={respond.isPending} onClick={send}>Accept</Button></>}>
-        <p className="text-sm text-ink-muted">Accepting tells our agent to prepare the booking. The deal is final only after the token is paid and our team verifies it.</p>
+      <Modal open={confirm} onClose={() => setConfirm(false)} title={t('lister.offers.confirmTitle')} size="sm"
+        footer={<><Button variant="ghost" onClick={() => setConfirm(false)}>{t('common.cancel')}</Button><Button loading={respond.isPending} onClick={send}>{t('lister.offers.accept')}</Button></>}>
+        <p className="text-sm text-ink-muted">{t('lister.offers.confirmText')}</p>
       </Modal>
     </Card>
   );
 }
 
 export default function OfferDetailPage() {
+  const t = useT();
   const { id } = useParams();
   const { data: o, isLoading, isError, error, refetch } = useListerOffer(id);
   if (isLoading) return <Skeleton className="h-96" />;
   if (isError) {
     return error && error.status === 404
-      ? <EmptyState icon={Handshake} title="Offer not found" action={<Button variant="secondary" to="/lister/offers">Back to offers</Button>} />
-      : <Alert tone="danger" title="Could not load the offer" action={<Button size="sm" variant="secondary" onClick={() => refetch()}>Retry</Button>} />;
+      ? <EmptyState icon={Handshake} title={t('lister.offers.notFound')} action={<Button variant="secondary" to="/lister/offers">{t('lister.offers.back')}</Button>} />
+      : <Alert tone="danger" title={t('lister.offers.loadOne')} action={<Button size="sm" variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>} />;
   }
   const s = offerStatus(o.status);
   const r = lastRound(o);
@@ -145,33 +145,33 @@ export default function OfferDetailPage() {
   const expired = left === 'expired';
   return (
     <>
-      <PageHeader breadcrumb={<Link to="/lister/offers" className="inline-flex items-center gap-1 hover:text-ink"><ArrowLeft className="h-3 w-3" />Offers</Link>}
+      <PageHeader breadcrumb={<Link to="/lister/offers" className="inline-flex items-center gap-1 hover:text-ink"><ArrowLeft className="h-3 w-3" />{t('panel.nav.listerOffers')}</Link>}
         title={`${o.offerNo} · ${o.buyer}`}
         description={o.property ? `${o.property.listingNo} · ${o.property.title}` : undefined}
-        actions={<span className="flex flex-wrap items-center gap-2"><Badge tone={s.tone}>{s.label}</Badge>{left && <Badge tone={expired ? 'danger' : 'warning'} icon={Clock}>{left}</Badge>}</span>} />
+        actions={<span className="flex flex-wrap items-center gap-2"><Badge tone={s.tone}>{s.label}</Badge>{left && <Badge tone={expired ? 'danger' : 'warning'} icon={Clock}>{expired ? t('lister.offers.expired') : left}</Badge>}</span>} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-sm text-ink-subtle">Amount on the table</p>
+                <p className="text-sm text-ink-subtle">{t('lister.offers.onTable')}</p>
                 <p className="text-3xl font-semibold text-ink">{r ? rupees(r.amount) : '-'}</p>
               </div>
-              <p className="text-sm text-ink-subtle">Round {o.rounds.length} · last by {r ? r.by : '-'}</p>
+              <p className="text-sm text-ink-subtle">{t('lister.offers.roundN', { n: o.rounds.length })} · {t('lister.offers.lastBy', { by: r ? (r.by === 'You' ? t('lister.offers.you') : r.by) : '-' })}</p>
             </div>
-            {o.otherOpenOffers > 0 && <Alert tone="info" className="mt-4">{o.otherOpenOffers} other open offer{o.otherOpenOffers > 1 ? 's' : ''} on this listing.</Alert>}
+            {o.otherOpenOffers > 0 && <Alert tone="info" className="mt-4">{t('lister.offers.otherOpen', { count: o.otherOpenOffers })}</Alert>}
           </Card>
           <Card>
-            <CardHeader title="Rounds" description="Every offer and counter offer, oldest first." />
+            <CardHeader title={t('lister.offers.rounds')} description={t('lister.offers.roundsDesc')} />
             <Rounds rounds={o.rounds} />
           </Card>
         </div>
         <div>
           {o.canRespond && !expired ? <RespondCard key={o.rounds.length} offer={o} /> : (
             <Card>
-              <CardHeader title="No action needed" />
+              <CardHeader title={t('lister.offers.noAction')} />
               <p className="text-sm text-ink-muted">
-                {expired ? 'This offer has expired.' : o.status === 'awaiting_buyer' ? 'Waiting for the buyer to answer your last round.' : o.status === 'accepted' ? 'You accepted this offer. Our agent is preparing the booking; the deal is final after verification.' : `This offer is ${s.label.toLowerCase()}.`}
+                {expired ? t('lister.offers.isExpired') : o.status === 'awaiting_buyer' ? t('lister.offers.waitingBuyer') : o.status === 'accepted' ? t('lister.offers.youAccepted') : t('lister.offers.isStatus', { status: s.label.toLowerCase() })}
               </p>
             </Card>
           )}

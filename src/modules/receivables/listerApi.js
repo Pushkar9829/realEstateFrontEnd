@@ -3,34 +3,34 @@
 // Amounts come back in paise; the payment-proof body takes rupees.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, http } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const INVOICE_STATUS = {
-  issued: { label: 'Issued', tone: 'info' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-  draft: { label: 'Draft', tone: 'neutral' },
-};
-export const RECEIVABLE_STATUS = {
-  pending_invoice: { label: 'Not invoiced', tone: 'neutral' },
-  invoiced: { label: 'Due', tone: 'info' },
-  partially_paid: { label: 'Partly paid', tone: 'warning' },
-  overdue: { label: 'Overdue', tone: 'danger' },
-  paid: { label: 'Paid', tone: 'success' },
-  disputed: { label: 'Disputed', tone: 'accent' },
-  written_off: { label: 'Written off', tone: 'neutral' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
-export const PAYMENT_STATUS = {
-  pending: { label: 'Under review', tone: 'warning' },
-  confirmed: { label: 'Confirmed', tone: 'success' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-};
-export const PAYMENT_MODES = [
-  { value: 'bank_transfer', label: 'Bank transfer (NEFT / RTGS / IMPS)' },
-  { value: 'upi', label: 'UPI' },
-  { value: 'cheque', label: 'Cheque' },
-  { value: 'cash', label: 'Cash' },
-  { value: 'other', label: 'Other' },
-];
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+
+export const INVOICE_STATUS = toned('lister.invoices.invoiceStatus', {
+  issued: 'info',
+  cancelled: 'neutral',
+  draft: 'neutral',
+});
+export const RECEIVABLE_STATUS = toned('lister.invoices.receivableStatus', {
+  pending_invoice: 'neutral',
+  invoiced: 'info',
+  partially_paid: 'warning',
+  overdue: 'danger',
+  paid: 'success',
+  disputed: 'accent',
+  written_off: 'neutral',
+  cancelled: 'neutral',
+});
+export const PAYMENT_STATUS = toned('lister.invoices.paymentStatus', {
+  pending: 'warning',
+  confirmed: 'success',
+  rejected: 'danger',
+});
+export const PAYMENT_MODES = ['bank_transfer', 'upi', 'cheque', 'cash', 'other']
+  .map((value) => ({ value, get label() { return t(`lister.invoices.modes.${value}`); } }));
 const pick = (map, s) => map[s] || { label: String(s || '-').replace(/_/g, ' '), tone: 'neutral' };
 export const receivableStatus = (s) => pick(RECEIVABLE_STATUS, s);
 export const invoiceStatus = (s) => pick(INVOICE_STATUS, s);

@@ -4,25 +4,30 @@
 // Money comes back in paise; request bodies take rupees.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const OFFER_STATUS = {
-  awaiting_lister: { label: 'Awaiting your response', tone: 'warning' },
-  awaiting_buyer: { label: 'Awaiting buyer', tone: 'info' },
-  accepted: { label: 'Accepted', tone: 'success' },
-  declined: { label: 'Declined', tone: 'danger' },
-  withdrawn: { label: 'Withdrawn', tone: 'neutral' },
-  expired: { label: 'Expired', tone: 'neutral' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+
+export const OFFER_STATUS = toned('lister.offers.status', {
+  awaiting_lister: 'warning',
+  awaiting_buyer: 'info',
+  accepted: 'success',
+  declined: 'danger',
+  withdrawn: 'neutral',
+  expired: 'neutral',
+});
 export const offerStatus = (s) => OFFER_STATUS[s] || { label: s, tone: 'neutral' };
 
-export const VISIT_STATUS = {
-  requested: { label: 'Requested', tone: 'neutral' },
-  scheduled: { label: 'Scheduled', tone: 'info' },
-  confirmed: { label: 'Confirmed', tone: 'brand' },
-  completed: { label: 'Done', tone: 'success' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-  no_show: { label: 'No show', tone: 'warning' },
-};
+export const VISIT_STATUS = toned('lister.leads.visitStatus', {
+  requested: 'neutral',
+  scheduled: 'info',
+  confirmed: 'brand',
+  completed: 'success',
+  cancelled: 'neutral',
+  no_show: 'warning',
+});
 export const visitStatus = (s) => VISIT_STATUS[s] || { label: s, tone: 'neutral' };
 
 export const listerLeadKeys = {
@@ -98,7 +103,7 @@ export function timeLeft(v) {
   const ms = new Date(v).getTime() - Date.now();
   if (ms <= 0) return 'expired';
   const h = Math.floor(ms / 3_600_000);
-  if (h >= 48) return `${Math.floor(h / 24)} days left`;
-  if (h >= 1) return `${h} h left`;
-  return `${Math.max(1, Math.floor(ms / 60000))} min left`;
+  if (h >= 48) return t('lister.offers.daysLeft', { n: Math.floor(h / 24) });
+  if (h >= 1) return t('lister.offers.hoursLeft', { n: h });
+  return t('lister.offers.minutesLeft', { n: Math.max(1, Math.floor(ms / 60000)) });
 }

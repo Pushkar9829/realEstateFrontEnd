@@ -4,50 +4,40 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
 import { useCount } from '@/shared/hooks/useCount';
+import { t } from '@/shared/i18n';
 
-export const LISTING_STATUS = {
-  draft: { label: 'Draft', tone: 'neutral' },
-  pending_approval: { label: 'Pending approval', tone: 'info' },
-  changes_requested: { label: 'Changes requested', tone: 'warning' },
-  live: { label: 'Live', tone: 'success' },
-  paused: { label: 'Paused', tone: 'warning' },
-  expired: { label: 'Expired', tone: 'neutral' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-  inactive: { label: 'Inactive', tone: 'neutral' },
-  suspended: { label: 'Suspended', tone: 'danger' },
-  sold: { label: 'Sold', tone: 'brand' },
-  rented: { label: 'Rented', tone: 'brand' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+const texts = (prefix, keys) => Object.defineProperties({}, Object.fromEntries(keys.map((k) => [k, { get: () => t(`${prefix}.${k}`), enumerable: true }])));
+
+export const LISTING_STATUS = toned('lister.status', {
+  draft: 'neutral',
+  pending_approval: 'info',
+  changes_requested: 'warning',
+  live: 'success',
+  paused: 'warning',
+  expired: 'neutral',
+  rejected: 'danger',
+  inactive: 'neutral',
+  suspended: 'danger',
+  sold: 'brand',
+  rented: 'brand',
+});
 export const listingStatus = (s) => LISTING_STATUS[s] || { label: s, tone: 'neutral' };
 
 export const WIZARD_STEPS = [
-  { n: 1, key: 'basic', label: 'Basic' },
-  { n: 2, key: 'location', label: 'Location' },
-  { n: 3, key: 'details', label: 'Details' },
-  { n: 4, key: 'price', label: 'Price' },
-  { n: 5, key: 'amenities', label: 'Amenities' },
-  { n: 6, key: 'media', label: 'Photos and documents' },
-  { n: 7, key: 'commission', label: 'Commission' },
-  { n: 8, key: 'review', label: 'Review' },
-];
+  [1, 'basic'], [2, 'location'], [3, 'details'], [4, 'price'], [5, 'amenities'], [6, 'media'], [7, 'commission'], [8, 'review'],
+].map(([n, key]) => ({ n, key, get label() { return t(`lister.wizard.steps.${key}`); } }));
 
 // Statuses whose content can be edited directly, and those where edits become a revision.
 export const EDITABLE = ['draft', 'changes_requested', 'pending_approval'];
 export const REVISABLE = ['live', 'paused'];
 
-export const WARNING_LABELS = {
-  pin_far_from_locality: 'The map pin is far from the chosen locality',
-  locality_requested: 'New locality requested; our team will review it',
-  rera_number_format: 'RERA number does not match the state format',
-  rera_url_host: 'RERA link is not on the official state website',
-  duplicate_unit: 'Another listing exists for the same unit',
-  duplicate_photos: 'Some photos match another listing',
-  price_outlier: 'Price is far from the locality average',
-  contact_patterns: 'Text looks like it contains contact details',
-  rera_missing: 'RERA details are missing',
-  commission_below_current_min: 'Commission is below the current minimum',
-  rera_expired: 'The project RERA registration validity has passed',
-};
+export const WARNING_LABELS = texts('lister.warnings', [
+  'pin_far_from_locality', 'locality_requested', 'rera_number_format', 'rera_url_host', 'duplicate_unit', 'duplicate_photos',
+  'price_outlier', 'contact_patterns', 'rera_missing', 'commission_below_current_min', 'rera_expired',
+]);
 
 export const listingKeys = {
   own: (p) => ['lister', 'properties', p],
@@ -127,15 +117,15 @@ export function missingSteps(listing, { builder, minPhotos = 3 } = {}) {
   if (!listing) return [];
   const done = (listing.wizard && listing.wizard.stepsDone) || [];
   const out = [];
-  [1, 2, 3, 4, 5].forEach((n) => { if (!done.includes(n)) out.push({ step: n, text: `${WIZARD_STEPS[n - 1].label} not saved` }); });
+  [1, 2, 3, 4, 5].forEach((n) => { if (!done.includes(n)) out.push({ step: n, text: t('lister.wizard.missing.notSaved', { step: WIZARD_STEPS[n - 1].label }) }); });
   const photos = ((listing.media && listing.media.photos) || []).filter((p) => !p.moderation || p.moderation.status !== 'rejected');
-  if (photos.length < minPhotos) out.push({ step: 6, text: `At least ${minPhotos} photos (${photos.length} added)` });
-  if (!builder && !((listing.media && listing.media.ownershipProofs) || []).length) out.push({ step: 6, text: 'Ownership proof (private)' });
+  if (photos.length < minPhotos) out.push({ step: 6, text: t('lister.wizard.missing.photos', { min: minPhotos, added: photos.length }) });
+  if (!builder && !((listing.media && listing.media.ownershipProofs) || []).length) out.push({ step: 6, text: t('lister.wizard.missing.ownership') });
   if (builder) {
     const r = listing.rera || {};
-    if (!(((r.numbers || []).length && r.url && r.certificateFileId) || (r.exempt && r.exempt.reason))) out.push({ step: 6, text: 'RERA number, link and certificate (or exemption)' });
+    if (!(((r.numbers || []).length && r.url && r.certificateFileId) || (r.exempt && r.exempt.reason))) out.push({ step: 6, text: t('lister.wizard.missing.rera') });
   }
-  if (!done.includes(7) || !listing.activeAgreementId) out.push({ step: 7, text: 'Commission agreement' });
+  if (!done.includes(7) || !listing.activeAgreementId) out.push({ step: 7, text: t('lister.wizard.missing.commission') });
   return out;
 }
 

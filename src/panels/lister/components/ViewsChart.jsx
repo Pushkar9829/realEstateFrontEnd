@@ -1,6 +1,7 @@
 // Views per day as a plain SVG bar chart (no chart library). Missing days in
 // the range are filled with zero so gaps are visible.
 import { useMemo } from 'react';
+import { useT } from '@/shared/i18n';
 
 const DAY = 86_400_000;
 const fmt = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
@@ -10,14 +11,15 @@ export function fillDays(points, from, to) {
   const start = new Date(`${new Date(from).toISOString().slice(0, 10)}T00:00:00Z`).getTime();
   const end = new Date(`${new Date(to).toISOString().slice(0, 10)}T00:00:00Z`).getTime();
   const out = [];
-  for (let t = start; t <= end && out.length < 800; t += DAY) {
-    const day = new Date(t).toISOString().slice(0, 10);
+  for (let ms = start; ms <= end && out.length < 800; ms += DAY) {
+    const day = new Date(ms).toISOString().slice(0, 10);
     out.push({ day, views: map[day] || 0 });
   }
   return out;
 }
 
 export default function ViewsChart({ points, from, to, height = 200 }) {
+  const t = useT();
   const days = useMemo(() => fillDays(points, from, to), [points, from, to]);
   const max = Math.max(1, ...days.map((d) => d.views));
   const total = days.reduce((a, d) => a + d.views, 0);
@@ -31,7 +33,7 @@ export default function ViewsChart({ points, from, to, height = 200 }) {
   const labelEvery = Math.max(1, Math.ceil(days.length / 8));
   return (
     <figure>
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`Views per day: ${total} views over ${days.length} days`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={t('lister.chart.aria', { total, days: days.length })}>
         {ticks.map((v) => {
           const y = pad.t + ih - (v / max) * ih;
           return (
@@ -46,14 +48,14 @@ export default function ViewsChart({ points, from, to, height = 200 }) {
           return (
             <g key={d.day}>
               <rect x={pad.l + i * bw + bw * 0.15} y={pad.t + ih - h} width={Math.max(1, bw * 0.7)} height={h} rx={Math.min(3, bw * 0.2)} className="fill-brand-500">
-                <title>{`${fmt.format(new Date(`${d.day}T00:00:00Z`))}: ${d.views} view${d.views === 1 ? '' : 's'}`}</title>
+                <title>{`${fmt.format(new Date(`${d.day}T00:00:00Z`))}: ${t('lister.chart.views', { count: d.views })}`}</title>
               </rect>
               {i % labelEvery === 0 && <text x={pad.l + i * bw + bw / 2} y={H - 6} textAnchor="middle" className="fill-ink-subtle text-[10px]">{fmt.format(new Date(`${d.day}T00:00:00Z`))}</text>}
             </g>
           );
         })}
       </svg>
-      <figcaption className="sr-only">{total} views in the selected range</figcaption>
+      <figcaption className="sr-only">{t('lister.chart.caption', { total })}</figcaption>
     </figure>
   );
 }

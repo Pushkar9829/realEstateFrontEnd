@@ -2,10 +2,13 @@
 import { useState } from 'react';
 import { Input, Select } from '@/shared/ui';
 import { clean, num, Segmented, StepFooter, StepMessages, useStepSave } from './common';
+import { useT } from '@/shared/i18n';
 
-const UNITS = [['sqft', 'sq ft'], ['sqm', 'sq m'], ['sqyd', 'sq yd'], ['acre', 'acre'], ['hectare', 'hectare'], ['bigha', 'bigha']];
+const UNITS = ['sqft', 'sqm', 'sqyd', 'acre', 'hectare', 'bigha'];
+const FACING = ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'];
 
 export default function DetailsStep({ listing, next, back }) {
+  const t = useT();
   const d = listing.details || {};
   const land = listing.category === 'land';
   const residential = listing.category === 'residential';
@@ -33,44 +36,44 @@ export default function DetailsStep({ listing, next, back }) {
       <StepMessages formError={s.formError} />
       {residential && (
         <div className="grid gap-4 sm:grid-cols-3">
-          <Select label="Bedrooms (BHK)" placeholder="Select" {...f('bhk')} options={[0, 1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: n === 0 ? 'Studio / 1 RK' : `${n} BHK` }))} error={s.errors.bhk} />
-          <Input label="Bathrooms" type="number" min={0} max={20} {...f('baths')} error={s.errors.baths} />
-          <Input label="Balconies" type="number" min={0} max={20} {...f('balconies')} />
+          <Select label={t('lister.wizard.details.bhk')} placeholder={t('lister.wizard.select')} {...f('bhk')} options={[0, 1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: n === 0 ? t('lister.wizard.details.studio') : `${n} BHK` }))} error={s.errors.bhk} />
+          <Input label={t('lister.wizard.details.baths')} type="number" min={0} max={20} {...f('baths')} error={s.errors.baths} />
+          <Input label={t('lister.wizard.details.balconies')} type="number" min={0} max={20} {...f('balconies')} />
         </div>
       )}
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-sm font-medium text-ink">Area <span className="text-danger-600">*</span> <span className="text-xs font-normal text-ink-subtle">give at least one</span></p>
-          <select className="h-9 rounded-md border border-line-strong px-2 text-sm" {...f('unit')} aria-label="Area unit">{UNITS.map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>
+          <p className="text-sm font-medium text-ink">{t('lister.wizard.details.area')} <span className="text-danger-600">*</span> <span className="text-xs font-normal text-ink-subtle">{t('lister.wizard.details.atLeastOne')}</span></p>
+          <select className="h-9 rounded-md border border-line-strong px-2 text-sm" {...f('unit')} aria-label={t('lister.wizard.details.areaUnit')}>{UNITS.map((c) => <option key={c} value={c}>{t(`lister.wizard.units.${c}`)}</option>)}</select>
         </div>
         <div className="grid gap-4 sm:grid-cols-4">
-          {!land && <Input label="Carpet" type="number" min={0} {...f('carpet')} />}
-          {!land && <Input label="Built-up" type="number" min={0} {...f('builtUp')} />}
-          {!land && <Input label="Super built-up" type="number" min={0} {...f('superBuiltUp')} />}
-          <Input label={land ? 'Plot area' : 'Plot (if any)'} type="number" min={0} {...f('plot')} />
+          {!land && <Input label={t('lister.wizard.details.carpet')} type="number" min={0} {...f('carpet')} />}
+          {!land && <Input label={t('lister.wizard.details.builtUp')} type="number" min={0} {...f('builtUp')} />}
+          {!land && <Input label={t('lister.wizard.details.superBuiltUp')} type="number" min={0} {...f('superBuiltUp')} />}
+          <Input label={land ? t('lister.wizard.details.plotArea') : t('lister.wizard.details.plotAny')} type="number" min={0} {...f('plot')} />
         </div>
         {areaErr && <p className="mt-1 text-xs text-danger-600">{areaErr}</p>}
       </div>
       {!land && (
         <div className="grid gap-4 sm:grid-cols-3">
-          <Input label="Floor" type="number" min={-3} max={200} hint="0 = ground, -1 = basement" {...f('floor')} error={s.errors.floor} />
-          <Input label="Total floors" type="number" min={0} max={200} {...f('totalFloors')} />
-          <Input label="Age of property (years)" type="number" min={0} max={150} {...f('ageYears')} />
-          <Select label="Furnishing" placeholder="Select" {...f('furnishing')} options={[{ value: 'unfurnished', label: 'Unfurnished' }, { value: 'semi', label: 'Semi-furnished' }, { value: 'full', label: 'Fully furnished' }]} />
-          <Select label="Facing" placeholder="Select" {...f('facing')} options={['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'].map((x) => ({ value: x, label: x }))} />
+          <Input label={t('lister.wizard.details.floor')} type="number" min={-3} max={200} hint={t('lister.wizard.details.floorHint')} {...f('floor')} error={s.errors.floor} />
+          <Input label={t('lister.wizard.details.totalFloors')} type="number" min={0} max={200} {...f('totalFloors')} />
+          <Input label={t('lister.wizard.details.age')} type="number" min={0} max={150} {...f('ageYears')} />
+          <Select label={t('lister.wizard.details.furnishing')} placeholder={t('lister.wizard.select')} {...f('furnishing')} options={['unfurnished', 'semi', 'full'].map((x) => ({ value: x, label: t(`lister.wizard.details.furnish.${x}`) }))} />
+          <Select label={t('lister.wizard.details.facing')} placeholder={t('lister.wizard.select')} {...f('facing')} options={FACING.map((x) => ({ value: x, label: t(`lister.wizard.details.directions.${x}`) }))} />
         </div>
       )}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="sm:col-span-2">
-          <p className="mb-1.5 text-sm font-medium text-ink">Possession</p>
-          <Segmented options={[{ value: 'ready', label: 'Ready to move' }, { value: 'under_construction', label: 'Under construction' }]} value={v.possession} onChange={(p) => setV((x) => ({ ...x, possession: p }))} />
+          <p className="mb-1.5 text-sm font-medium text-ink">{t('lister.wizard.details.possession')}</p>
+          <Segmented options={[{ value: 'ready', label: t('lister.wizard.details.ready') }, { value: 'under_construction', label: t('lister.wizard.details.underConstruction') }]} value={v.possession} onChange={(p) => setV((x) => ({ ...x, possession: p }))} />
         </div>
-        {v.possession === 'under_construction' && <Input label="Expected possession" type="date" {...f('possessionDate')} />}
+        {v.possession === 'under_construction' && <Input label={t('lister.wizard.details.expected')} type="date" {...f('possessionDate')} />}
       </div>
       {!land && (
         <div className="grid gap-4 sm:grid-cols-3">
-          <Input label="Covered parking" type="number" min={0} max={50} {...f('covered')} />
-          <Input label="Open parking" type="number" min={0} max={50} {...f('open')} />
+          <Input label={t('lister.wizard.details.covered')} type="number" min={0} max={50} {...f('covered')} />
+          <Input label={t('lister.wizard.details.open')} type="number" min={0} max={50} {...f('open')} />
         </div>
       )}
       <StepFooter onBack={back} saving={s.saving} onSave={save} />

@@ -2,14 +2,19 @@
 // scope 'lister' -> /api/lister/agreements (own only); 'admin' -> /api/admin/agreements.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, http } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const AGREEMENT_STATUS = {
-  accepted: { label: 'Accepted', tone: 'info' },
-  countersigned: { label: 'Countersigned', tone: 'success' },
-  superseded: { label: 'Superseded', tone: 'neutral' },
-  terminated: { label: 'Terminated', tone: 'danger' },
-  void: { label: 'Void', tone: 'neutral' },
-};
+// Labels are read from the dictionary when used (getters), so they follow the
+// chosen language; the exported names and shapes stay the same.
+const toned = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([k, tone]) => [k, { get label() { return t(`${prefix}.${k}`); }, tone }]));
+
+export const AGREEMENT_STATUS = toned('lister.agreements.status', {
+  accepted: 'info',
+  countersigned: 'success',
+  superseded: 'neutral',
+  terminated: 'danger',
+  void: 'neutral',
+});
 export const agreementStatus = (s) => AGREEMENT_STATUS[s] || { label: s, tone: 'neutral' };
 
 const base = (scope) => (scope === 'admin' ? '/admin/agreements' : '/lister/agreements');
