@@ -36,6 +36,6 @@ export const agentExtraRoutes = [
   { path: 'verification-visits', element: <VerificationVisits /> },
   { path: 'verification-visits/:id', element: <VerificationOutcome /> },
   // RE-S-AGT-15 / 16 (the account page holds availability and leave in this panel)
-  { path: 'notifications', element: <Notifications base="/agent" description="New leads, follow-ups, visits, deals and system notices. Kept for 180 days." /> },
+  { path: 'notifications', element: <Notifications base="/agent" variant="agent" /> },
   { path: 'profile', element: <Profile /> },
 ];

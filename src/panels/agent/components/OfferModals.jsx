@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react';
 import { Button, Input, Modal, Select, Textarea, useToast } from '@/shared/ui';
 import { rupees } from '@/shared/lib/format';
 import { errorText, leadApi, useAgentMutation } from '@/modules/leads/agentApi';
+import { useT } from '@/shared/i18n';
 
 export function RecordOfferModal({ open, onClose, lead, properties = [], initialAmount, initialPropertyId }) {
+  const t = useT();
   const toast = useToast();
   const m = useAgentMutation(leadApi.recordOffer);
   const [v, setV] = useState({});
@@ -17,31 +19,31 @@ export function RecordOfferModal({ open, onClose, lead, properties = [], initial
   const set = (k) => (e) => setV((x) => ({ ...x, [k]: e.target.value }));
   const save = async () => {
     const errs = {};
-    if (!v.propertyId) errs.propertyId = 'Choose the property';
-    if (!(Number(v.amount) > 0)) errs.amount = 'Enter the offer amount';
+    if (!v.propertyId) errs.propertyId = t('agent.offer.errProperty');
+    if (!(Number(v.amount) > 0)) errs.amount = t('agent.offer.errAmount');
     setErrors(errs);
     if (Object.keys(errs).length) return;
     const terms = { ...(Number(v.token) > 0 ? { token: Number(v.token) } : {}), ...(v.possessionDate ? { possessionDate: v.possessionDate } : {}), ...(v.inclusions.trim() ? { inclusions: v.inclusions.trim() } : {}) };
     try {
       await m.mutateAsync({ id: lead._id, body: { propertyId: v.propertyId, amount: Number(v.amount), terms, validityDays: Number(v.validityDays), ...(v.note.trim() ? { note: v.note.trim() } : {}) } });
-      toast.success('Offer sent to the owner\'s Offers inbox');
+      toast.success(t('agent.offer.sent'));
       onClose();
     } catch (e) { setErrors(e.fieldErrors || {}); toast.error(errorText(e)); }
   };
   return (
-    <Modal open={open} onClose={onClose} size="lg" title="Record buyer offer" description="The owner sees the buyer label only. One open offer per lead and property."
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button loading={m.isPending} onClick={save}>Send offer</Button></>}>
+    <Modal open={open} onClose={onClose} size="lg" title={t('agent.offer.title')} description={t('agent.offer.desc')}
+      footer={<><Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button><Button loading={m.isPending} onClick={save}>{t('agent.offer.send')}</Button></>}>
       <div className="space-y-4">
-        <Select label="Property" required placeholder="Choose" value={v.propertyId || ''} onChange={set('propertyId')} error={errors.propertyId}
+        <Select label={t('agent.common.property')} required placeholder={t('agent.common.choose')} value={v.propertyId || ''} onChange={set('propertyId')} error={errors.propertyId}
           options={properties.map((p) => ({ value: p._id, label: `${p.listingNo} · ${p.title}` }))} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Offer amount" required leading="₹" type="number" min={1} value={v.amount || ''} onChange={set('amount')} error={errors.amount} />
-          <Input label="Token amount" leading="₹" type="number" min={0} value={v.token || ''} onChange={set('token')} />
-          <Input label="Possession / move-in date" type="date" value={v.possessionDate || ''} onChange={set('possessionDate')} />
-          <Select label="Valid for" value={v.validityDays || '7'} onChange={set('validityDays')} options={[1, 2, 3, 4, 5, 6, 7].map((n) => ({ value: String(n), label: `${n} day${n > 1 ? 's' : ''}` }))} />
+          <Input label={t('agent.offer.amount')} required leading="₹" type="number" min={1} value={v.amount || ''} onChange={set('amount')} error={errors.amount} />
+          <Input label={t('agent.offer.token')} leading="₹" type="number" min={0} value={v.token || ''} onChange={set('token')} />
+          <Input label={t('agent.offer.possession')} type="date" value={v.possessionDate || ''} onChange={set('possessionDate')} />
+          <Select label={t('agent.offer.validFor')} value={v.validityDays || '7'} onChange={set('validityDays')} options={[1, 2, 3, 4, 5, 6, 7].map((n) => ({ value: String(n), label: t('agent.offer.days', { count: n }) }))} />
         </div>
-        <Input label="Inclusions" maxLength={300} placeholder="e.g. modular kitchen, 2 ACs, covered parking" value={v.inclusions || ''} onChange={set('inclusions')} />
-        <Textarea label="Note to the owner" rows={2} maxLength={500} value={v.note || ''} onChange={set('note')} hint="No phone numbers, emails or names" error={errors.note} />
+        <Input label={t('agent.offer.inclusions')} maxLength={300} placeholder={t('agent.offer.inclusionsPh')} value={v.inclusions || ''} onChange={set('inclusions')} />
+        <Textarea label={t('agent.offer.noteOwner')} rows={2} maxLength={500} value={v.note || ''} onChange={set('note')} hint={t('agent.offer.noteHint')} error={errors.note} />
       </div>
     </Modal>
   );
@@ -49,6 +51,7 @@ export function RecordOfferModal({ open, onClose, lead, properties = [], initial
 
 // kind: accept (buyer accepts the owner's counter) | counter (buyer's new amount).
 export function BuyerRoundModal({ open, onClose, offer, kind }) {
+  const t = useT();
   const toast = useToast();
   const m = useAgentMutation(leadApi.offerRound);
   const [amount, setAmount] = useState('');
@@ -58,21 +61,21 @@ export function BuyerRoundModal({ open, onClose, offer, kind }) {
   if (!offer) return null;
   const last = offer.rounds[offer.rounds.length - 1];
   const save = async () => {
-    if (kind === 'counter' && !(Number(amount) > 0)) { setError('Enter the buyer\'s new amount'); return; }
+    if (kind === 'counter' && !(Number(amount) > 0)) { setError(t('agent.offer.errNewAmount')); return; }
     try {
       await m.mutateAsync({ offerId: offer._id, body: { kind, ...(kind === 'counter' ? { amount: Number(amount) } : {}), ...(note.trim() ? { note: note.trim() } : {}) } });
-      toast.success(kind === 'accept' ? 'Accepted. You can now create the deal.' : 'Counter sent to the owner');
+      toast.success(kind === 'accept' ? t('agent.offer.accepted') : t('agent.offer.counterSent'));
       onClose();
     } catch (e) { setError(errorText(e)); toast.error(errorText(e)); }
   };
   return (
-    <Modal open={open} onClose={onClose} size="sm" title={kind === 'accept' ? 'Buyer accepts the counter' : 'Buyer counter-offer'}
-      description={`${offer.offerNo} · owner's last amount ${rupees(last && last.amount)}`}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button loading={m.isPending} onClick={save}>{kind === 'accept' ? 'Accept' : 'Send counter'}</Button></>}>
+    <Modal open={open} onClose={onClose} size="sm" title={kind === 'accept' ? t('agent.offer.acceptTitle') : t('agent.offer.counterTitle')}
+      description={`${offer.offerNo} · ${t('agent.offer.ownerLast', { amount: rupees(last && last.amount) })}`}
+      footer={<><Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button><Button loading={m.isPending} onClick={save}>{kind === 'accept' ? t('agent.offer.accept') : t('agent.offer.sendCounter')}</Button></>}>
       <div className="space-y-4">
-        {kind === 'counter' && <Input label="Buyer's new amount" required leading="₹" type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} error={error} />}
+        {kind === 'counter' && <Input label={t('agent.offer.newAmount')} required leading="₹" type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} error={error} />}
         {kind === 'accept' && error && <p className="text-xs text-danger-600">{error}</p>}
-        <Textarea label="Note to the owner" rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
+        <Textarea label={t('agent.offer.noteOwner')} rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
       </div>
     </Modal>
   );

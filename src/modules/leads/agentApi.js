@@ -5,19 +5,30 @@
 // requirement budgets (requirement.budgetMin / budgetMax) are plain rupees.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
+import { number } from '@/shared/lib/format';
 
 // ---------------------------------------------------------------- labels
+// Labels are getters that call t() when read, so they follow the chosen
+// language (agent.* keys in shared/i18n/locales/<lang>/agent.js).
+
+// { value, label (getter), ...extra } for option lists.
+const opt = (value, key, extra) => Object.defineProperty({ value, ...extra }, 'label', { get: () => t(key), enumerable: true });
+// { [value]: label (getter) } maps.
+const labelMap = (prefix, values) => Object.defineProperties({}, Object.fromEntries(values.map((v) => [v, { get: () => t(`${prefix}.${v}`), enumerable: true }])));
+// { [value]: { label (getter), tone } } maps.
+const toneMap = (prefix, tones) => Object.fromEntries(Object.entries(tones).map(([v, tone]) => [v, Object.defineProperty({ tone }, 'label', { get: () => t(`${prefix}.${v}`), enumerable: true })]));
 
 export const STAGES = [
-  { value: 'new', label: 'New', tone: 'info' },
-  { value: 'contacted', label: 'Contacted', tone: 'brand' },
-  { value: 'qualified', label: 'Qualified', tone: 'brand' },
-  { value: 'site_visit_scheduled', label: 'Visit scheduled', tone: 'accent' },
-  { value: 'site_visit_done', label: 'Visit done', tone: 'accent' },
-  { value: 'negotiation', label: 'Negotiation', tone: 'warning' },
-  { value: 'booking', label: 'Booking', tone: 'success' },
-  { value: 'closed_won', label: 'Won', tone: 'success' },
-  { value: 'closed_lost', label: 'Lost', tone: 'danger' },
+  opt('new', 'agent.stage.new', { tone: 'info' }),
+  opt('contacted', 'agent.stage.contacted', { tone: 'brand' }),
+  opt('qualified', 'agent.stage.qualified', { tone: 'brand' }),
+  opt('site_visit_scheduled', 'agent.stage.site_visit_scheduled', { tone: 'accent' }),
+  opt('site_visit_done', 'agent.stage.site_visit_done', { tone: 'accent' }),
+  opt('negotiation', 'agent.stage.negotiation', { tone: 'warning' }),
+  opt('booking', 'agent.stage.booking', { tone: 'success' }),
+  opt('closed_won', 'agent.stage.closed_won', { tone: 'success' }),
+  opt('closed_lost', 'agent.stage.closed_lost', { tone: 'danger' }),
 ];
 export const OPEN_STAGES = ['new', 'contacted', 'qualified', 'site_visit_scheduled', 'site_visit_done', 'negotiation', 'booking'];
 export const STAGE_ORDER = [...OPEN_STAGES, 'closed_won'];
@@ -26,96 +37,40 @@ export const stageInfo = (s) => STAGES.find((x) => x.value === s) || { value: s,
 export const isBackMove = (from, to) => to !== 'closed_lost' && STAGE_ORDER.indexOf(to) < STAGE_ORDER.indexOf(from);
 
 export const PRIORITIES = [
-  { value: 'hot', label: 'Hot', tone: 'danger' },
-  { value: 'warm', label: 'Warm', tone: 'warning' },
-  { value: 'cold', label: 'Cold', tone: 'info' },
+  opt('hot', 'agent.priority.hot', { tone: 'danger' }),
+  opt('warm', 'agent.priority.warm', { tone: 'warning' }),
+  opt('cold', 'agent.priority.cold', { tone: 'info' }),
 ];
 export const priorityInfo = (p) => PRIORITIES.find((x) => x.value === p) || { value: p, label: p || '-', tone: 'neutral' };
 
-export const LOST_REASONS = [
-  { value: 'not_responding', label: 'Not responding' },
-  { value: 'budget_mismatch', label: 'Budget mismatch' },
-  { value: 'bought_elsewhere', label: 'Bought elsewhere' },
-  { value: 'not_interested', label: 'Not interested' },
-  { value: 'duplicate', label: 'Duplicate' },
-  { value: 'spam', label: 'Spam / not genuine' },
-  { value: 'property_sold', label: 'Property sold' },
-  { value: 'other', label: 'Other' },
-];
+export const LOST_REASONS = ['not_responding', 'budget_mismatch', 'bought_elsewhere', 'not_interested', 'duplicate', 'spam', 'property_sold', 'other']
+  .map((v) => opt(v, `agent.lostReason.${v}`));
 
-export const CALL_OUTCOMES = [
-  { value: 'connected', label: 'Connected' },
-  { value: 'no_answer', label: 'No answer' },
-  { value: 'busy', label: 'Busy' },
-  { value: 'switched_off', label: 'Switched off' },
-  { value: 'wrong_number', label: 'Wrong number' },
-  { value: 'call_back_later', label: 'Call back later' },
-];
+export const CALL_OUTCOMES = ['connected', 'no_answer', 'busy', 'switched_off', 'wrong_number', 'call_back_later']
+  .map((v) => opt(v, `agent.callOutcome.${v}`));
 
-export const FOLLOWUP_TYPES = [
-  { value: 'call', label: 'Call' },
-  { value: 'whatsapp', label: 'WhatsApp' },
-  { value: 'meeting', label: 'Meeting' },
-  { value: 'email', label: 'Email' },
-  { value: 'other', label: 'Other' },
-];
+export const FOLLOWUP_TYPES = ['call', 'whatsapp', 'meeting', 'email', 'other'].map((v) => opt(v, `agent.followupType.${v}`));
 
-export const SOURCES = {
-  enquiry: 'Enquiry', callback: 'Callback', site_visit: 'Visit request', best_price: 'Best price', contact_form: 'Contact form', whatsapp: 'WhatsApp',
-  hotline: 'Hotline', walk_in: 'Walk-in', referral: 'Referral', requirement: 'Requirement', recycled: 'Recycled',
-};
+export const SOURCES = labelMap('agent.source', ['enquiry', 'callback', 'site_visit', 'best_price', 'contact_form', 'whatsapp', 'hotline', 'walk_in', 'referral', 'requirement', 'recycled']);
 
-export const VISIT_STATUS = {
-  requested: { label: 'Requested', tone: 'info' },
-  scheduled: { label: 'Scheduled', tone: 'brand' },
-  confirmed: { label: 'Confirmed', tone: 'success' },
-  completed: { label: 'Completed', tone: 'success' },
-  no_show: { label: 'No-show', tone: 'warning' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+export const VISIT_STATUS = toneMap('agent.visitStatus', { requested: 'info', scheduled: 'brand', confirmed: 'success', completed: 'success', no_show: 'warning', cancelled: 'neutral' });
 export const visitStatus = (s) => VISIT_STATUS[s] || { label: s, tone: 'neutral' };
 
-export const OFFER_STATUS = {
-  awaiting_lister: { label: 'Awaiting owner', tone: 'info' },
-  awaiting_buyer: { label: 'Owner replied', tone: 'warning' },
-  accepted: { label: 'Accepted', tone: 'success' },
-  declined: { label: 'Declined', tone: 'danger' },
-  withdrawn: { label: 'Withdrawn', tone: 'neutral' },
-  expired: { label: 'Expired', tone: 'neutral' },
-};
+export const OFFER_STATUS = toneMap('agent.offerStatus', { awaiting_lister: 'info', awaiting_buyer: 'warning', accepted: 'success', declined: 'danger', withdrawn: 'neutral', expired: 'neutral' });
 export const offerStatus = (s) => OFFER_STATUS[s] || { label: s, tone: 'neutral' };
 
-export const WHATSAPP_TEMPLATES = [
-  { value: 'share_listing', label: 'Share a listing' },
-  { value: 'visit_confirmation', label: 'Visit confirmation' },
-];
+export const WHATSAPP_TEMPLATES = ['share_listing', 'visit_confirmation'].map((v) => opt(v, `agent.whatsappTemplate.${v}`));
 
 // Lead list filters (GET /agent/leads ?source&city&purpose&from&to).
-export const PURPOSES = [{ value: 'sale', label: 'Buy' }, { value: 'rent', label: 'Rent' }];
+export const PURPOSES = [opt('sale', 'agent.purpose.sale'), opt('rent', 'agent.purpose.rent')];
 
 export const OBJECTIONS = ['price', 'location', 'size', 'condition', 'legal', 'other'];
-export const SHARE_TAGS = [
-  { value: 'interest', label: 'Interest' },
-  { value: 'visit_outcome', label: 'Visit outcome' },
-  { value: 'negotiation', label: 'Negotiation' },
-  { value: 'general', label: 'General' },
-];
+export const objectionLabel = (o) => t(`agent.objection.${o}`);
+export const SHARE_TAGS = ['interest', 'visit_outcome', 'negotiation', 'general'].map((v) => opt(v, `agent.shareTag.${v}`));
 
-export const VERIFICATION_CHECKLIST = [
-  { key: 'existsAtPin', label: 'Property exists at the map pin' },
-  { key: 'matchesPhotos', label: 'Matches the listing photos' },
-  { key: 'matchesDetails', label: 'Matches the listed details (BHK, area, floor)' },
-  { key: 'ownerPresentWithId', label: 'Owner present with ID' },
-  { key: 'noBrokerBoard', label: 'No broker board or third-party signage' },
-];
-export const VERIFICATION_STATUS = {
-  requested: { label: 'Requested', tone: 'info' },
-  scheduled: { label: 'Scheduled', tone: 'brand' },
-  verified: { label: 'Verified', tone: 'success' },
-  not_verified: { label: 'Not verified', tone: 'danger' },
-  lister_absent: { label: 'Lister absent', tone: 'warning' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+export const VERIFICATION_CHECKLIST = ['existsAtPin', 'matchesPhotos', 'matchesDetails', 'ownerPresentWithId', 'noBrokerBoard']
+  .map((key) => Object.defineProperty({ key }, 'label', { get: () => t(`agent.verification.check.${key}`), enumerable: true }));
+export const VERIFICATION_STATUS = toneMap('agent.verificationStatus', { requested: 'info', scheduled: 'brand', verified: 'success', not_verified: 'danger', lister_absent: 'warning', cancelled: 'neutral' });
 
 // ---------------------------------------------------------------- keys and queries
 
@@ -212,11 +167,11 @@ export function errorText(e) {
   return fields.length ? fields.join('. ') : e.message;
 }
 
-export const firstName = (n) => String(n || '').trim().split(/\s+/)[0] || 'Buyer';
+export const firstName = (n) => String(n || '').trim().split(/\s+/)[0] || t('agent.common.buyer');
 export const leadPrice = (p) => (p ? (p.purpose === 'rent' ? p.price && p.price.monthlyRent : p.price && p.price.amount) : null);
 export function budgetText(r) {
   if (!r || (!r.budgetMin && !r.budgetMax)) return '';
-  const f = (v) => { if (v >= 1e7) return `${+(v / 1e7).toFixed(2)} Cr`; if (v >= 1e5) return `${+(v / 1e5).toFixed(2)} L`; return Number(v).toLocaleString('en-IN'); };
+  const f = (v) => { if (v >= 1e7) return `${+(v / 1e7).toFixed(2)} Cr`; if (v >= 1e5) return `${+(v / 1e5).toFixed(2)} L`; return number(v); };
   if (r.budgetMin && r.budgetMax) return `₹${f(r.budgetMin)} - ${f(r.budgetMax)}`;
-  return r.budgetMax ? `Up to ₹${f(r.budgetMax)}` : `From ₹${f(r.budgetMin)}`;
+  return r.budgetMax ? t('agent.common.budgetUpTo', { amount: `₹${f(r.budgetMax)}` }) : t('agent.common.budgetFrom', { amount: `₹${f(r.budgetMin)}` });
 }

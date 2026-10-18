@@ -8,17 +8,15 @@ import { dateTime } from '@/shared/lib/format';
 import FileDrop from '@/shared/components/FileDrop';
 import { useAuth } from '@/modules/auth';
 import { VERIFICATION_CHECKLIST, VERIFICATION_STATUS, errorText, useAgentMutation, useVerificationVisits, verificationApi } from '@/modules/leads/agentApi';
+import { useT } from '@/shared/i18n';
 import { ErrorState, StatusBadge } from '../../components/common';
 import { NoFieldAccess } from './VerificationVisitsPage';
 
-const RESULTS = [
-  { value: 'verified', label: 'Verified: everything matches' },
-  { value: 'not_verified', label: 'Not verified: does not match' },
-  { value: 'lister_absent', label: 'Lister absent' },
-  { value: 'cancelled', label: 'Cancelled on site' },
-];
+// Labels: agent.verification.result.<value>.
+const RESULTS = ['verified', 'not_verified', 'lister_absent', 'cancelled'];
 
 export default function VerificationOutcomePage() {
+  const t = useT();
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
@@ -39,7 +37,7 @@ export default function VerificationOutcomePage() {
   if (isLoading) return <Skeleton className="h-96" />;
   if (error) return <ErrorState error={error} onRetry={refetch} />;
   const visit = ((data && data.items) || []).find((v) => v._id === id);
-  if (!visit) return <EmptyState title="Visit not found" description="It may not be assigned to you." action={<Button variant="secondary" to="/agent/verification-visits">Back</Button>} />;
+  if (!visit) return <EmptyState title={t('agent.verification.notFound')} description={t('agent.verification.notFoundDesc')} action={<Button variant="secondary" to="/agent/verification-visits">{t('common.back')}</Button>} />;
 
   const p = visit.propertyId || {};
   const addr = p.location ? [p.location.addressLine, p.location.locality, p.location.city].filter(Boolean).join(', ') : '';
@@ -48,66 +46,66 @@ export default function VerificationOutcomePage() {
   const needsEvidence = ['verified', 'not_verified'].includes(result);
 
   const locate = () => {
-    if (!navigator.geolocation) { setGpsError('This device cannot share its location.'); return; }
+    if (!navigator.geolocation) { setGpsError(t('agent.verification.noGeo')); return; }
     setLocating(true);
     setGpsError('');
     navigator.geolocation.getCurrentPosition(
       (pos) => { setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: Math.round(pos.coords.accuracy) }); setLocating(false); },
-      (err) => { setGpsError(err.code === 1 ? 'Location permission was denied. Allow it in the browser and try again.' : 'Could not get your location. Move to open sky and retry.'); setLocating(false); },
+      (err) => { setGpsError(err.code === 1 ? t('agent.verification.geoDenied') : t('agent.verification.geoFailed')); setLocating(false); },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
   };
   const save = async () => {
     const e = {};
-    if (needsEvidence && !gps) e.gps = 'Capture GPS on arrival';
-    if (needsEvidence && photos.length < 4) e.photoFileIds = 'Upload at least 4 photos';
-    if (photos.length > 20) e.photoFileIds = 'Up to 20 photos';
-    if (result === 'verified' && VERIFICATION_CHECKLIST.some((c) => checklist[c.key] !== true)) e.checklist = 'Every checklist item must pass for a verified result';
+    if (needsEvidence && !gps) e.gps = t('agent.verification.errGps');
+    if (needsEvidence && photos.length < 4) e.photoFileIds = t('agent.verification.errPhotosMin');
+    if (photos.length > 20) e.photoFileIds = t('agent.verification.errPhotosMax');
+    if (result === 'verified' && VERIFICATION_CHECKLIST.some((c) => checklist[c.key] !== true)) e.checklist = t('agent.verification.errChecklist');
     setErrors(e);
     if (Object.keys(e).length) return;
     const body = {
       result, checklist: Object.fromEntries(VERIFICATION_CHECKLIST.map((c) => [c.key, Boolean(checklist[c.key])])),
       photoFileIds: photos.map((x) => x.id), ...(gps ? { gps } : {}), ...(remarks.trim() ? { remarks: remarks.trim() } : {}),
     };
-    try { await m.mutateAsync({ id: visit._id, body }); toast.success('Outcome recorded'); navigate('/agent/verification-visits'); } catch (err) { setErrors(err.fieldErrors || {}); toast.error(errorText(err)); }
+    try { await m.mutateAsync({ id: visit._id, body }); toast.success(t('agent.verification.recorded')); navigate('/agent/verification-visits'); } catch (err) { setErrors(err.fieldErrors || {}); toast.error(errorText(err)); }
   };
 
   return (
     <>
-      <PageHeader breadcrumb={<Link to="/agent/verification-visits" className="hover:text-ink">Verification visits</Link>} title={visit.visitNo}
+      <PageHeader breadcrumb={<Link to="/agent/verification-visits" className="hover:text-ink">{t('panel.nav.agentVerificationVisits')}</Link>} title={visit.visitNo}
         description={`${p.listingNo || ''} · ${p.title || ''} · ${dateTime(visit.scheduledAt)}`} actions={<StatusBadge map={VERIFICATION_STATUS} status={visit.status} />} />
       <Card className="mb-6 text-sm">
-        <p className="flex items-start gap-2 text-ink"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ink-subtle" />{addr || 'Address not available'}</p>
-        {addr && <a className="mt-2 inline-flex items-center gap-1 text-brand-600 hover:underline" target="_blank" rel="noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`}>Directions <ExternalLink className="h-3.5 w-3.5" /></a>}
-        {visit.notes && <p className="mt-2 text-ink-muted">Notes: {visit.notes}</p>}
+        <p className="flex items-start gap-2 text-ink"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ink-subtle" />{addr || t('agent.verification.noAddress')}</p>
+        {addr && <a className="mt-2 inline-flex items-center gap-1 text-brand-600 hover:underline" target="_blank" rel="noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`}>{t('agent.visits.directions')} <ExternalLink className="h-3.5 w-3.5" /></a>}
+        {visit.notes && <p className="mt-2 text-ink-muted">{t('agent.verification.notes', { text: visit.notes })}</p>}
       </Card>
       {!open ? (
-        <Alert tone="info" title="Outcome recorded">{visit.result ? `Result: ${VERIFICATION_STATUS[visit.result] ? VERIFICATION_STATUS[visit.result].label : visit.result}.` : ''} {visit.remarks || ''}</Alert>
+        <Alert tone="info" title={t('agent.verification.recorded')}>{visit.result ? t('agent.verification.resultText', { result: VERIFICATION_STATUS[visit.result] ? VERIFICATION_STATUS[visit.result].label : visit.result }) : ''} {visit.remarks || ''}</Alert>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
-            {notStarted && <Alert tone="warning">The outcome can be recorded once the visit has started ({dateTime(visit.scheduledAt)}).</Alert>}
+            {notStarted && <Alert tone="warning">{t('agent.verification.notStarted', { at: dateTime(visit.scheduledAt) })}</Alert>}
             <Card>
-              <h2 className="mb-3 text-base font-semibold text-ink">1. GPS on arrival</h2>
-              <Button variant={gps ? 'secondary' : 'primary'} icon={LocateFixed} loading={locating} onClick={locate}>{gps ? 'Capture again' : 'Capture my location'}</Button>
-              {gps && <p className="mt-2 text-sm text-ink">{gps.lat.toFixed(6)}, {gps.lng.toFixed(6)} <span className="text-ink-subtle">· accurate to {gps.accuracy} m</span></p>}
+              <h2 className="mb-3 text-base font-semibold text-ink">{t('agent.verification.step1')}</h2>
+              <Button variant={gps ? 'secondary' : 'primary'} icon={LocateFixed} loading={locating} onClick={locate}>{gps ? t('agent.verification.captureAgain') : t('agent.verification.capture')}</Button>
+              {gps && <p className="mt-2 text-sm text-ink">{gps.lat.toFixed(6)}, {gps.lng.toFixed(6)} <span className="text-ink-subtle">· {t('agent.verification.accuracy', { n: gps.accuracy })}</span></p>}
               {(gpsError || errors.gps) && <p className="mt-2 text-xs text-danger-600" role="alert">{gpsError || errors.gps}</p>}
-              <p className="mt-2 text-xs text-ink-subtle">A verified result must be captured near the listing pin.</p>
+              <p className="mt-2 text-xs text-ink-subtle">{t('agent.verification.nearPin')}</p>
             </Card>
             <Card>
-              <h2 className="mb-3 text-base font-semibold text-ink">2. Checklist</h2>
+              <h2 className="mb-3 text-base font-semibold text-ink">{t('agent.verification.step2')}</h2>
               <div className="space-y-3">{VERIFICATION_CHECKLIST.map((c) => <Checkbox key={c.key} label={c.label} checked={Boolean(checklist[c.key])} onChange={(e) => setChecklist((x) => ({ ...x, [c.key]: e.target.checked }))} />)}</div>
               {errors.checklist && <p className="mt-2 text-xs text-danger-600" role="alert">{errors.checklist}</p>}
             </Card>
             <Card>
-              <h2 className="mb-3 text-base font-semibold text-ink">3. Photos ({photos.length}/20, at least 4)</h2>
-              {photos.length < 20 && <FileDrop purpose="verification_photo" kind="image" multiple onUploaded={(f, raw) => setPhotos((x) => (x.length >= 20 ? x : [...x, { id: f.id, url: f.thumbUrl || f.url, name: raw.name }]))} label="Upload photos" />}
+              <h2 className="mb-3 text-base font-semibold text-ink">{t('agent.verification.step3', { n: photos.length })}</h2>
+              {photos.length < 20 && <FileDrop purpose="verification_photo" kind="image" multiple onUploaded={(f, raw) => setPhotos((x) => (x.length >= 20 ? x : [...x, { id: f.id, url: f.thumbUrl || f.url, name: raw.name }]))} label={t('agent.outcome.uploadPhotos')} />}
               {photos.length > 0 && (
                 <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
                   {photos.map((ph) => (
                     <li key={ph.id} className="relative overflow-hidden rounded-md border bg-surface-sunken">
                       {ph.url ? <img src={ph.url} alt={ph.name} className="h-20 w-full object-cover" /> : <span className="block h-20 truncate p-2 text-xs text-ink-subtle">{ph.name}</span>}
-                      <button type="button" className="absolute right-1 top-1 rounded-full bg-white p-0.5 text-ink-subtle shadow hover:text-ink" aria-label={`Remove ${ph.name}`} onClick={() => setPhotos((x) => x.filter((y) => y.id !== ph.id))}><X className="h-3.5 w-3.5" /></button>
+                      <button type="button" className="absolute right-1 top-1 rounded-full bg-white p-0.5 text-ink-subtle shadow hover:text-ink" aria-label={t('agent.outcome.removePhoto', { name: ph.name })} onClick={() => setPhotos((x) => x.filter((y) => y.id !== ph.id))}><X className="h-3.5 w-3.5" /></button>
                     </li>
                   ))}
                 </ul>
@@ -116,11 +114,11 @@ export default function VerificationOutcomePage() {
             </Card>
           </div>
           <Card className="h-fit space-y-4">
-            <h2 className="text-base font-semibold text-ink">4. Result</h2>
-            <Select label="Result" required value={result} onChange={(e) => setResult(e.target.value)} options={RESULTS} />
-            {result === 'not_verified' && <Alert tone="warning">If the property does not exist or does not match, the listing is paused for review.</Alert>}
-            <Textarea label="Remarks" rows={3} maxLength={1000} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
-            <Button block loading={m.isPending} disabled={notStarted} onClick={save}>Submit outcome</Button>
+            <h2 className="text-base font-semibold text-ink">{t('agent.verification.step4')}</h2>
+            <Select label={t('agent.outcome.result')} required value={result} onChange={(e) => setResult(e.target.value)} options={RESULTS.map((value) => ({ value, label: t(`agent.verification.result.${value}`) }))} />
+            {result === 'not_verified' && <Alert tone="warning">{t('agent.verification.pausedHint')}</Alert>}
+            <Textarea label={t('agent.verification.remarks')} rows={3} maxLength={1000} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+            <Button block loading={m.isPending} disabled={notStarted} onClick={save}>{t('agent.verification.submit')}</Button>
           </Card>
         </div>
       )}

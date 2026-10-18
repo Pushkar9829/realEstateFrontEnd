@@ -4,43 +4,34 @@
 // the closure checklist are computed by the server on every save.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const DEAL_STATUS = {
-  draft: { label: 'Draft', tone: 'neutral' },
-  submitted: { label: 'Submitted', tone: 'info' },
-  under_review: { label: 'Under review', tone: 'info' },
-  returned: { label: 'Returned', tone: 'warning' },
-  verified: { label: 'Verified', tone: 'success' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-  reversed: { label: 'Reversed', tone: 'danger' },
-};
+// Labels are getters that call t() when read, so they follow the chosen language.
+const withLabel = (obj, key) => Object.defineProperty(obj, 'label', { get: () => t(key), enumerable: true });
+
+export const DEAL_STATUS = Object.fromEntries(Object.entries({
+  draft: 'neutral', submitted: 'info', under_review: 'info', returned: 'warning', verified: 'success', rejected: 'danger', cancelled: 'neutral', reversed: 'danger',
+}).map(([s, tone]) => [s, withLabel({ tone }, `agent.dealStatus.${s}`)]));
 export const dealStatus = (s) => DEAL_STATUS[s] || { label: s, tone: 'neutral' };
 export const DEAL_EDITABLE = ['draft', 'returned'];
 
-export const PAYMENT_MODES = [
-  { value: 'bank_transfer', label: 'Bank transfer' },
-  { value: 'cheque', label: 'Cheque' },
-  { value: 'upi', label: 'UPI' },
-  { value: 'dd', label: 'Demand draft' },
-  { value: 'cash', label: 'Cash' },
-  { value: 'other', label: 'Other' },
-];
+export const PAYMENT_MODES = ['bank_transfer', 'cheque', 'upi', 'dd', 'cash', 'other'].map((value) => withLabel({ value }, `agent.paymentMode.${value}`));
 
+const docKind = (kind, purpose, max) => Object.defineProperties({ purpose, max }, {
+  label: { get: () => t(`agent.docKind.${kind}.label`), enumerable: true },
+  hint: { get: () => t(`agent.docKind.${kind}.hint`), enumerable: true },
+});
 export const DOC_KINDS = {
-  receipt: { label: 'Payment receipts', purpose: 'receipt', max: 10, hint: 'At least one receipt is required' },
-  agreement: { label: 'Booking form / agreement', purpose: 'agreement_doc', max: 5, hint: 'Agreement to sell, booking form or rent agreement' },
-  other: { label: 'Other documents', purpose: 'agreement_doc', max: 10, hint: 'Buyer ID proof or anything else (optional)' },
+  receipt: docKind('receipt', 'receipt', 10),
+  agreement: docKind('agreement', 'agreement_doc', 5),
+  other: docKind('other', 'agreement_doc', 10),
 };
 
-export const FEE_PAYERS = [
-  { value: 'tenant', label: 'Tenant' },
-  { value: 'landlord', label: 'Landlord' },
-  { value: 'split', label: 'Split' },
-  { value: 'platform', label: 'Platform' },
-];
+export const FEE_PAYERS = ['tenant', 'landlord', 'split', 'platform'].map((value) => withLabel({ value }, `agent.feePayer.${value}`));
 
+// English text kept for any importer that needs a plain string; screens use partnerDisclaimer().
 export const PARTNER_DISCLAIMER = 'The platform does not give lending or legal advice; the partner decides independently.';
+export const partnerDisclaimer = () => t('agent.modals.partnerDisclaimer');
 
 export const dealKeys = {
   list: (p) => ['agent', 'deals', p],
