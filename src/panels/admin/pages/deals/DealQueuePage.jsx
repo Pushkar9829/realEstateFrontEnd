@@ -65,7 +65,7 @@ export default function DealQueuePage() {
         <Input aria-label="Search deal number" placeholder="Search deal no." leading={<Search className="h-4 w-4" />} value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
       </div>
       {error && <p className="mb-3 text-sm text-danger-700">{error.message}</p>}
-      <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/admin/deals/${r._id}`)} empty={tab === 'waiting' ? 'No deals awaiting verification' : 'No deals here'}
+      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/deals/${r._id}`} empty={tab === 'waiting' ? 'No deals awaiting verification' : 'No deals here'}
         columns={[
           { key: 'dealNo', header: 'Deal', render: (r) => <span><span className="block font-medium text-ink">{r.dealNo}</span><span className="text-xs text-ink-subtle">{r.leadId ? r.leadId.leadNo : ''}{r.resubmissionCount ? ` · resubmitted ×${r.resubmissionCount}` : ''}</span></span> },
           { key: 'property', header: 'Property', render: (r) => <span className="block max-w-[14rem] truncate" title={target(r)}>{target(r)}</span> },

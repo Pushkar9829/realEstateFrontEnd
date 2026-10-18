@@ -2,7 +2,7 @@
 // suspend / ban / reinstate (listers.manage), listing-limit override and the
 // builder brand approval (RE-B-02, listers.verify or listers.manage).
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Ban, BadgeCheck, Flag, PauseCircle, PlayCircle, Search, X } from 'lucide-react';
 import { Alert, Badge, Button, Card, CardHeader, Modal, PageHeader, PageSpinner, Pagination, Table, Tabs, Textarea, useToast } from '@/shared/ui';
 import { date, dateTime, titleCase } from '@/shared/lib/format';
@@ -12,7 +12,6 @@ import { FLAG_RULES, kycStatus, useDecideBrand, useListerDetail, useListers, use
 const TABS = [{ value: '', label: 'All' }, { value: 'verified', label: 'Verified' }, { value: 'submitted', label: 'Submitted' }, { value: 'not_started', label: 'Not started' }, { value: 'suspended', label: 'Suspended' }, { value: 'banned', label: 'Banned' }];
 
 function ListerList() {
-  const navigate = useNavigate();
   const [kycStatusF, setKyc] = useState('');
   const [q, setQ] = useState('');
   const [query, setQuery] = useState('');
@@ -28,7 +27,7 @@ function ListerList() {
           <Button size="sm" variant="secondary" icon={Search} type="submit">Search</Button>
         </form>
       </div>
-      <Table loading={isLoading} rows={(data && data.items) || []} onRowClick={(r) => navigate(`/admin/listers/${r._id}`)} empty="No listers found."
+      <Table loading={isLoading} rows={(data && data.items) || []} rowHref={(r) => `/admin/listers/${r._id}`} empty="No listers found."
         columns={[
           { key: 'name', header: 'Lister', render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.email} · {r.phone}</span></span> },
           { key: 'type', header: 'Type', render: (r) => <span>{titleCase(r.listerType)}{r.brand?.name && <span className="block text-xs text-ink-subtle">{r.brand.name}</span>}{r.brand?.pending?.name && <Badge tone="warning" className="mt-0.5">Brand pending</Badge>}</span> },

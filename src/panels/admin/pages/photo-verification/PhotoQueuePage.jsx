@@ -1,7 +1,6 @@
 // RE-S-ADM-31 photo verification queue (RE-A-20, verification.review): geo
 // camera sessions waiting for QA, with age against the review SLA.
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { Alert, Badge, PageHeader, Pagination, Table, Tabs } from '@/shared/ui';
 import { dateTime, timeAgo } from '@/shared/lib/format';
@@ -17,7 +16,6 @@ const TABS = [
 ];
 
 export default function PhotoQueuePage() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState('pending_review');
   const [page, setPage] = useState(1);
   const pending = ['pending_review', 'mine'].includes(status);
@@ -29,7 +27,7 @@ export default function PhotoQueuePage() {
       <PageHeader title="Photo verification" description="Live photos taken at the property with a GPS check. Approve to grant the Photo verified badge; claims lock a session for 30 minutes." />
       <Tabs className="mb-4" value={status} onChange={(v) => { setStatus(v); setPage(1); }} tabs={TABS.map((t) => (t.value === status && data ? { ...t, count: data.meta.total } : t))} />
       {error && <Alert tone="danger" className="mb-4">{error.message}</Alert>}
-      <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/admin/photo-verification/${r._id}`)} empty={pending ? 'No verifications waiting.' : 'Nothing here.'}
+      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/photo-verification/${r._id}`} empty={pending ? 'No verifications waiting.' : 'Nothing here.'}
         columns={[
           { key: 'session', header: 'Session', render: (r) => <span className="font-medium text-ink">{r.sessionNo}</span> },
           { key: 'listing', header: 'Listing', render: (r) => (r.propertyId ? <span className="block max-w-xs"><span className="block truncate text-sm">{r.propertyId.title}</span><span className="text-xs text-ink-subtle">{r.propertyId.listingNo} · {[r.propertyId.location?.locality, r.propertyId.location?.city].filter(Boolean).join(', ')}</span></span> : '-') },

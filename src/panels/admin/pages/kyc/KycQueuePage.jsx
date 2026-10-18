@@ -1,7 +1,6 @@
 // RE-F-04 KYC review queue (permission listers.verify). Oldest first, with
 // SLA colouring, claim holder and auto-check warnings.
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { Badge, PageHeader, Pagination, Table, Tabs } from '@/shared/ui';
 import { dateTime, timeAgo, titleCase } from '@/shared/lib/format';
@@ -16,7 +15,6 @@ const TABS = [
 const SLA = { green: ['success', 'On time'], amber: ['warning', 'Due soon'], red: ['danger', 'Overdue'] };
 
 export default function KycQueuePage() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const { data, isLoading } = useKycQueue({ page, limit: 20, ...(status ? { status } : {}) });
@@ -27,7 +25,7 @@ export default function KycQueuePage() {
     <>
       <PageHeader title="KYC queue" description="Verify owners, builders and landlords before their listings can go live. Decide within 48 hours." />
       <Tabs className="mb-4" value={status} onChange={(v) => { setStatus(v); setPage(1); }} tabs={TABS.map((t) => (t.value === status && data ? { ...t, count: data.meta.total } : t))} />
-      <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/admin/kyc/${r._id}`)} empty={reviewing ? 'Nothing to review. The queue is clear.' : 'No listers in this state.'}
+      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/kyc/${r._id}`} empty={reviewing ? 'Nothing to review. The queue is clear.' : 'No listers in this state.'}
         columns={[
           { key: 'name', header: 'Lister', render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.email}</span></span> },
           { key: 'type', header: 'Type', render: (r) => <Badge tone="brand">{titleCase(r.listerType)}</Badge> },

@@ -6,12 +6,14 @@
 // `settings` is GET /api/settings/public; the panel shell passes it in.
 // Visual language: navy + gold, serif display headings (design/tokens.json).
 import { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { HelpCircle, Mail, Menu, MessageCircle, Phone, ShieldCheck, X } from 'lucide-react';
 import env from '@/config/env';
 import { cn } from '@/shared/lib/cn';
+import { date } from '@/shared/lib/format';
 import { Button } from '@/shared/ui';
 import Logo from '@/shared/components/Logo';
+import SkipLink from '@/shared/components/SkipLink';
 import CookieBanner, { openCookieSettings } from '@/shared/components/CookieBanner';
 import { useLang, useT } from '@/shared/i18n';
 import LanguageSwitcher from '@/shared/i18n/LanguageSwitcher';
@@ -29,10 +31,18 @@ function navLinks(city, t) {
   ];
 }
 
+// Buy and Rent both point at /search: only the one whose purpose matches is current.
+function linkActive(to, loc) {
+  const [path, query = ''] = to.split('?');
+  if (loc.pathname !== path && !loc.pathname.startsWith(`${path}/`)) return false;
+  const want = new URLSearchParams(query).get('purpose');
+  return !want || new URLSearchParams(loc.search).get('purpose') === want;
+}
+
 const waLink = (n) => { const d = String(n || '').replace(/\D/g, ''); return d.length >= 10 ? `https://wa.me/${d}` : null; };
 const safeUrl = (u) => (/^https?:\/\//i.test(String(u || '')) ? u : null);
 const telHref = (n) => `tel:${String(n || '').replace(/[^\d+]/g, '')}`;
-const fmtDate = (d, lang = 'en') => { const x = d ? new Date(d) : null; return x && !Number.isNaN(x.getTime()) ? x.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
+const fmtDate = (d) => { const x = date(d); return x === '-' ? '' : x; };
 
 const FOOT_HEAD = 'mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-gold-400';
 
@@ -49,9 +59,9 @@ function FooterContact({ settings: s }) {
       {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition-colors hover:text-white"><MessageCircle className="h-4 w-4" aria-hidden /> {t('common.footer.whatsapp')}</a>}
       {s.supportEmail && <a href={`mailto:${s.supportEmail}`} className="flex items-center gap-2 transition-colors hover:text-white"><Mail className="h-4 w-4" aria-hidden /> {s.supportEmail}</a>}
       {help && <a href={help} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition-colors hover:text-white"><HelpCircle className="h-4 w-4" aria-hidden /> {t('common.footer.help')}</a>}
-      <p className="text-navy-400">{t('common.footer.hours')}</p>
+      <p className="text-navy-300">{t('common.footer.hours')}</p>
       {(g.name || g.email) && (
-        <p className="text-xs text-navy-400">{t('common.footer.grievance')} {g.name}{g.name && g.email ? ', ' : ''}{g.email && <a href={`mailto:${g.email}`} className="underline hover:text-white">{g.email}</a>}</p>
+        <p className="text-xs text-navy-300">{t('common.footer.grievance')} {g.name}{g.name && g.email ? ', ' : ''}{g.email && <a href={`mailto:${g.email}`} className="underline hover:text-white">{g.email}</a>}</p>
       )}
     </div>
   );
@@ -65,7 +75,7 @@ function AgentRegistrations({ list }) {
   if (!rows.length) return null;
   return (
     <div className="mx-auto max-w-7xl px-4 pb-6 sm:px-6">
-      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-navy-400">
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-navy-300">
         <span className="inline-flex items-center gap-1 font-semibold text-navy-200"><ShieldCheck className="h-3.5 w-3.5 text-gold-400" aria-hidden />{t('common.footer.reraAgent')}</span>
         {rows.map((r) => <span key={`${r.state}-${r.number}`}>{r.state ? `${r.state}: ` : ''}<span className="font-medium text-navy-200">{r.number}</span>{r.validTill && fmtDate(r.validTill, lang) ? ` ${t('common.footer.validTill', { date: fmtDate(r.validTill, lang) })}` : ''}</span>)}
       </p>
@@ -99,6 +109,7 @@ function CtaBand({ hotline }) {
 // onConsentChoice(choice): forwarded to the cookie banner (consent ledger for signed-in users).
 export default function PublicLayout({ account, settings, settingsReady = true, city = null, cityPicker = null, shortlist = null, onConsentChoice }) {
   const t = useT();
+  const loc = useLocation();
   const [open, setOpen] = useState(false);
   const s = settings || {};
   const consent = s.consent || {};
@@ -108,13 +119,14 @@ export default function PublicLayout({ account, settings, settingsReady = true, 
   const listLink = LINKS[3];
   return (
     <div className="flex min-h-screen flex-col bg-sand-50">
+      <SkipLink />
       <header className="sticky top-0 z-30 border-b border-navy-900/5 bg-white/90 backdrop-blur-md">
         <div className="h-0.5 bg-gradient-to-r from-gold-600 via-gold-300 to-gold-600" aria-hidden />
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
           <Logo luxe />
           <nav className="hidden items-center gap-1 md:flex" aria-label={t('common.nav.main')}>
             {LINKS.slice(0, 3).map((l) => (
-              <NavLink key={l.to} to={l.to} className={({ isActive }) => cn('rounded-full px-4 py-2 text-sm font-medium transition-colors', isActive ? 'bg-navy-900/5 text-navy-900' : 'text-navy-600 hover:bg-navy-900/5 hover:text-navy-900')}>{l.label}</NavLink>
+              <Link key={l.to} to={l.to} aria-current={linkActive(l.to, loc) ? 'page' : undefined} className={cn('rounded-full px-4 py-2 text-sm font-medium transition-colors', linkActive(l.to, loc) ? 'bg-navy-900/5 text-navy-900' : 'text-navy-600 hover:bg-navy-900/5 hover:text-navy-900')}>{l.label}</Link>
             ))}
           </nav>
           <div className="hidden items-center gap-2 md:flex">
@@ -145,7 +157,7 @@ export default function PublicLayout({ account, settings, settingsReady = true, 
         )}
       </header>
 
-      <main className="flex-1"><Outlet /></main>
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none"><Outlet /></main>
 
       <CtaBand hotline={hotline} />
       <footer className="bg-navy-950 text-sm text-navy-200">
@@ -173,7 +185,7 @@ export default function PublicLayout({ account, settings, settingsReady = true, 
         </div>
         <AgentRegistrations list={s.rera && s.rera.agentRegistrations} />
         <div className="border-t border-white/5">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-navy-400 sm:flex-row sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-navy-300 sm:flex-row sm:px-6">
             <span>{t('common.footer.rights', { year: new Date().getFullYear(), company: s.companyName || env.appName })}</span>
             <span>{t('marketing.footer.madeIn')}</span>
           </div>

@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarCheck, CalendarClock, CalendarX, UserCog, X } from 'lucide-react';
-import { Alert, Badge, Button, Card, Input, Modal, PageHeader, Pagination, Select, Stat, Table, Textarea, useToast } from '@/shared/ui';
+import { Alert, Badge, Button, Card, FiltersBox, Input, Modal, PageHeader, Pagination, Select, Stat, Table, Textarea, useToast } from '@/shared/ui';
 import { useCount } from '@/shared/hooks/useCount';
 import { dateTime } from '@/shared/lib/format';
 import { useAgentOptions } from '@/modules/teams/api';
@@ -55,6 +55,7 @@ export default function SiteVisitsPage() {
       </div>
 
       <Card className="mb-4">
+        <FiltersBox count={Object.values(f).filter(Boolean).length} onClear={() => { setF({ status: '', agentId: '', from: '', to: '', sort: '' }); setPage(1); }}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Select label="Status" placeholder="Any status" value={f.status} onChange={setFilter('status')} options={[{ value: OPEN.join(','), label: 'Open (requested, scheduled, confirmed)' }, ...Object.entries(VISIT_STATUS).map(([value, s]) => ({ value, label: s.label }))]} />
           <Select label="Agent" placeholder="Any agent" value={f.agentId} onChange={setFilter('agentId')} options={agentOptions} />
@@ -62,6 +63,7 @@ export default function SiteVisitsPage() {
           <Input label="To" type="date" value={f.to} onChange={setFilter('to')} />
           <Select label="Order" value={f.sort} onChange={setFilter('sort')} options={[{ value: '', label: 'Latest first' }, { value: 'oldest', label: 'Earliest first' }]} />
         </div>
+        </FiltersBox>
         {Object.values(f).some(Boolean) && <Button className="mt-3" size="sm" variant="ghost" icon={X} onClick={() => { setF({ status: '', agentId: '', from: '', to: '', sort: '' }); setPage(1); }}>Clear filters</Button>}
       </Card>
 

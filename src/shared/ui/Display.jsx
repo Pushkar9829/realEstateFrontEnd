@@ -4,13 +4,13 @@ import { AlertCircle, CheckCircle2, Info, TriangleAlert } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 
 export function Card({ className, children, padded = true, ...rest }) {
-  return <div className={cn('rounded-lg border bg-white shadow-sm', padded && 'p-5', className)} {...rest}>{children}</div>;
+  return <div className={cn('min-w-0 rounded-lg border bg-white shadow-sm', padded && 'p-5', className)} {...rest}>{children}</div>;
 }
 
 export function CardHeader({ title, description, action }) {
   return (
-    <div className="mb-4 flex items-start justify-between gap-4">
-      <div>
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+      <div className="min-w-0">
         <h3 className="text-base font-semibold text-ink">{title}</h3>
         {description && <p className="mt-0.5 text-sm text-ink-subtle">{description}</p>}
       </div>
@@ -84,12 +84,12 @@ export function Avatar({ name = '', src, size = 'md' }) {
 export function PageHeader({ title, description, actions, breadcrumb }) {
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
+      <div className="min-w-0">
         {breadcrumb && <div className="mb-1 text-xs text-ink-subtle">{breadcrumb}</div>}
-        <h1 className="text-2xl font-semibold text-ink">{title}</h1>
+        <h1 className="break-words text-2xl font-semibold text-ink">{title}</h1>
         {description && <p className="mt-1 text-sm text-ink-muted">{description}</p>}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2 sm:shrink-0">{actions}</div>}
     </div>
   );
 }

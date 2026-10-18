@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  /* Grid children may shrink below their content width, so long words or
+     wide controls never push a page wider than the phone (audit A1). */
+  .grid > * { min-width: 0; }
   html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; scroll-behavior: smooth; }
   body { @apply font-sans antialiased; }
   :focus-visible { @apply outline-2 outline-offset-2 outline-brand-600; }

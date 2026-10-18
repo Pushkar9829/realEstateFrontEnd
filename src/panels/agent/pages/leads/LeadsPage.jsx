@@ -2,9 +2,8 @@
 // purpose, created from / to), search, table with the SLA countdown and a bulk
 // "Add follow-up".
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Inbox, ListPlus, Plus, Search } from 'lucide-react';
-import { Badge, Button, EmptyState, Input, PageHeader, Pagination, Select, Table, Tabs } from '@/shared/ui';
+import { Badge, Button, EmptyState, FiltersBox, Input, PageHeader, Pagination, Select, Table, Tabs } from '@/shared/ui';
 import { timeAgo } from '@/shared/lib/format';
 import { PRIORITIES, PURPOSES, SOURCES, STAGES, budgetText, useAgentLeads } from '@/modules/leads/agentApi';
 import { FollowupModal } from '../../components/FollowupModals';
@@ -21,7 +20,6 @@ const VIEWS = [
 ];
 
 export default function LeadsPage() {
-  const navigate = useNavigate();
   const [view, setView] = useState('open');
   const [stage, setStage] = useState('');
   const [priority, setPriority] = useState('');
@@ -56,7 +54,8 @@ export default function LeadsPage() {
         </>} />
       <Tabs className="mb-4" value={view} onChange={reset((v) => { setView(v); setStage(''); })} tabs={VIEWS.map((t) => (t.value === view && data ? { ...t, count: data.meta.total } : t))} />
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Input aria-label="Search" placeholder="Lead no., name or phone" leading={<Search className="h-4 w-4" />} value={q} onChange={(e) => reset(setQ)(e.target.value)} />
+        <FiltersBox count={[stage, priority, source, city, purpose, from, to].filter(Boolean).length}
+          keep={<Input aria-label="Search" placeholder="Lead no., name or phone" leading={<Search className="h-4 w-4" />} value={q} onChange={(e) => reset(setQ)(e.target.value)} />}>
         <Select aria-label="Stage" placeholder="Any stage in this view" value={stage} onChange={(e) => reset(setStage)(e.target.value)} options={STAGES.map((s) => ({ value: s.value, label: s.label }))} />
         <Select aria-label="Priority" placeholder="Any priority" value={priority} onChange={(e) => reset(setPriority)(e.target.value)} options={PRIORITIES} />
         <Select aria-label="Sort" value={sort} onChange={(e) => reset(setSort)(e.target.value)} options={[{ value: 'recent', label: 'Recent activity' }, { value: 'sla', label: 'SLA due first' }, { value: 'newest', label: 'Newest first' }]} />
@@ -67,13 +66,14 @@ export default function LeadsPage() {
           <Input aria-label="Created from" type="date" title="Created from" value={from} max={to || undefined} onChange={(e) => reset(setFrom)(e.target.value)} />
           <Input aria-label="Created to" type="date" title="Created to" value={to} min={from || undefined} onChange={(e) => reset(setTo)(e.target.value)} />
         </div>
+        </FiltersBox>
       </div>
       {filtered && <div className="-mt-2 mb-4 flex justify-end"><Button size="sm" variant="ghost" onClick={() => { [setStage, setPriority, setQ, setSource, setCity, setPurpose, setFrom, setTo].forEach((f) => f('')); setPage(1); setSelected([]); }}>Clear filters</Button></div>}
       {error ? <ErrorState error={error} onRetry={refetch} title="Could not load leads" /> : !isLoading && rows.length === 0 ? (
         <EmptyState icon={Inbox} title={view === 'open' && !filtered ? 'No leads assigned yet' : 'No leads match'} description="New enquiries are routed to you automatically. Hotline and walk-in buyers can be added by hand."
           action={<Button variant="secondary" icon={Plus} to="/agent/leads/new">New lead</Button>} />
       ) : (
-        <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/agent/leads/${r._id}`)}
+        <Table loading={isLoading} rows={rows} rowHref={(r) => `/agent/leads/${r._id}`}
           columns={[
             { key: 'sel', header: <input type="checkbox" aria-label="Select all on page" checked={allOnPage} onChange={() => setSelected(allOnPage ? [] : rows.map((r) => r._id))} />, className: 'w-8',
               render: (r) => <input type="checkbox" aria-label={`Select ${r.leadNo}`} checked={selected.includes(r._id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(r._id)} /> },

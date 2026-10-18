@@ -4,7 +4,7 @@
 // before the visitor accepts: GA4 (`analytics.ga4MeasurementId`) is injected
 // only after "Accept analytics". The footer "Cookie settings" link reopens it
 // through openCookieSettings().
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Cookie } from 'lucide-react';
 import { Button } from '@/shared/ui';
@@ -72,6 +72,42 @@ function stopGa(id) {
   } catch { /* cookies blocked */ }
 }
 
+// Compact bar (audit P1): one line of text and two buttons along the bottom
+// edge, about 56 px on desktop and under 90 px on a phone. Its height is
+// published as --cookie-bar so the sticky mobile Enquire bar sits above it and
+// the page gets the same bottom padding (nothing is covered).
+function Bar({ t, choice, choose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    const root = document.documentElement;
+    const apply = () => { const h = el ? el.offsetHeight : 0; root.style.setProperty('--cookie-bar', `${h}px`); document.body.style.paddingBottom = `${h}px`; };
+    apply();
+    let ro;
+    if (el && typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(apply); ro.observe(el); }
+    return () => { if (ro) ro.disconnect(); root.style.setProperty('--cookie-bar', '0px'); document.body.style.paddingBottom = ''; };
+  }, []);
+  return (
+    <div ref={ref} role="region" aria-label={t('common.cookie.title')}
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-navy-950/95 px-4 py-2.5 text-white shadow-lift backdrop-blur pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <p id="cookie-d" className="flex min-w-0 flex-1 items-start gap-2 text-xs leading-snug text-navy-100 sm:items-center sm:text-sm">
+          <Cookie className="mt-0.5 h-4 w-4 shrink-0 text-gold-300 sm:mt-0" aria-hidden />
+          <span>
+            {t('common.cookie.short')}{' '}
+            <Link to="/p/privacy" className="font-medium text-gold-300 underline underline-offset-2 hover:text-gold-200">{t('common.cookie.privacyNotice')}</Link>
+            {choice && <span className="text-navy-300"> · {t('common.cookie.current', { choice: t(choice === 'analytics' ? 'common.cookie.currentAnalytics' : 'common.cookie.currentEssential') })}</span>}
+          </span>
+        </p>
+        <div className="flex shrink-0 gap-2">
+          <Button variant="glass" size="sm" className="!rounded-full flex-1 sm:flex-none" onClick={() => choose('essential')}>{t('common.cookie.essential')}</Button>
+          <Button variant="gold" size="sm" className="!rounded-full flex-1 font-semibold sm:flex-none" onClick={() => choose('analytics')}>{t('common.cookie.accept')}</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * ready: settings have loaded (or failed); enabled: consent.bannerEnabled;
  * cookieDays: consent.cookieDays; ga4Id: analytics.ga4MeasurementId;
@@ -103,25 +139,5 @@ export default function CookieBanner({ ready, enabled = true, cookieDays = 180, 
     if (onChoice) { try { onChoice(c); } catch { /* recording the choice never blocks the banner */ } }
   };
 
-  return (
-    <div role="dialog" aria-modal="false" aria-labelledby="cookie-h" aria-describedby="cookie-d"
-      className="fixed inset-x-0 bottom-0 z-40 overflow-hidden border-t border-white/10 bg-navy-950 p-5 text-white shadow-lift sm:inset-x-auto sm:bottom-5 sm:left-5 sm:max-w-md sm:rounded-3xl sm:border">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-gold-600 via-gold-300 to-gold-600" aria-hidden />
-      <div className="flex items-start gap-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold-300/30 bg-white/5 text-gold-300"><Cookie className="h-5 w-5" aria-hidden /></span>
-        <div className="min-w-0">
-          <p id="cookie-h" className="font-display text-lg font-medium text-white">{t('common.cookie.title')}</p>
-          <p id="cookie-d" className="mt-1 text-xs leading-relaxed text-navy-200">
-            {t('common.cookie.body')}
-            {' '}<Link to="/p/privacy" className="font-medium text-gold-300 underline-offset-4 hover:text-gold-200 hover:underline">{t('common.cookie.privacyNotice')}</Link>
-          </p>
-          {choice && <p className="mt-1.5 text-xs text-navy-300">{t('common.cookie.current', { choice: t(choice === 'analytics' ? 'common.cookie.currentAnalytics' : 'common.cookie.currentEssential') })}</p>}
-        </div>
-      </div>
-      <div className="mt-4 flex flex-wrap justify-end gap-2">
-        <Button variant="glass" size="md" className="!rounded-full" onClick={() => choose('essential')}>{t('common.cookie.essential')}</Button>
-        <Button variant="gold" size="md" className="!rounded-full font-semibold" onClick={() => choose('analytics')}>{t('common.cookie.accept')}</Button>
-      </div>
-    </div>
-  );
+  return <Bar t={t} choice={choice} choose={choose} />;
 }

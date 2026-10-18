@@ -27,7 +27,7 @@ export default function ProjectsPage() {
       {!isLoading && rows.length === 0 ? (
         <EmptyState icon={Building2} title="No projects yet" description="Create a project, add configurations and RERA details, then submit it for approval." action={<Button icon={Plus} onClick={() => setOpen(true)}>New project</Button>} />
       ) : (
-        <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/lister/projects/${r._id}`)}
+        <Table loading={isLoading} rows={rows} rowHref={(r) => `/lister/projects/${r._id}`}
           columns={[
             { key: 'name', header: 'Project', render: (r) => <span><span className="block font-medium text-ink">{r.name}</span><span className="text-xs text-ink-subtle">{r.projectNo}</span></span> },
             { key: 'loc', header: 'Location', render: (r) => [r.location?.locality, r.location?.city].filter(Boolean).join(', ') || '-' },

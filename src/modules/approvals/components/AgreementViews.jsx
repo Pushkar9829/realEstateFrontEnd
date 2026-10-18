@@ -2,7 +2,7 @@
 // the admin registry. Admin-only actions appear when scope === 'admin' and the
 // staff member holds agreements.manage.
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, Download, FileSignature, FileText, RefreshCcw, ShieldAlert, ShieldCheck, XCircle } from 'lucide-react';
 import { Alert, Badge, Button, Card, CardHeader, Input, Modal, PageHeader, PageSpinner, Pagination, Table, Tabs, Textarea, useToast } from '@/shared/ui';
 import FileDrop from '@/shared/components/FileDrop';
@@ -12,7 +12,6 @@ import { agreementStatus, downloadAgreementsCsv, openAgreementPdf, useAgreement,
 const TABS = [{ value: '', label: 'All' }, { value: 'accepted', label: 'Accepted' }, { value: 'countersigned', label: 'Countersigned' }, { value: 'superseded', label: 'Superseded' }, { value: 'terminated', label: 'Terminated' }];
 
 export function AgreementList({ scope, basePath }) {
-  const navigate = useNavigate();
   const toast = useToast();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -24,7 +23,7 @@ export function AgreementList({ scope, basePath }) {
         description={admin ? 'Every commission agreement with its acceptance evidence. Agreements are never edited; a change creates a new version.' : 'Commission agreements you accepted for your listings and projects. Each has a fixed text, version and tamper check.'}
         actions={admin ? <Button variant="secondary" icon={Download} onClick={() => downloadAgreementsCsv().catch((e) => toast.error(e.message))}>Export CSV</Button> : null} />
       <Tabs className="mb-4" value={status} onChange={(v) => { setStatus(v); setPage(1); }} tabs={TABS} />
-      <Table loading={isLoading} rows={(data && data.items) || []} onRowClick={(r) => navigate(`${basePath}/${r._id}`)} empty="No agreements yet. One is created when you accept the commission for a listing."
+      <Table loading={isLoading} rows={(data && data.items) || []} rowHref={(r) => `${basePath}/${r._id}`} empty="No agreements yet. One is created when you accept the commission for a listing."
         columns={[
           { key: 'agreementNo', header: 'Agreement', render: (r) => <span className="font-medium text-ink">{r.agreementNo} <span className="text-xs text-ink-subtle">v{r.version}</span></span> },
           ...(admin ? [{ key: 'lister', header: 'Lister', render: (r) => (r.listerId ? <span>{r.listerId.name}<span className="block text-xs text-ink-subtle">{r.listerId.email}</span></span> : '-') }] : []),

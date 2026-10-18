@@ -1,7 +1,6 @@
 // RE-D-13 site verification visits (Could): the visits assigned to me as the
 // in-house field agent (permission verification.field).
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ShieldOff } from 'lucide-react';
 import { EmptyState, PageHeader, Pagination, Table, Tabs } from '@/shared/ui';
 import { dateTime } from '@/shared/lib/format';
@@ -17,7 +16,6 @@ export function NoFieldAccess() {
 
 export default function VerificationVisitsPage() {
   const { hasPermission } = useAuth();
-  const navigate = useNavigate();
   const allowed = hasPermission('verification.field');
   const [status, setStatus] = useState('scheduled');
   const [page, setPage] = useState(1);
@@ -31,7 +29,7 @@ export default function VerificationVisitsPage() {
       {error ? <ErrorState error={error} onRetry={refetch} title="Could not load your visits" /> : !isLoading && !rows.length ? (
         <EmptyState icon={ShieldCheck} title={status === 'scheduled' ? 'No visits assigned to you' : 'Nothing here yet'} description="The verification team assigns visits to you; you are notified with the address and time." />
       ) : (
-        <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/agent/verification-visits/${r._id}`)}
+        <Table loading={isLoading} rows={rows} rowHref={(r) => `/agent/verification-visits/${r._id}`}
           columns={[
             { key: 'no', header: 'Visit', render: (r) => <span className="font-medium text-ink">{r.visitNo}</span> },
             { key: 'prop', header: 'Listing', render: (r) => (r.propertyId ? <span><span className="block max-w-xs truncate">{r.propertyId.title}</span><span className="text-xs text-ink-subtle">{r.propertyId.listingNo} · {[r.propertyId.location?.addressLine, r.propertyId.location?.locality, r.propertyId.location?.city].filter(Boolean).join(', ')}</span></span> : '-') },

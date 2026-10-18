@@ -3,6 +3,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { PageSpinner } from '@/shared/ui';
 import { HOME, useAuth } from '@/modules/auth';
+import NoAccess from '@/shared/components/NoAccess';
 
 export function RequireAuth({ children }) {
   const { status, user } = useAuth();
@@ -21,7 +22,7 @@ export function RequireRole({ roles, children }) {
 
 export function RequirePermission({ permission, children }) {
   const { hasPermission } = useAuth();
-  if (!hasPermission(permission)) return <Navigate to="/admin" replace />;
+  if (!hasPermission(permission)) return <NoAccess permission={permission} />;
   return children || <Outlet />;
 }
 

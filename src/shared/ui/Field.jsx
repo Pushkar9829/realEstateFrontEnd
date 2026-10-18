@@ -1,6 +1,7 @@
 import { forwardRef, useId, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import DateInput from './DateInput';
 
 // Label + control + hint/error. Every form control goes through this so
 // labels, error text and aria wiring are identical everywhere.
@@ -31,7 +32,9 @@ export const Input = forwardRef(function Input({ label, hint, error, required, c
       {(a) => (
         <div className="relative">
           {leading && <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-ink-subtle">{leading}</span>}
-          <input ref={ref} className={cn(control, 'h-10', state(error), leading && 'pl-10', inputClassName)} required={required} {...a} {...rest} />
+          {rest.type === 'date' && rest.value !== undefined
+            ? <DateInput ref={ref} className={cn(control, 'h-10', state(error), inputClassName)} required={required} {...a} {...rest} />
+            : <input ref={ref} className={cn(control, 'h-10', state(error), leading && 'pl-10', inputClassName)} required={required} {...a} {...rest} />}
         </div>
       )}
     </Field>

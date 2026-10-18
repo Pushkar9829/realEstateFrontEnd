@@ -3,7 +3,7 @@
 // audit log and login history export to CSV with the current filters.
 import { useState } from 'react';
 import { Download, Eye } from 'lucide-react';
-import { Alert, Badge, Button, Input, Modal, PageHeader, Pagination, Select, Table, Tabs, useToast } from '@/shared/ui';
+import { Alert, Badge, Button, FiltersBox, Input, Modal, PageHeader, Pagination, Select, Table, Tabs, useToast } from '@/shared/ui';
 import { dateTime, titleCase } from '@/shared/lib/format';
 import { useAuditLogExport, useAuditLogs, useContactReveals, useLoginHistoryAdmin, useLoginHistoryExport } from '@/modules/reports/adminApi';
 
@@ -62,7 +62,8 @@ function AuditTab() {
   return (
     <>
       <div className="mb-3 flex justify-end"><ExportButton mutation={exporter} params={params} /></div>
-      <div className="mb-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
+      <div className="mb-4"><FiltersBox count={Object.values(f).filter(Boolean).length}>
+      <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
         <Input label="Action starts with" placeholder="deal.verify" value={f.action} onChange={set('action')} />
         <Input label="Entity type" placeholder="Deal" value={f.entityType} onChange={set('entityType')} />
         <Input label="Entity ID" value={f.entityId} onChange={set('entityId')} error={f.entityId && !OID.test(f.entityId.trim()) ? '24-character ID' : undefined} />
@@ -70,6 +71,7 @@ function AuditTab() {
         <Input label="From" type="date" value={f.from} onChange={set('from')} />
         <Input label="To" type="date" value={f.to} onChange={set('to')} />
       </div>
+      </FiltersBox></div>
       {error && <Alert tone="danger" className="mb-3">{error.message}</Alert>}
       <Table loading={isLoading} rows={(data && data.items) || []} onRowClick={setOpen} empty="No audit entries match"
         columns={[

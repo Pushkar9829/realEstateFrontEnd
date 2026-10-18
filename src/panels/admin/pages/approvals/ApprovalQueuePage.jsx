@@ -1,7 +1,6 @@
 // RE-D-01/05 listing approval queue (permission properties.approve): new
 // submissions and resubmissions, or revisions of live listings; oldest first.
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { Badge, PageHeader, Pagination, Table, Tabs } from '@/shared/ui';
 import { dateTime, timeAgo, titleCase } from '@/shared/lib/format';
@@ -10,7 +9,6 @@ import { useReviewQueue } from '@/modules/approvals/api';
 const SLA = { green: ['success', 'On time'], amber: ['warning', 'Due soon'], red: ['danger', 'Overdue'] };
 
 export default function ApprovalQueuePage() {
-  const navigate = useNavigate();
   const [queue, setQueue] = useState('new');
   const [page, setPage] = useState(1);
   const { data, isLoading } = useReviewQueue({ page, limit: 20, ...(queue === 'revisions' ? { queue: 'revisions' } : {}) });
@@ -21,7 +19,7 @@ export default function ApprovalQueuePage() {
       <PageHeader title="Approval queue" description="Check each listing against its private data and decide within 24 hours. Claiming locks it for 30 minutes." />
       <Tabs className="mb-4" value={queue} onChange={(v) => { setQueue(v); setPage(1); }}
         tabs={[{ value: 'new', label: 'New and resubmitted' }, { value: 'revisions', label: 'Revisions of live listings' }].map((t) => (t.value === queue && data ? { ...t, count: data.meta.total } : t))} />
-      <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/admin/approvals/${r._id}`)} empty="Queue is clear. Nothing is waiting for review."
+      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/approvals/${r._id}`} empty="Queue is clear. Nothing is waiting for review."
         columns={[
           { key: 'title', header: 'Listing', render: (r) => <span><span className="block max-w-sm truncate font-medium text-ink">{r.title}</span><span className="text-xs text-ink-subtle">{r.listingNo} · {titleCase(r.purpose)} · {[r.location?.locality, r.location?.city].filter(Boolean).join(', ')}</span></span> },
           { key: 'lister', header: 'Lister', render: (r) => (r.listerId ? <span className="text-sm">{r.listerId.name}<span className="block text-xs text-ink-subtle">{titleCase(r.listerId.listerType)} · KYC {titleCase(r.listerId.kyc?.status || 'not_started')}</span></span> : '-') },

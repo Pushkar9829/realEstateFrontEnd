@@ -1,9 +1,9 @@
 // RE-S-ADM-12 all leads (RE-C-07): filters, table, bulk assign and CSV export.
 // Managers see the leads of their teams only (the API scopes the query).
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Download, Inbox, Search, UserPlus, X } from 'lucide-react';
-import { Badge, Button, Card, Input, PageHeader, Pagination, Select, Table, useToast } from '@/shared/ui';
+import { Badge, Button, Card, FiltersBox, Input, PageHeader, Pagination, Select, Table, useToast } from '@/shared/ui';
 import { dateTime, plural, shortRupees, timeAgo, titleCase } from '@/shared/lib/format';
 import { useAuth } from '@/modules/auth';
 import { useAgentOptions, useTeams } from '@/modules/teams/api';
@@ -15,7 +15,6 @@ const istStart = (d) => (d ? `${d}T00:00:00+05:30` : undefined);
 const istEnd = (d) => (d ? `${d}T23:59:59+05:30` : undefined);
 
 export default function AllLeadsPage() {
-  const navigate = useNavigate();
   const toast = useToast();
   const { hasPermission } = useAuth();
   const [sp, setSp] = useSearchParams();
@@ -72,6 +71,7 @@ export default function AllLeadsPage() {
           <Input className="flex-1" aria-label="Search" leading={<Search className="h-4 w-4" />} placeholder="Lead number, buyer name or phone" value={q} onChange={(e) => setQ(e.target.value)} />
           <Button type="submit" variant="secondary">Search</Button>
         </form>
+        <FiltersBox count={FILTER_KEYS.filter((k) => k !== 'q' && f[k]).length} onClear={clearAll}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
           <Select label="Stage" placeholder="Any stage" value={f.stage} onChange={(e) => setFilter('stage', e.target.value)} options={Object.entries(LEAD_STAGES).map(([value, s]) => ({ value, label: s.label }))} />
           <Select label="Agent" placeholder="Any agent" value={f.agentId} onChange={(e) => setFilter('agentId', e.target.value)} options={[{ value: 'none', label: 'Unassigned' }, ...agentOptions]} />
@@ -82,12 +82,13 @@ export default function AllLeadsPage() {
           <Input label="Created from" type="date" value={f.from} onChange={(e) => setFilter('from', e.target.value)} />
           <Input label="Created to" type="date" value={f.to} onChange={(e) => setFilter('to', e.target.value)} />
         </div>
-        {active && <Button className="mt-3" size="sm" variant="ghost" icon={X} onClick={clearAll}>Clear filters</Button>}
+        </FiltersBox>
+        {active && <Button className="mt-3 hidden sm:inline-flex" size="sm" variant="ghost" icon={X} onClick={clearAll}>Clear filters</Button>}
         {hasPermission('leads.export') && <p className="mt-2 text-xs text-ink-subtle">CSV export applies the stage and date filters. Phone and email are included only with the contacts.view permission.</p>}
       </Card>
 
       {error && <Card className="mb-4 text-sm text-danger-700">{error.message}</Card>}
-      <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/admin/leads/${r._id}`)} empty={active ? 'No leads match these filters.' : 'No leads yet.'}
+      <Table loading={isLoading} rows={rows} rowHref={(r) => `/admin/leads/${r._id}`} empty={active ? 'No leads match these filters.' : 'No leads yet.'}
         columns={[
           { key: 'sel', header: <input type="checkbox" aria-label="Select all on this page" className="h-4 w-4 rounded border-line-strong" checked={allOnPage} onChange={toggleAll} />, className: 'w-8',
             render: (r) => <input type="checkbox" aria-label={`Select ${r.leadNo}`} className="h-4 w-4 rounded border-line-strong" checked={selected.includes(r._id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(r._id)} /> },

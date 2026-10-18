@@ -1,7 +1,6 @@
 // RE-S-AGT-12 My deals: status tabs and the deal table with commission and
 // admin comments. Verified, rejected and cancelled deals are read-only.
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Handshake } from 'lucide-react';
 import { Badge, EmptyState, PageHeader, Pagination, Table, Tabs } from '@/shared/ui';
 import { date, rupees } from '@/shared/lib/format';
@@ -14,7 +13,6 @@ const TABS = [
 ];
 
 export default function DealsPage() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const { data, isLoading, error, refetch } = useAgentDeals({ page, limit: 20, sort: '-updatedAt', ...(status ? { status } : {}) });
@@ -26,7 +24,7 @@ export default function DealsPage() {
       {error ? <ErrorState error={error} onRetry={refetch} title="Could not load deals" /> : !isLoading && !rows.length ? (
         <EmptyState icon={Handshake} title="Deals appear when a lead reaches booking" description="Open a lead in negotiation and choose Create deal, or accept an offer and create the deal from it." />
       ) : (
-        <Table loading={isLoading} rows={rows} onRowClick={(r) => navigate(`/agent/deals/${r._id}`)} empty="No deals in this tab"
+        <Table loading={isLoading} rows={rows} rowHref={(r) => `/agent/deals/${r._id}`} empty="No deals in this tab"
           columns={[
             { key: 'deal', header: 'Deal', render: (r) => <span><span className="block font-medium text-ink">{r.dealNo}</span><span className="text-xs text-ink-subtle">{r.leadId ? r.leadId.leadNo : ''} · {r.dealType === 'rent' ? 'Rent' : 'Sale'}</span></span> },
             { key: 'prop', header: 'Property', render: (r) => <span className="block max-w-[14rem] truncate text-sm">{r.propertyId ? `${r.propertyId.listingNo} · ${r.propertyId.title}` : r.projectId ? `${r.projectId.projectNo} · ${r.projectId.name}` : '-'}</span> },

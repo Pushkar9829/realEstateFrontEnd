@@ -1,14 +1,87 @@
 // Table, Tabs, Pagination and Stepper.
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { Skeleton, EmptyState } from './Display';
+import useMediaQuery from '@/shared/hooks/useMediaQuery';
+import { useT } from '@/shared/i18n';
+import { Skeleton, EmptyState, Alert } from './Display';
+
+// Ignore row clicks that land on something interactive inside the row.
+const INTERACTIVE = 'a,button,input,select,textarea,label,[role=button],[role=menuitem]';
 
 /**
- * columns: [{ key, header, render?(row), className? }]
+ * columns: [{ key, header, render?(row), className?, mobile?: 'title' | 'footer' | false, noLink? }]
+ * rowHref(row): the row opens a page. The first column (or the `link: true`
+ *   column) is rendered as a real <Link>, so rows work with the keyboard, screen
+ *   readers, middle-click and "open in new tab"; a click elsewhere on the row
+ *   follows the same link.
+ * onRowClick(row): the row opens something on this page (drawer, modal). The
+ *   first cell becomes a button with the same action.
+ * Below 640 px the rows become labelled cards (stack={false} keeps the table).
  */
-export function Table({ columns, rows, loading, empty, rowKey = (r) => r._id || r.id, onRowClick }) {
+export function Table({ columns, rows, loading, empty, rowKey = (r) => r._id || r.id, onRowClick, rowHref, rowLabel, stack = true, error, onRetry }) {
+  const narrow = useMediaQuery('(max-width: 639px)');
+  const t = useT();
+  const emptyText = empty || t('common.table.empty');
+  const linkCol = columns.find((c) => c.link) || columns.find((c) => !c.noLink && typeof c.header === 'string' && c.header);
+  const open = (r, e) => {
+    if (e && e.target.closest && e.target.closest(INTERACTIVE)) return;
+    if (rowHref) {
+      const a = e && e.currentTarget && e.currentTarget.querySelector('a[data-row-link]');
+      if (a) a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey }));
+      return;
+    }
+    if (onRowClick) onRowClick(r);
+  };
+  const clickable = Boolean(rowHref || onRowClick);
+  const cellOf = (c, r) => {
+    const content = c.render ? c.render(r) : r[c.key];
+    if (c !== linkCol || !clickable) return content;
+    const label = rowLabel ? rowLabel(r) : undefined;
+    if (rowHref) {
+      return <Link to={rowHref(r)} data-row-link aria-label={label} className="font-medium text-brand-700 underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{content}</Link>;
+    }
+    return <button type="button" data-row-link aria-label={label} onClick={() => onRowClick(r)} className="text-left font-medium text-brand-700 underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{content}</button>;
+  };
+  const errorBox = error ? (
+    <Alert tone="danger" className="m-3" title={t('common.table.error')} action={onRetry ? <button type="button" className="font-semibold underline" onClick={onRetry}>{t('common.retry')}</button> : null}>
+      {error.message || ''}
+    </Alert>
+  ) : null;
+
+  if (stack && narrow) {
+    if (loading) return <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>;
+    if (errorBox) return <div className="rounded-lg border bg-white">{errorBox}</div>;
+    if (!rows.length) return <EmptyState title={emptyText} />;
+    const visible = columns.filter((c) => c.mobile !== false);
+    const title = visible.find((c) => c.mobile === 'title') || (visible.includes(linkCol) ? linkCol : visible.find((c) => c.header));
+    const footer = visible.filter((c) => c !== title && (c.mobile === 'footer' || typeof c.header !== 'string' || !c.header));
+    const body = visible.filter((c) => c !== title && !footer.includes(c));
+    return (
+      <ul className="space-y-2">
+        {rows.map((r) => (
+          <li key={rowKey(r)} onClick={clickable ? (e) => open(r, e) : undefined}
+            className={cn('min-w-0 rounded-lg border bg-white p-3 text-sm shadow-sm', clickable && 'cursor-pointer hover:bg-surface-muted')}>
+            {title && <div className="min-w-0 break-words font-medium text-ink">{title === linkCol ? cellOf(title, r) : (title.render ? title.render(r) : r[title.key])}</div>}
+            {body.length > 0 && (
+              <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
+                {body.map((c) => (
+                  <div key={c.key} className="min-w-0">
+                    <dt className="text-[11px] font-medium uppercase tracking-wide text-ink-subtle">{c.header}</dt>
+                    <dd className="mt-0.5 break-words text-ink">{cellOf(c, r)}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            {footer.length > 0 && <div className="mt-2 flex flex-wrap items-center gap-2">{footer.map((c) => <span key={c.key}>{cellOf(c, r)}</span>)}</div>}
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
-    <div className="overflow-x-auto rounded-lg border bg-white shadow-sm">
+    <div className="relative max-w-full overflow-x-auto rounded-lg border bg-white shadow-sm">
+      {errorBox}
       <table className="min-w-full divide-y divide-line text-sm">
         <thead className="bg-surface-muted">
           <tr>{columns.map((c) => <th key={c.key} scope="col" className={cn('whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-subtle', c.className)}>{c.header}</th>)}</tr>
@@ -17,14 +90,14 @@ export function Table({ columns, rows, loading, empty, rowKey = (r) => r._id || 
           {loading && Array.from({ length: 4 }).map((_, i) => (
             <tr key={`s${i}`}>{columns.map((c) => <td key={c.key} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}</tr>
           ))}
-          {!loading && rows.map((r) => (
-            <tr key={rowKey(r)} onClick={onRowClick ? () => onRowClick(r) : undefined} className={cn(onRowClick && 'cursor-pointer hover:bg-surface-muted')}>
-              {columns.map((c) => <td key={c.key} className={cn('px-4 py-3 text-ink', c.className)}>{c.render ? c.render(r) : r[c.key]}</td>)}
+          {!loading && !error && rows.map((r) => (
+            <tr key={rowKey(r)} onClick={clickable ? (e) => open(r, e) : undefined} className={cn(clickable && 'cursor-pointer hover:bg-surface-muted')}>
+              {columns.map((c) => <td key={c.key} className={cn('px-4 py-3 text-ink', c.className)}>{cellOf(c, r)}</td>)}
             </tr>
           ))}
         </tbody>
       </table>
-      {!loading && rows.length === 0 && <EmptyState className="rounded-none border-0" title={empty || 'Nothing here yet'} />}
+      {!loading && !error && rows.length === 0 && <EmptyState className="rounded-none border-0" title={emptyText} />}
     </div>
   );
 }
@@ -44,13 +117,14 @@ export function Tabs({ tabs, value, onChange, className }) {
 }
 
 export function Pagination({ page, pages, onChange }) {
+  const t = useT();
   if (!pages || pages <= 1) return null;
   return (
-    <nav className="mt-4 flex items-center justify-between text-sm text-ink-muted" aria-label="Pagination">
-      <span>Page {page} of {pages}</span>
+    <nav className="mt-4 flex items-center justify-between text-sm text-ink-muted" aria-label={t('common.pager.label')}>
+      <span>{t('common.pager.page', { page, pages })}</span>
       <div className="flex gap-1">
-        <button type="button" className="rounded-md border bg-white p-1.5 disabled:opacity-40" disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label="Previous page"><ChevronLeft className="h-4 w-4" /></button>
-        <button type="button" className="rounded-md border bg-white p-1.5 disabled:opacity-40" disabled={page >= pages} onClick={() => onChange(page + 1)} aria-label="Next page"><ChevronRight className="h-4 w-4" /></button>
+        <button type="button" className="rounded-md border bg-white p-1.5 disabled:opacity-40" disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label={t('common.pager.prev')}><ChevronLeft className="h-4 w-4" aria-hidden /></button>
+        <button type="button" className="rounded-md border bg-white p-1.5 disabled:opacity-40" disabled={page >= pages} onClick={() => onChange(page + 1)} aria-label={t('common.pager.next')}><ChevronRight className="h-4 w-4" aria-hidden /></button>
       </div>
     </nav>
   );

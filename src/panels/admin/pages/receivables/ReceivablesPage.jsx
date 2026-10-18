@@ -2,7 +2,6 @@
 // for their teams): summary tiles, ageing buckets, filters, CSV export, bulk
 // reminders, and the sold-elsewhere checks tab (RE-A-19, RE-D-09).
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, BellRing, Download, Search, Wallet } from 'lucide-react';
 import { Alert, Badge, Button, Card, CardHeader, Input, Modal, PageHeader, Pagination, Select, Stat, Table, Tabs, Textarea, useToast } from '@/shared/ui';
 import { date, rupees, titleCase } from '@/shared/lib/format';
@@ -60,7 +59,6 @@ function SoldElsewhereTab({ canManage }) {
 }
 
 export default function ReceivablesPage() {
-  const navigate = useNavigate();
   const toast = useToast();
   const { hasPermission } = useAuth();
   const canManage = hasPermission('receivables.manage');
@@ -125,7 +123,7 @@ export default function ReceivablesPage() {
               options={Object.entries(RECEIVABLE_STATUS).map(([value, s]) => ({ value, label: s.label }))} />
           </div>
           {error && <Alert tone="danger" className="mb-3">{error.message}</Alert>}
-          <Table loading={isLoading} rows={(data && data.items) || []} onRowClick={(r) => navigate(`/admin/receivables/${r._id}`)} empty="No receivables match these filters"
+          <Table loading={isLoading} rows={(data && data.items) || []} rowHref={(r) => `/admin/receivables/${r._id}`} empty="No receivables match these filters"
             columns={[
               { key: 'receivableNo', header: 'Receivable', render: (r) => <span><span className="block font-medium text-ink">{r.receivableNo}</span><span className="text-xs text-ink-subtle">Deal {r.dealNo}</span></span> },
               { key: 'lister', header: 'Lister', render: (r) => (r.listerId ? (r.listerId.billing?.name || r.listerId.name) : '-') },

@@ -1,6 +1,5 @@
 // RE-S-LIS-14 commission invoices: outstanding summary and the invoice table.
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, FileText, IndianRupee, Receipt } from 'lucide-react';
 import { Alert, Button, PageHeader, Stat, Table, Tabs, useToast } from '@/shared/ui';
 import { date, rupees } from '@/shared/lib/format';
@@ -13,7 +12,6 @@ const TABS = [
 ];
 
 export default function InvoicesPage() {
-  const navigate = useNavigate();
   const toast = useToast();
   const [status, setStatus] = useState('');
   const { data, isLoading, isError, refetch } = useListerInvoices(status ? { status } : {});
@@ -31,7 +29,7 @@ export default function InvoicesPage() {
       </div>
       <Tabs className="mb-4" value={status} onChange={setStatus} tabs={TABS.map((t) => (t.value === status && data ? { ...t, count: rows.length } : t))} />
       {isError ? <Alert tone="danger" title="Could not load invoices" action={<Button size="sm" variant="secondary" onClick={() => refetch()}>Retry</Button>} /> : (
-        <Table loading={isLoading} rows={rows} empty="No invoices" onRowClick={(r) => navigate(`/lister/invoices/${r._id}`)} columns={[
+        <Table loading={isLoading} rows={rows} empty="No invoices" rowHref={(r) => `/lister/invoices/${r._id}`} columns={[
           { key: 'invoiceNo', header: 'Invoice', render: (r) => <span><span className="block font-medium text-ink">{r.invoiceNo}</span><span className="text-xs text-ink-subtle">{date(r.date)}</span></span> },
           { key: 'dealNo', header: 'Deal', render: (r) => r.dealNo || '-' },
           { key: 'taxable', header: 'Commission', render: (r) => rupees(r.taxable) },

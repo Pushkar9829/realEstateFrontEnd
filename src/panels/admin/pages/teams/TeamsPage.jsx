@@ -23,7 +23,7 @@ export default function TeamsPage() {
         <EmptyState icon={Users} title="No teams yet" description="Create a team, add its manager and agents, then point routing rules at it."
           action={canManage && <Button icon={Plus} onClick={() => navigate('/admin/teams/new')}>Create a team</Button>} />
       ) : (
-        <Table loading={isLoading} rows={rows} onRowClick={(t) => navigate(`/admin/teams/${t._id}`)}
+        <Table loading={isLoading} rows={rows} rowHref={(t) => `/admin/teams/${t._id}`}
           columns={[
             { key: 'name', header: 'Team', render: (t) => <span className="font-medium text-ink">{t.name}{t.active === false && <Badge className="ml-2">Inactive</Badge>}</span> },
             { key: 'managers', header: 'Managers', render: (t) => (t.managerIds || []).map((m) => m && m.name).filter(Boolean).join(', ') || <span className="text-xs text-warning-700">No manager</span> },

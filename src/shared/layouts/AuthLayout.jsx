@@ -3,6 +3,7 @@
 // proposition beside the form; on mobile a slim photo header above the form.
 import { Link, Outlet } from 'react-router-dom';
 import { ArrowLeft, BadgeCheck, ShieldCheck, Users } from 'lucide-react';
+import SkipLink from '@/shared/components/SkipLink';
 import Logo from '@/shared/components/Logo';
 import { useT } from '@/shared/i18n';
 import LanguageSwitcher from '@/shared/i18n/LanguageSwitcher';
@@ -40,6 +41,7 @@ export default function AuthLayout() {
   const t = useT();
   return (
     <div className="grid min-h-screen bg-sand-50 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+      <SkipLink />
       {/* Photo panel (desktop) */}
       <aside className="relative isolate hidden overflow-hidden bg-navy-950 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:justify-between lg:p-12 xl:p-16">
         <img src={PHOTO} alt="" aria-hidden className="absolute inset-0 -z-10 h-full w-full object-cover" />
@@ -91,9 +93,9 @@ export default function AuthLayout() {
             <ArrowLeft className="h-4 w-4" aria-hidden />{t('account.cms.backHome')}
           </Link>
         </div>
-        <div className="flex flex-1 items-start justify-center px-4 py-8 sm:px-6 sm:py-12 lg:items-center lg:px-10">
+        <main id="main" tabIndex={-1} className="flex flex-1 items-start justify-center px-4 py-8 focus:outline-none sm:px-6 sm:py-12 lg:items-center lg:px-10">
           <div className={`w-full max-w-md ${PUBLIC_FORM_SKIN}`}><Outlet /></div>
-        </div>
+        </main>
       </div>
     </div>
   );
