@@ -2621,4 +2621,9 @@ export default {
       INVALID_TRANSITION: 'विज़िट अब ऐसी स्थिति में नहीं है जिसमें यह किया जा सके।',
     },
   },
+  mlm: {
+    outbox: { pending: 'बाकी', sent: 'भेजा गया', skipped_unreferred: 'छोड़ा गया (रेफ़रल नहीं)', dead: 'बंद (दोबारा नहीं भेजा जाएगा)' },
+    job: { queued: 'कतार में', running: 'चल रहा है', done: 'पूरा', failed: 'विफल', dead: 'बंद' },
+    health: { ok: 'चालू', warning: 'सेटअप जाँचें', error: 'विफल हो रहा है', off: 'बंद' },
+  },
 };

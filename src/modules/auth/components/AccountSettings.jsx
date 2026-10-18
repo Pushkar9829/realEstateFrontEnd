@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { CheckCircle2, LogOut, MonitorSmartphone, ShieldCheck, Smartphone } from 'lucide-react';
 import { Alert, Badge, Button, Card, CardHeader, Input, Modal, OtpInput, PasswordInput, Select, Table, Tabs, Textarea, useToast } from '@/shared/ui';
 import { dateTime, timeAgo, titleCase } from '@/shared/lib/format';
+import { useT } from '@/shared/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi, authKeys, useLoginHistory, useSessions, useUpdateMe } from '../api';
 import { useAuth } from '../AuthProvider';
@@ -17,6 +18,7 @@ import NotificationPrefs from './NotificationPrefs';
 import PrivacySettings from './PrivacySettings';
 
 function Profile() {
+  const t = useT();
   const { user, refreshUser } = useAuth();
   const toast = useToast();
   const update = useUpdateMe();
@@ -24,28 +26,30 @@ function Profile() {
   const [error, setError] = useState(null);
   const onSubmit = form.handleSubmit(async (v) => {
     setError(null);
-    try { await update.mutateAsync({ name: v.name }); await refreshUser(); toast.success('Profile saved'); } catch (e) { setError(e.message); }
+    try { await update.mutateAsync({ name: v.name }); await refreshUser(); toast.success(t('account.settings.profile.saved')); } catch (e) { setError(e.message); }
   });
   return (
     <Card>
-      <CardHeader title="Profile" description="Your name is shown to our team. It is never shown on public pages." />
+      <CardHeader title={t('account.settings.profile.title')} description={t('account.settings.profile.description')} />
       <form onSubmit={onSubmit} className="grid max-w-xl gap-4">
         {error && <Alert tone="danger">{error}</Alert>}
-        <Input label="Full name" {...form.register('name', { required: true })} />
+        <Input label={t('account.settings.profile.fullName')} {...form.register('name', { required: true })} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Email" value={user.email} disabled hint={user.emailVerified ? 'Verified' : 'Not verified'} readOnly />
-          <Input label="Mobile" value={user.phone} disabled hint={user.phoneVerified ? 'Verified' : undefined} readOnly />
+          <Input label={t('account.settings.profile.email')} value={user.email} disabled hint={user.emailVerified ? t('account.settings.profile.verified') : t('account.settings.profile.notVerified')} readOnly />
+          <Input label={t('account.settings.profile.mobile')} value={user.phone} disabled hint={user.phoneVerified ? t('account.settings.profile.verified') : undefined} readOnly />
         </div>
         <div className="flex flex-wrap gap-2 text-sm text-ink-muted">
           <Badge tone="brand">{titleCase(user.role)}{user.listerType ? ` · ${titleCase(user.listerType)}` : ''}</Badge>
-          {user.referralCode && <Badge tone="accent">Referral code {user.referralCode}</Badge>}
+          {user.referralCode && <Badge tone="accent">{t('account.settings.profile.referralCode', { code: user.referralCode })}</Badge>}
         </div>
-        <div><Button type="submit" loading={update.isPending}>Save</Button></div>
+        <div><Button type="submit" loading={update.isPending}>{t('common.save')}</Button></div>
       </form>
     </Card>
   );
 }
 
+// State names are stored as typed in the billing record (and decide CGST + SGST
+// or IGST on the API), so they stay in English.
 const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
   'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
   'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
@@ -53,6 +57,7 @@ const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhatt
 
 // Listers only: the invoice recipient for commission GST invoices (RE-S-LIS-16).
 function Billing() {
+  const t = useT();
   const { user, refreshUser } = useAuth();
   const toast = useToast();
   const update = useUpdateMe();
@@ -63,59 +68,61 @@ function Billing() {
   const save = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (v.name.trim().length < 2) errs.name = 'Enter the name to print on invoices';
-    if (v.gstin && !/^[0-9A-Z]{15}$/.test(v.gstin)) errs.gstin = 'A GSTIN has 15 letters and digits';
-    if (v.address.trim().length < 10) errs.address = 'Enter the full billing address';
-    if (!v.state) errs.state = 'Choose the state (it decides CGST + SGST or IGST)';
+    if (v.name.trim().length < 2) errs.name = t('account.settings.billing.errName');
+    if (v.gstin && !/^[0-9A-Z]{15}$/.test(v.gstin)) errs.gstin = t('account.settings.billing.errGstin');
+    if (v.address.trim().length < 10) errs.address = t('account.settings.billing.errAddress');
+    if (!v.state) errs.state = t('account.settings.billing.errState');
     setErrors(errs);
     if (Object.keys(errs).length) return;
     try {
       await update.mutateAsync({ billing: { name: v.name.trim(), gstin: v.gstin, address: v.address.trim(), state: v.state } });
       await refreshUser();
-      toast.success('Billing details saved');
+      toast.success(t('account.settings.billing.saved'));
     } catch (err) { setErrors(err.fieldErrors || {}); toast.error(err.message); }
   };
   const missing = !b.name;
   return (
     <Card>
-      <CardHeader title="Billing details" description="Printed on the commission invoices we raise after a verified deal. The state decides CGST + SGST or IGST." />
-      {missing && <Alert tone="warning" className="mb-4">Add your billing details so we can issue your commission invoice.</Alert>}
+      <CardHeader title={t('account.settings.billing.title')} description={t('account.settings.billing.description')} />
+      {missing && <Alert tone="warning" className="mb-4">{t('account.settings.billing.missing')}</Alert>}
       <form onSubmit={save} className="grid max-w-xl gap-4" noValidate>
-        <Input label="Billing name" required value={v.name} onChange={set('name')} error={errors.name} hint="Your legal name or company name" />
-        <Input label="GSTIN (optional)" value={v.gstin} onChange={set('gstin')} error={errors.gstin} maxLength={15} placeholder="27ABCDE1234F1Z5" />
-        <Textarea label="Billing address" required rows={3} value={v.address} onChange={set('address')} error={errors.address} />
-        <Select label="State" required placeholder="Choose" value={v.state} onChange={set('state')} error={errors.state} options={STATES.map((x) => ({ value: x, label: x }))} />
-        <div><Button type="submit" loading={update.isPending}>Save billing details</Button></div>
+        <Input label={t('account.settings.billing.name')} required value={v.name} onChange={set('name')} error={errors.name} hint={t('account.settings.billing.nameHint')} />
+        <Input label={t('account.settings.billing.gstin')} value={v.gstin} onChange={set('gstin')} error={errors.gstin} maxLength={15} placeholder="27ABCDE1234F1Z5" />
+        <Textarea label={t('account.settings.billing.address')} required rows={3} value={v.address} onChange={set('address')} error={errors.address} />
+        <Select label={t('account.settings.billing.state')} required placeholder={t('account.request.choose')} value={v.state} onChange={set('state')} error={errors.state} options={STATES.map((x) => ({ value: x, label: x }))} />
+        <div><Button type="submit" loading={update.isPending}>{t('account.settings.billing.save')}</Button></div>
       </form>
     </Card>
   );
 }
 
 function ChangePassword() {
+  const t = useT();
   const toast = useToast();
   const f = useApiForm(changePasswordSchema, { defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' } });
   const onSubmit = f.submit(async (v) => {
     await authApi.changePassword({ currentPassword: v.currentPassword, newPassword: v.newPassword });
     f.reset();
-    toast.success('Password changed. Other devices were signed out.');
+    toast.success(t('account.settings.password.changed'));
   });
   return (
     <Card>
-      <CardHeader title="Password" description="Changing it signs out every other device." />
+      <CardHeader title={t('account.settings.password.title')} description={t('account.settings.password.description')} />
       <form onSubmit={onSubmit} className="grid max-w-xl gap-4" noValidate>
         {f.formError && <Alert tone="danger">{f.formError.message}</Alert>}
-        <PasswordInput label="Current password" autoComplete="current-password" error={f.errorOf('currentPassword')} {...f.register('currentPassword')} />
+        <PasswordInput label={t('account.settings.password.current')} autoComplete="current-password" error={f.errorOf('currentPassword')} {...f.register('currentPassword')} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <PasswordInput label="New password" autoComplete="new-password" error={f.errorOf('newPassword')} {...f.register('newPassword')} />
-          <PasswordInput label="Confirm new password" autoComplete="new-password" error={f.errorOf('confirmPassword')} {...f.register('confirmPassword')} />
+          <PasswordInput label={t('account.settings.password.new')} autoComplete="new-password" error={f.errorOf('newPassword')} {...f.register('newPassword')} />
+          <PasswordInput label={t('account.settings.password.confirm')} autoComplete="new-password" error={f.errorOf('confirmPassword')} {...f.register('confirmPassword')} />
         </div>
-        <div><Button type="submit" loading={f.formState.isSubmitting}>Change password</Button></div>
+        <div><Button type="submit" loading={f.formState.isSubmitting}>{t('account.settings.password.submit')}</Button></div>
       </form>
     </Card>
   );
 }
 
 function TwoStep() {
+  const t = useT();
   const { user, refreshUser } = useAuth();
   const toast = useToast();
   const [setup, setSetup] = useState(null);
@@ -136,46 +143,46 @@ function TwoStep() {
   };
   const disable = async () => {
     setBusy(true); setError(null);
-    try { await authApi.totpDisable({ code }); setDisabling(false); await refreshUser(); toast.success('Authenticator app removed. Codes now come by email.'); } catch (e) { setError(e.message); } finally { setBusy(false); }
+    try { await authApi.totpDisable({ code }); setDisabling(false); await refreshUser(); toast.success(t('account.settings.twoStep.removed')); } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
 
   return (
     <Card>
-      <CardHeader title="Two-step verification" description="Required on every account. Choose how you receive your sign-in code." />
+      <CardHeader title={t('account.settings.twoStep.title')} description={t('account.settings.twoStep.description')} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="rounded-md bg-success-50 p-2.5 text-success-700"><ShieldCheck className="h-5 w-5" /></div>
           <div>
-            <p className="text-sm font-semibold text-ink">{method === 'totp' ? 'Authenticator app' : method === 'sms' ? 'SMS code' : 'Email code'}</p>
-            <p className="text-xs text-ink-subtle">Current method</p>
+            <p className="text-sm font-semibold text-ink">{method === 'totp' ? t('account.settings.twoStep.methodTotp') : method === 'sms' ? t('account.settings.twoStep.methodSms') : t('account.settings.twoStep.methodEmail')}</p>
+            <p className="text-xs text-ink-subtle">{t('account.settings.twoStep.current')}</p>
           </div>
         </div>
         {method === 'totp'
-          ? <Button variant="secondary" onClick={() => { setDisabling(true); setCode(''); setError(null); }}>Remove authenticator app</Button>
-          : <Button variant="secondary" icon={Smartphone} onClick={start}>Use an authenticator app</Button>}
+          ? <Button variant="secondary" onClick={() => { setDisabling(true); setCode(''); setError(null); }}>{t('account.settings.twoStep.removeApp')}</Button>
+          : <Button variant="secondary" icon={Smartphone} onClick={start}>{t('account.settings.twoStep.useApp')}</Button>}
       </div>
 
-      <Modal open={Boolean(setup)} onClose={() => setSetup(null)} title="Set up authenticator app"
-        description="Scan the QR code with Google Authenticator, Microsoft Authenticator or similar, then enter the 6-digit code."
-        footer={<><Button variant="ghost" onClick={() => setSetup(null)}>Cancel</Button><Button onClick={enable} loading={busy}>Turn on</Button></>}>
+      <Modal open={Boolean(setup)} onClose={() => setSetup(null)} title={t('account.settings.twoStep.setupTitle')}
+        description={t('account.settings.twoStep.setupText')}
+        footer={<><Button variant="ghost" onClick={() => setSetup(null)}>{t('common.cancel')}</Button><Button onClick={enable} loading={busy}>{t('account.settings.twoStep.turnOn')}</Button></>}>
         {setup && (
           <div className="space-y-4">
-            <img src={setup.qrDataUrl} alt="Authenticator QR code" className="mx-auto h-44 w-44 rounded-md border" />
-            <p className="text-center text-xs text-ink-subtle">Cannot scan? Enter this key: <code className="break-all rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-ink">{setup.secret}</code></p>
+            <img src={setup.qrDataUrl} alt={t('account.settings.twoStep.qrAlt')} className="mx-auto h-44 w-44 rounded-md border" />
+            <p className="text-center text-xs text-ink-subtle">{t('account.settings.twoStep.cannotScan')}{' '}<code className="break-all rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-ink">{setup.secret}</code></p>
             <div className="flex justify-center"><OtpInput value={code} onChange={setCode} error={error} /></div>
           </div>
         )}
       </Modal>
 
-      <Modal open={Boolean(codes)} onClose={() => setCodes(null)} title="Save your recovery codes"
-        description="Each code works once if you lose your phone. They will not be shown again."
-        footer={<Button onClick={() => setCodes(null)} icon={CheckCircle2}>I have saved them</Button>}>
+      <Modal open={Boolean(codes)} onClose={() => setCodes(null)} title={t('account.settings.twoStep.codesTitle')}
+        description={t('account.settings.twoStep.codesText')}
+        footer={<Button onClick={() => setCodes(null)} icon={CheckCircle2}>{t('account.settings.twoStep.codesSaved')}</Button>}>
         {codes && <ul className="grid grid-cols-2 gap-2 font-mono text-sm">{codes.map((c) => <li key={c} className="rounded bg-surface-sunken px-3 py-1.5 text-center">{c}</li>)}</ul>}
       </Modal>
 
-      <Modal open={disabling} onClose={() => setDisabling(false)} title="Remove authenticator app" size="sm"
-        description="Enter a current code from the app. Sign-in codes will then come by email."
-        footer={<><Button variant="ghost" onClick={() => setDisabling(false)}>Cancel</Button><Button variant="danger" onClick={disable} loading={busy}>Remove</Button></>}>
+      <Modal open={disabling} onClose={() => setDisabling(false)} title={t('account.settings.twoStep.removeApp')} size="sm"
+        description={t('account.settings.twoStep.removeText')}
+        footer={<><Button variant="ghost" onClick={() => setDisabling(false)}>{t('common.cancel')}</Button><Button variant="danger" onClick={disable} loading={busy}>{t('account.settings.twoStep.remove')}</Button></>}>
         <div className="flex justify-center"><OtpInput value={code} onChange={setCode} error={error} /></div>
       </Modal>
     </Card>
@@ -183,41 +190,42 @@ function TwoStep() {
 }
 
 function Sessions() {
+  const t = useT();
   const sessions = useSessions();
   const history = useLoginHistory();
   const { logout } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
   const logoutAll = async () => {
-    try { await authApi.logoutAll(); qc.invalidateQueries({ queryKey: authKeys.sessions }); toast.success('Signed out of all devices'); await logout(); } catch (e) { toast.error(e.message); }
+    try { await authApi.logoutAll(); qc.invalidateQueries({ queryKey: authKeys.sessions }); toast.success(t('account.settings.sessions.signedOutAll')); await logout(); } catch (e) { toast.error(e.message); }
   };
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader title="Active sessions" description="Devices currently signed in to your account."
-          action={<Button variant="secondary" size="sm" icon={LogOut} onClick={logoutAll}>Log out everywhere</Button>} />
+        <CardHeader title={t('account.settings.sessions.title')} description={t('account.settings.sessions.description')}
+          action={<Button variant="secondary" size="sm" icon={LogOut} onClick={logoutAll}>{t('account.settings.sessions.logoutAll')}</Button>} />
         <ul className="divide-y">
           {(sessions.data || []).map((s) => (
             <li key={s.id} className="flex items-center gap-3 py-3">
               <MonitorSmartphone className="h-5 w-5 text-ink-subtle" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-ink">{s.device || 'Unknown device'}</p>
-                <p className="text-xs text-ink-subtle">{s.ip} · active {timeAgo(s.lastUsedAt)}</p>
+                <p className="truncate text-sm text-ink">{s.device || t('account.settings.sessions.unknownDevice')}</p>
+                <p className="text-xs text-ink-subtle">{t('account.settings.sessions.active', { ip: s.ip, ago: timeAgo(s.lastUsedAt) })}</p>
               </div>
-              {s.current && <Badge tone="success">This device</Badge>}
+              {s.current && <Badge tone="success">{t('account.settings.sessions.thisDevice')}</Badge>}
             </li>
           ))}
-          {sessions.isLoading && <li className="py-3 text-sm text-ink-subtle">Loading…</li>}
+          {sessions.isLoading && <li className="py-3 text-sm text-ink-subtle">{t('common.loading')}</li>}
         </ul>
       </Card>
       <div>
-        <h3 className="mb-3 text-base font-semibold text-ink">Recent sign-ins</h3>
-        <Table loading={history.isLoading} rows={history.data || []} empty="No sign-ins yet"
+        <h3 className="mb-3 text-base font-semibold text-ink">{t('account.settings.sessions.recent')}</h3>
+        <Table loading={history.isLoading} rows={history.data || []} empty={t('account.settings.sessions.empty')}
           columns={[
-            { key: 'at', header: 'When', render: (r) => dateTime(r.at) },
-            { key: 'success', header: 'Result', render: (r) => <Badge tone={r.success ? 'success' : 'danger'}>{r.success ? 'Success' : titleCase(r.reason || 'failed')}</Badge> },
-            { key: 'method', header: 'Method', render: (r) => titleCase(r.method || '-') },
-            { key: 'ip', header: 'IP address' },
+            { key: 'at', header: t('account.settings.sessions.when'), render: (r) => dateTime(r.at) },
+            { key: 'success', header: t('account.settings.sessions.result'), render: (r) => <Badge tone={r.success ? 'success' : 'danger'}>{r.success ? t('account.settings.sessions.success') : titleCase(r.reason || 'failed')}</Badge> },
+            { key: 'method', header: t('account.settings.sessions.method'), render: (r) => titleCase(r.method || '-') },
+            { key: 'ip', header: t('account.settings.sessions.ip') },
           ]} />
       </div>
     </div>
@@ -225,15 +233,17 @@ function Sessions() {
 }
 
 export default function AccountSettings() {
+  const t = useT();
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const isLister = user.role === 'lister';
-  const tabs = [{ value: 'profile', label: 'Profile' }, ...(isLister ? [{ value: 'billing', label: 'Billing' }] : []), { value: 'security', label: 'Security' }, { value: 'sessions', label: 'Sessions and history' },
-    { value: 'notifications', label: 'Notifications' }, { value: 'privacy', label: 'Privacy' }];
-  const initial = tabs.some((t) => t.value === params.get('tab')) ? params.get('tab') : 'profile';
+  const tabs = [{ value: 'profile', label: t('account.settings.tabs.profile') }, ...(isLister ? [{ value: 'billing', label: t('account.settings.tabs.billing') }] : []),
+    { value: 'security', label: t('account.settings.tabs.security') }, { value: 'sessions', label: t('account.settings.tabs.sessions') },
+    { value: 'notifications', label: t('account.settings.tabs.notifications') }, { value: 'privacy', label: t('account.settings.tabs.privacy') }];
+  const initial = tabs.some((x) => x.value === params.get('tab')) ? params.get('tab') : 'profile';
   const [tab, setTab] = useState(initial);
-  useEffect(() => { if (params.get('tab') && params.get('tab') !== tab && tabs.some((t) => t.value === params.get('tab'))) setTab(params.get('tab')); }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
-  const choose = (t) => { setTab(t); setParams(t === 'profile' ? {} : { tab: t }, { replace: true }); };
+  useEffect(() => { if (params.get('tab') && params.get('tab') !== tab && tabs.some((x) => x.value === params.get('tab'))) setTab(params.get('tab')); }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
+  const choose = (v) => { setTab(v); setParams(v === 'profile' ? {} : { tab: v }, { replace: true }); };
   return (
     <div className="space-y-6">
       <Tabs value={tab} onChange={choose} tabs={tabs} />

@@ -2622,4 +2622,9 @@ export default {
       INVALID_TRANSITION: 'The visit is no longer in a state that allows this.',
     },
   },
+  mlm: {
+    outbox: { pending: 'Pending', sent: 'Sent', skipped_unreferred: 'Skipped (no referral)', dead: 'Dead' },
+    job: { queued: 'Queued', running: 'Running', done: 'Done', failed: 'Failed', dead: 'Dead' },
+    health: { ok: 'Working', warning: 'Check setup', error: 'Failing', off: 'Off' },
+  },
 };
