@@ -2,21 +2,18 @@
 // Endpoints: backend/src/modules/notifications/routes/public.routes.js
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { t } from '@/shared/i18n';
 
-export const NOTIFICATION_CATEGORIES = [
-  { value: 'account', label: 'Account' }, { value: 'listings', label: 'Listings' }, { value: 'leads', label: 'Leads' },
-  { value: 'visits', label: 'Visits' }, { value: 'offers', label: 'Offers' }, { value: 'deals', label: 'Deals' },
-  { value: 'finance', label: 'Invoices' }, { value: 'invoices', label: 'Invoices' }, { value: 'alerts', label: 'Alerts' }, { value: 'marketing', label: 'Offers and news' },
-  { value: 'security', label: 'Security' }, { value: 'system', label: 'System' },
-];
+// `label` is a getter, so lists keep their shape and follow the chosen language.
+const labelled = (prefix, values) => values.map((value) => ({ value, get label() { return t(`${prefix}.${value}`); } }));
+
+export const NOTIFICATION_CATEGORIES = labelled('common.notify.cat', ['account', 'listings', 'leads', 'visits', 'offers', 'deals', 'finance', 'invoices', 'alerts', 'marketing', 'security', 'system']);
 // Category filter options without the duplicate "Invoices" label.
 export const NOTIFICATION_FILTERS = NOTIFICATION_CATEGORIES.filter((c) => c.value !== 'invoices');
 export const notificationCategoryLabel = (c) => (NOTIFICATION_CATEGORIES.find((x) => x.value === c) || { label: c }).label;
 
 // Channels a user can switch per category (GET/PATCH /me/notification-preferences).
-export const NOTIFICATION_CHANNELS = [
-  { value: 'in_app', label: 'In-app' }, { value: 'email', label: 'Email' }, { value: 'sms', label: 'SMS' }, { value: 'whatsapp', label: 'WhatsApp' },
-];
+export const NOTIFICATION_CHANNELS = labelled('common.notify.channel', ['in_app', 'email', 'sms', 'whatsapp']);
 
 export const notificationKeys = { list: (p) => ['me', 'notifications', p], unread: ['me', 'notifications', 'unread-count'], prefs: ['me', 'notification-preferences'] };
 

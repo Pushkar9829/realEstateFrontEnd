@@ -43,6 +43,17 @@ export function useNamespaces(namespaces) {
 // Non-hook form for code outside components (e.g. zod messages built at call time).
 export const t = (key, vars) => translate(getLang(), key, vars);
 
+// Wraps a page that needs extra namespaces (e.g. a panel page also shown on
+// the public site); renders nothing until they are loaded.
+export function withNamespaces(namespaces, Component) {
+  function Wrapped(props) {
+    const ready = useNamespaces(namespaces);
+    return ready ? <Component {...props} /> : null;
+  }
+  Wrapped.displayName = `withNamespaces(${Component.displayName || Component.name || 'Component'})`;
+  return Wrapped;
+}
+
 export function I18nProvider({ languages, children }) {
   const key = Array.isArray(languages) ? languages.join(',') : '';
   useEffect(() => { if (key) setAllowed(key.split(',')); }, [key]);

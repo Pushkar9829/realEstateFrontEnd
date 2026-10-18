@@ -119,4 +119,11 @@ export default {
     clear: 'फ़िल्टर हटाएँ',
     showResults: 'नतीजे देखें',
   },
+  notify: {
+    cat: {
+      account: 'खाता', listings: 'लिस्टिंग', leads: 'लीड', visits: 'विज़िट', offers: 'ऑफ़र', deals: 'डील',
+      finance: 'इनवॉइस', invoices: 'इनवॉइस', alerts: 'अलर्ट', marketing: 'ऑफ़र और खबरें', security: 'सुरक्षा', system: 'सिस्टम',
+    },
+    channel: { in_app: 'ऐप में', email: 'ईमेल', sms: 'SMS', whatsapp: 'WhatsApp' },
+  },
 };

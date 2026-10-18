@@ -69,7 +69,7 @@ export const publicRoutes = [
       { path: 'account/shortlist', element: <RequireAuth><Shortlist /></RequireAuth> },
       { path: 'account/saved-searches', element: <RequireAuth><Shortlist /></RequireAuth> },
       { path: 'my-enquiries', element: <RequireAuth><MyEnquiries /></RequireAuth> },
-      { path: 'notifications', element: <RequireAuth>{wrap(<Notifications base="" description="Updates on your enquiries, visits and saved searches." />)}</RequireAuth> },
+      { path: 'notifications', element: <RequireAuth>{wrap(<Notifications base="" variant="buyer" />)}</RequireAuth> },
       { path: 'my-enquiries/:id', element: <RequireAuth><MyEnquiries /></RequireAuth> },
       { path: 'account/enquiries', element: <RequireAuth><MyEnquiries /></RequireAuth> },
       { path: 'account/enquiries/:id', element: <RequireAuth><MyEnquiries /></RequireAuth> },

@@ -121,4 +121,11 @@ export default {
     clear: 'Clear filters',
     showResults: 'Show results',
   },
+  notify: {
+    cat: {
+      account: 'Account', listings: 'Listings', leads: 'Leads', visits: 'Visits', offers: 'Offers', deals: 'Deals',
+      finance: 'Invoices', invoices: 'Invoices', alerts: 'Alerts', marketing: 'Offers and news', security: 'Security', system: 'System',
+    },
+    channel: { in_app: 'In-app', email: 'Email', sms: 'SMS', whatsapp: 'WhatsApp' },
+  },
 };

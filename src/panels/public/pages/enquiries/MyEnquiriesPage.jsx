@@ -3,6 +3,7 @@
 // new slot), offers relayed by the agent and requirement requests.
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import useMediaQuery from '@/shared/hooks/useMediaQuery';
 import { ArrowLeft, CalendarCheck, CalendarClock, Check, ChevronRight, ClipboardList, HandCoins, Inbox, MapPin, MessageSquareText, Phone, UserRound, X } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { date, dateTime, rupees } from '@/shared/lib/format';
@@ -206,6 +207,10 @@ export default function MyEnquiriesPage() {
   const isBuyer = user && user.role === 'buyer';
   const list = useMyEnquiries(isBuyer);
   const rows = (isBuyer && list.data) || [];
+  // Desktop opens the latest enquiry straight away instead of an empty pane (audit P4);
+  // on phones the list comes first and a tap opens the detail page.
+  const wide = useMediaQuery('(min-width: 1024px)');
+  const shown = id || (wide && rows[0] ? String(rows[0].id) : null);
   useDocumentMeta({ title: t('account.meta.myEnquiries'), noindex: true });
 
   if (!isBuyer) {
@@ -241,8 +246,8 @@ export default function MyEnquiriesPage() {
               <ul className="space-y-3">
                 {rows.map((l) => (
                   <li key={l.id}>
-                    <button type="button" onClick={() => navigate(`/my-enquiries/${l.id}`)} aria-current={id === String(l.id) ? 'true' : undefined}
-                      className={cn('w-full rounded-2xl bg-white p-4 text-left shadow-card ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-lift', id === String(l.id) ? 'ring-2 ring-gold-500' : 'ring-navy-900/5')}>
+                    <button type="button" onClick={() => navigate(`/my-enquiries/${l.id}`)} aria-current={shown === String(l.id) ? 'true' : undefined}
+                      className={cn('w-full rounded-2xl bg-white p-4 text-left shadow-card ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-lift', shown === String(l.id) ? 'ring-2 ring-gold-500' : 'ring-navy-900/5')}>
                       <PropertyMini property={l.property} requirement={l.requirement} />
                       <div className="mt-3 flex items-center justify-between gap-2 border-t border-navy-900/5 pt-3 text-xs">
                         <span className="text-navy-500">{l.leadNo} · {date(l.createdAt)}</span>
@@ -255,10 +260,10 @@ export default function MyEnquiriesPage() {
             )}
         </div>
         <div className={cn(!id && 'hidden lg:block')}>
-          {id ? (
+          {shown ? (
             <>
               <Button variant="ghost" icon={ArrowLeft} className="mb-4 !rounded-full px-3 text-navy-700 lg:hidden" onClick={() => navigate('/my-enquiries')}>{t('account.enquiries.allEnquiries')}</Button>
-              <EnquiryDetail id={id} />
+              <EnquiryDetail id={shown} />
             </>
           ) : rows.length > 0 ? (
             <div className="flex h-full min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-navy-900/15 bg-white/60 p-6 text-center font-display text-lg text-navy-500">{t('account.enquiries.choose')}</div>

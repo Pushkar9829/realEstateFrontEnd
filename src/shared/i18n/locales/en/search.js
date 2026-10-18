@@ -37,7 +37,7 @@ export default {
     searching: 'Searching…',
     found_one: '{n} property found',
     found_other: '{n} properties found',
-    verifiedFacet: '{n} verified',
+    verifiedFacet: '{n} photo or site verified',
     bhkFacet: '{bhk} BHK ({n})',
     emptyTitle: 'No properties match',
     emptyDesc: 'Try fewer filters or a wider area. Or tell us what you need and our team will find options for you.',
