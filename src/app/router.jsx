@@ -9,12 +9,15 @@ import { agentRoutes } from '@/panels/agent/routes';
 import { adminRoutes } from '@/panels/admin/routes';
 import RouteError from './RouteError';
 import NotFound from './NotFound';
+import MaintenanceBanner from '@/shared/components/MaintenanceBanner';
 
 const UiGallery = lazy(() => import('@/dev/UiGallery'));
+const SsoCc = lazy(() => import('@/modules/auth/SsoCc'));
 
 function Root() {
   return (
     <Suspense fallback={<PageSpinner />}>
+      <MaintenanceBanner />
       <Outlet />
     </Suspense>
   );
@@ -29,6 +32,7 @@ export const routes = [
       listerRoutes,
       agentRoutes,
       adminRoutes,
+      { path: 'sso/cc', element: <SsoCc /> }, // Control Center single sign-on hand-off
       ...(import.meta.env.DEV ? [{ path: 'dev/ui', element: <UiGallery /> }] : []),
       { path: '*', element: <NotFound /> },
     ],
