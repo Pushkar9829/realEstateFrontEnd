@@ -519,6 +519,7 @@ export default {
       reassignRequested: 'दोबारा सौंपने का अनुरोध: {reason}',
       repeat: 'दोबारा पूछताछ',
       updated: 'लीड का विवरण अपडेट हुआ',
+      hub: 'ग्रोथ हब लीड डेस्क: {status}',
       src: {
         enquiry: 'पूछताछ', callback: 'कॉलबैक', site_visit: 'साइट विज़िट', best_price: 'सबसे अच्छी कीमत', contact_form: 'संपर्क फ़ॉर्म', whatsapp: 'WhatsApp',
         hotline: 'हॉटलाइन', walk_in: 'वॉक-इन', referral: 'रेफ़रल', requirement: 'ज़रूरत', recycled: 'दोबारा खोली गई', manual: 'हाथ से',

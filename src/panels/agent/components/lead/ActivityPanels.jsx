@@ -229,6 +229,7 @@ function describe(item) {
     case 'reassign_requested': return t('agent.activity.tl.reassignRequested', { reason: d.reason });
     case 'merged': case 'repeat_enquiry': return `${t('agent.activity.tl.repeat')}${d.source ? ` (${keyOr(`agent.activity.tl.src.${d.source}`, d.source)})` : ''}`;
     case 'updated': return t('agent.activity.tl.updated');
+    case 'hub': return `${t('agent.activity.tl.hub', { status: d.stageLabel || titleCase(d.status || d.event || '') })}${d.owner ? ` · ${d.owner}` : ''}`;
     default: return titleCase(item.type);
   }
 }

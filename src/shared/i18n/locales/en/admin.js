@@ -797,6 +797,8 @@ export default {
       reject: 'Reject',
     },
     detail: {
+      hubStatus: 'Growth Hub',
+      hubUpdated: 'Updated by the hub {date}',
       tl: {
         anotherAgent: 'another agent',
         lost: 'lost: {reason}',
@@ -807,6 +809,8 @@ export default {
         mergedInto: 'Merged into {into}',
         recycledAs: 'Recycled as {into}',
         loggedManually: 'logged manually',
+        hub: 'Growth Hub lead desk: {status}',
+        hubOwner: 'owner {name}',
       },
       merge: {
         done: '{from} merged into {into}',

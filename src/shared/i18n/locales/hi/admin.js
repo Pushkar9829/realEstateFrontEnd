@@ -796,6 +796,8 @@ export default {
       reject: 'अस्वीकार करें',
     },
     detail: {
+      hubStatus: 'ग्रोथ हब',
+      hubUpdated: 'हब द्वारा अपडेट {date}',
       tl: {
         anotherAgent: 'दूसरा एजेंट',
         lost: 'खोई: {reason}',
@@ -806,6 +808,8 @@ export default {
         mergedInto: '{into} में मर्ज की गई',
         recycledAs: '{into} के रूप में रीसायकल की गई',
         loggedManually: 'हाथ से दर्ज की गई',
+        hub: 'ग्रोथ हब लीड डेस्क: {status}',
+        hubOwner: 'ज़िम्मेदार {name}',
       },
       merge: {
         done: '{from} को {into} में मर्ज किया गया',

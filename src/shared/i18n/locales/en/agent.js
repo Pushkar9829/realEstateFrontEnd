@@ -519,6 +519,7 @@ export default {
       reassignRequested: 'Reassignment requested: {reason}',
       repeat: 'Repeat enquiry',
       updated: 'Lead details updated',
+      hub: 'Growth Hub lead desk: {status}',
       src: {
         enquiry: 'Enquiry', callback: 'Callback', site_visit: 'Site Visit', best_price: 'Best Price', contact_form: 'Contact Form', whatsapp: 'WhatsApp',
         hotline: 'Hotline', walk_in: 'Walk In', referral: 'Referral', requirement: 'Requirement', recycled: 'Recycled', manual: 'Manual',

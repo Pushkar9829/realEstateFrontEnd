@@ -33,6 +33,7 @@ function timelineText(ev, names, t) {
   if (ev.type === 'merged') return t('admin.leads.detail.tl.mergedFrom', { from: d.from });
   if (ev.type === 'merged_into') return t('admin.leads.detail.tl.mergedInto', { into: d.into });
   if (ev.type === 'recycled') return t('admin.leads.detail.tl.recycledAs', { into: d.into });
+  if (ev.type === 'hub') return [t('admin.leads.detail.tl.hub', { status: d.stageLabel || titleCase(d.status || d.event) }), d.owner && t('admin.leads.detail.tl.hubOwner', { name: d.owner }), d.lostReason && t('admin.leads.detail.tl.lost', { reason: titleCase(d.lostReason) })].filter(Boolean).join(' · ');
   if (ev.type === 'created') return [titleCase(d.type), d.from && t('admin.leads.detail.tl.from', { name: d.from }), d.manual && t('admin.leads.detail.tl.loggedManually')].filter(Boolean).join(' · ');
   return d.note || d.text || d.comment || '';
 }
@@ -219,6 +220,7 @@ export default function LeadDetailPage() {
               <Row label={t('admin.leads.detail.callAttempts')}>{String(l.callAttempts || 0)}</Row>
               <Row label={t('admin.leads.created')}>{dateTime(l.createdAt)}</Row>
               <Row label={t('admin.leads.lastActivity')}>{dateTime(l.lastActivityAt)}</Row>
+              {l.hub && <Row label={t('admin.leads.detail.hubStatus')}>{[l.hub.stageLabel || titleCase(l.hub.status), l.hub.ownerDisplayName, l.hub.leadNo].filter(Boolean).join(' · ')}<span className="block text-xs text-ink-subtle">{t('admin.leads.detail.hubUpdated', { date: dateTime(l.hub.occurredAt || l.hub.receivedAt) })}</span></Row>}
             </dl>
           </Card>
 
